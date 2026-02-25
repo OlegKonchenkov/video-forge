@@ -118,11 +118,11 @@ export default function SignupPage() {
         </form>
 
         {/* Mini film strip */}
-        <div className="pt-2 border-t border-film-border -mx-8 px-0">
-          <div className="flex items-center gap-1.5 px-4 py-1.5 overflow-hidden">
-            {SPROCKETS.map((_, i) => (
+        <div className="pt-2 border-t border-film-border -mx-8 px-0 overflow-hidden" aria-hidden>
+          <div className="marquee-track-slow flex gap-0.5 py-1.5 px-0.5">
+            {[...SPROCKETS, ...SPROCKETS].map((_, i) => (
               <div key={i} className="w-6 h-4 flex-shrink-0 border border-film-border/60 bg-film-black flex items-end p-0.5">
-                <span className="font-display text-film-amber/20 text-[0.4rem] leading-none">{String(i + 1).padStart(2, '0')}</span>
+                <span className="font-display text-film-amber/20 text-[0.4rem] leading-none">{String((i % 18) + 1).padStart(2, '0')}</span>
               </div>
             ))}
           </div>
