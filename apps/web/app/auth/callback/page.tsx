@@ -1,11 +1,22 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
-export default function AuthCallbackPage() {
+function CallbackLoading() {
+  return (
+    <div className="min-h-screen bg-film-black flex items-center justify-center px-6">
+      <div className="film-card p-8 text-center w-full max-w-md">
+        <Loader2 className="w-6 h-6 animate-spin mx-auto mb-4 text-film-amber" />
+        <p className="text-film-cream font-sans text-sm">Completing sign in...</p>
+      </div>
+    </div>
+  );
+}
+
+function AuthCallbackHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const code = searchParams.get('code');
@@ -79,12 +90,13 @@ export default function AuthCallbackPage() {
     };
   }, [code, providerError, router]);
 
+  return <CallbackLoading />;
+}
+
+export default function AuthCallbackPage() {
   return (
-    <div className="min-h-screen bg-film-black flex items-center justify-center px-6">
-      <div className="film-card p-8 text-center w-full max-w-md">
-        <Loader2 className="w-6 h-6 animate-spin mx-auto mb-4 text-film-amber" />
-        <p className="text-film-cream font-sans text-sm">Completing sign in...</p>
-      </div>
-    </div>
+    <Suspense fallback={<CallbackLoading />}>
+      <AuthCallbackHandler />
+    </Suspense>
   );
 }
