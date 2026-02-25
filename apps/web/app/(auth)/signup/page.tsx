@@ -15,17 +15,24 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
   const [error, setError] = useState('');
+  const [confirmEmail, setConfirmEmail] = useState(false);
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true); setError('');
     const supabase = createClient();
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email, password,
       options: { data: { full_name: name } },
     });
     if (error) { setError(error.message); setLoading(false); return; }
-    router.push('/dashboard');
+    if (data.session) {
+      router.push('/dashboard');
+    } else {
+      // Email confirmation required
+      setConfirmEmail(true);
+      setLoading(false);
+    }
   }
 
   async function handleGoogleSignup() {
@@ -60,6 +67,12 @@ export default function SignupPage() {
 
       {/* Card */}
       <div className="film-card p-8 space-y-5">
+        {confirmEmail && (
+          <div className="p-4 border border-film-amber/40 bg-film-amber/10 text-film-cream text-sm font-sans text-center">
+            Check your email to confirm your account, then{' '}
+            <Link href="/login" className="text-film-amber underline">sign in</Link>.
+          </div>
+        )}
         {error && (
           <div className="p-3 border border-red-800/50 bg-red-950/30 text-red-400 text-sm font-sans">
             {error}
