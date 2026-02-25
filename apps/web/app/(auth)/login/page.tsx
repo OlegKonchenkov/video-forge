@@ -1,9 +1,11 @@
-'use client';
+﻿'use client';
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Zap, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+
+const SPROCKETS = Array.from({ length: 18 });
 
 export default function LoginPage() {
   const router = useRouter();
@@ -30,37 +32,48 @@ export default function LoginPage() {
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
     if (error) { setError(error.message); setOauthLoading(false); }
-    // On success, Supabase redirects — no further action needed
   }
 
   return (
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-md z-10">
+
       {/* Logo */}
       <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-2 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-cyan flex items-center justify-center glow-blue">
-            <Zap className="w-5 h-5 text-white fill-white" />
-          </div>
-          <span className="text-2xl font-black">Video<span className="gradient-text">Forge</span></span>
+        <Link href="/" className="inline-flex items-baseline gap-1 mb-6">
+          <span className="font-display text-3xl tracking-wider text-film-cream">VIDEO</span>
+          <span className="font-display text-3xl tracking-wider text-film-amber">FORGE</span>
+        </Link>
+
+        {/* Section label badge */}
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <span className="h-px w-8 bg-film-amber" />
+          <span className="section-label">Now Screening</span>
+          <span className="h-px w-8 bg-film-amber" />
         </div>
-        <h1 className="text-3xl font-black mb-2">Welcome back</h1>
-        <p className="text-slate-400">Sign in to your VideoForge account</p>
+
+        <h1 className="font-display text-4xl tracking-wider text-film-cream mb-1">WELCOME BACK</h1>
+        <p className="font-serif italic text-film-gray-light text-sm">Sign in to your VideoForge account</p>
       </div>
 
-      <div className="glass rounded-2xl p-8 space-y-4">
-        {error && <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">{error}</div>}
+      {/* Card */}
+      <div className="film-card p-8 space-y-5">
+        {error && (
+          <div className="p-3 border border-red-800/50 bg-red-950/30 text-red-400 text-sm font-sans">
+            {error}
+          </div>
+        )}
 
         {/* Google OAuth */}
         <button
           type="button"
           onClick={handleGoogleLogin}
           disabled={oauthLoading || loading}
-          className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-white font-semibold hover:bg-white/10 transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50"
+          className="btn-ghost w-full justify-center disabled:opacity-40"
         >
           {oauthLoading ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -71,38 +84,58 @@ export default function LoginPage() {
         </button>
 
         {/* Divider */}
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/10" />
-          </div>
-          <div className="relative flex justify-center text-xs text-slate-500">
-            <span className="bg-transparent px-3">or continue with email</span>
-          </div>
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-px bg-film-border" />
+          <span className="text-film-gray text-xs font-sans tracking-widest uppercase">or</span>
+          <div className="flex-1 h-px bg-film-border" />
         </div>
 
-        {/* Email/Password Form */}
+        {/* Email / Password */}
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1.5">Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="you@company.com"
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-accent/50 transition-colors" />
+            <label className="block text-xs font-sans font-semibold tracking-widest uppercase text-film-gray-light mb-2">
+              Email
+            </label>
+            <input
+              type="email" value={email} onChange={e => setEmail(e.target.value)} required
+              placeholder="you@company.com"
+              className="w-full px-4 py-3 bg-film-warm border border-film-border text-film-cream placeholder-film-gray font-sans text-sm focus:outline-none focus:border-film-amber/60 transition-colors"
+            />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="Your password"
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-accent/50 transition-colors" />
+            <label className="block text-xs font-sans font-semibold tracking-widest uppercase text-film-gray-light mb-2">
+              Password
+            </label>
+            <input
+              type="password" value={password} onChange={e => setPassword(e.target.value)} required
+              placeholder="Your password"
+              className="w-full px-4 py-3 bg-film-warm border border-film-border text-film-cream placeholder-film-gray font-sans text-sm focus:outline-none focus:border-film-amber/60 transition-colors"
+            />
           </div>
 
-          <button type="submit" disabled={loading || oauthLoading}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-accent to-cyan text-white font-bold text-lg hover:opacity-90 transition-all duration-200 glow-blue flex items-center justify-center gap-2 disabled:opacity-50">
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Sign In →'}
+          <button
+            type="submit" disabled={loading || oauthLoading}
+            className="btn-amber w-full justify-center disabled:opacity-40"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'â†’ Sign In'}
           </button>
         </form>
+
+        {/* Mini film strip */}
+        <div className="pt-2 border-t border-film-border -mx-8 px-0">
+          <div className="flex items-center gap-1.5 px-4 py-1.5 overflow-hidden">
+            {SPROCKETS.map((_, i) => (
+              <div key={i} className="w-6 h-4 flex-shrink-0 border border-film-border/60 bg-film-black flex items-end p-0.5">
+                <span className="font-display text-film-amber/20 text-[0.4rem] leading-none">{String(i + 1).padStart(2, '0')}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
-      <p className="text-center text-sm text-slate-500 mt-4">
-        Don&apos;t have an account?{' '}
-        <Link href="/signup" className="text-accent hover:underline">Sign up free</Link>
+      <p className="text-center text-xs text-film-gray mt-5 font-sans tracking-wide">
+        No account?{' '}
+        <Link href="/signup" className="link-amber text-film-amber">Sign up free</Link>
       </p>
     </div>
   );
