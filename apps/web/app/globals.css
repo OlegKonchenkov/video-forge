@@ -1,0 +1,196 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Google Fonts loaded via next/font – no CDN import needed ── */
+
+:root {
+  --film-black:  #080808;
+  --film-amber:  #E8C547;
+  --film-cream:  #F0EBE1;
+  --film-warm:   #141209;
+  --film-border: #2A2218;
+  /* legacy */
+  --bg:     #050d1a;
+  --bg-card:#0a1628;
+  --accent: #3b82f6;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: var(--film-black);
+  color: var(--film-cream);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ── Film grain overlay ─────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.038;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+}
+
+/* ── Custom scrollbar ───────────────────────────────────────── */
+::-webkit-scrollbar         { width: 4px; }
+::-webkit-scrollbar-track   { background: var(--film-black); }
+::-webkit-scrollbar-thumb   { background: var(--film-border); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--film-amber); }
+
+/* ── Typography utilities ───────────────────────────────────── */
+.text-stroke {
+  -webkit-text-stroke: 2px currentColor;
+  color: transparent;
+}
+.text-stroke-thin {
+  -webkit-text-stroke: 1.5px currentColor;
+  color: transparent;
+}
+.text-stroke-amber {
+  -webkit-text-stroke: 2px #E8C547;
+  color: transparent;
+}
+
+/* ── Marquee ────────────────────────────────────────────────── */
+.marquee-container {
+  overflow: hidden;
+  white-space: nowrap;
+}
+.marquee-track {
+  display: inline-flex;
+  animation: marquee 28s linear infinite;
+}
+.marquee-track-slow {
+  display: inline-flex;
+  animation: marquee 50s linear infinite;
+}
+
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ── Film strip sprocket row ────────────────────────────────── */
+.sprocket-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px;
+  background: var(--film-warm);
+}
+.sprocket {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--film-amber);
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+/* ── Section label ──────────────────────────────────────────── */
+.section-label {
+  font-family: var(--font-syne), sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--film-amber);
+}
+
+/* ── Amber underline on hover ───────────────────────────────── */
+.link-amber {
+  position: relative;
+  display: inline-block;
+}
+.link-amber::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1.5px;
+  background: var(--film-amber);
+  transition: width 0.3s cubic-bezier(0.22,1,0.36,1);
+}
+.link-amber:hover::after { width: 100%; }
+
+/* ── Film card ──────────────────────────────────────────────── */
+.film-card {
+  background: #0F0E0A;
+  border: 1px solid #2A2218;
+}
+.film-card-amber {
+  background: #0F0E0A;
+  border: 1px solid var(--film-amber);
+  box-shadow: 0 0 40px rgba(232,197,71,0.12);
+}
+
+/* ── Amber button ───────────────────────────────────────────── */
+.btn-amber {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--film-amber);
+  color: var(--film-black);
+  font-family: var(--font-syne), sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 14px 28px;
+  transition: all 0.2s ease;
+}
+.btn-amber:hover {
+  background: #F0D060;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 30px rgba(232,197,71,0.25);
+}
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--film-cream);
+  font-family: var(--font-syne), sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 13px 28px;
+  border: 1px solid #2A2218;
+  transition: all 0.2s ease;
+}
+.btn-ghost:hover {
+  border-color: var(--film-amber);
+  color: var(--film-amber);
+  transform: translateY(-1px);
+}
+
+/* ── Legacy for (app) pages ─────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #60a5fa, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.glow-blue         { box-shadow: 0 0 40px rgba(59,130,246,0.3); }
+.glow-blue-intense { box-shadow: 0 0 80px rgba(59,130,246,0.5); }
+.glass {
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.gradient-border {
+  border: 1px solid transparent;
+  background: linear-gradient(#0a1628, #0a1628) padding-box,
+              linear-gradient(135deg, #3b82f6, #06b6d4) border-box;
+}
