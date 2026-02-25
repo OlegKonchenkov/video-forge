@@ -2,15 +2,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2023-10-16' });
+// Lazy singletons — avoid module-level throws when env vars absent at build time
+function buildStripe() {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2023-10-16' });
+}
+let _stripe: ReturnType<typeof buildStripe> | null = null;
+const getStripe = () => { return _stripe ?? (_stripe = buildStripe()); };
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { persistSession: false } },
-);
+function buildSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false } },
+  );
+}
+let _supabase: ReturnType<typeof buildSupabase> | null = null;
+const getSupabase = () => { return _supabase ?? (_supabase = buildSupabase()); };
 
 export async function POST(req: NextRequest) {
+  const stripe = getStripe();
+  const supabase = getSupabase();
   const { priceId, userId, mode = 'subscription', quantity = 1 } = await req.json();
 
   if (!priceId || !userId) {
