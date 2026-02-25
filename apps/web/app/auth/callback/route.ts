@@ -31,12 +31,13 @@ export async function GET(request: NextRequest) {
   );
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/login?error=oauth_exchange_failed`);
+    return NextResponse.redirect(`${origin}/login?error=oauth_missing_code`);
   }
 
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
-    return NextResponse.redirect(`${origin}/login?error=oauth_exchange_failed`);
+    const reason = encodeURIComponent(error.message.slice(0, 180));
+    return NextResponse.redirect(`${origin}/login?error=oauth_exchange_failed&reason=${reason}`);
   }
 
   return response;

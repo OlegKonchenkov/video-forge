@@ -9,6 +9,7 @@ const SPROCKETS = Array.from({ length: 18 });
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   oauth_provider_error: 'Google authentication failed before callback completion. Please try again.',
   oauth_exchange_failed: 'Google sign-in callback failed. Please try again.',
+  oauth_missing_code: 'Google callback returned without authorization code. Please check OAuth redirect config.',
   oauth_session_missing: 'Google login completed but no app session was found. Please retry.',
 };
 
@@ -42,7 +43,9 @@ export default function LoginPage() {
   useEffect(() => {
     const errorCode = searchParams.get('error');
     if (!errorCode) return;
-    setError(AUTH_ERROR_MESSAGES[errorCode] ?? 'Authentication failed. Please try again.');
+    const reason = searchParams.get('reason');
+    const base = AUTH_ERROR_MESSAGES[errorCode] ?? 'Authentication failed. Please try again.';
+    setError(reason ? `${base} (${reason})` : base);
   }, [searchParams]);
 
   async function handleLogin(e: React.FormEvent) {
