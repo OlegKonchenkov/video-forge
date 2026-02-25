@@ -33,13 +33,13 @@ export default async function DashboardPage() {
 
       {!videos || videos.length === 0 ? (
         <div className="film-card p-16 text-center">
-          <div className="w-14 h-14 mx-auto border border-film-amber/30 flex items-center justify-center mb-5 text-film-amber text-3xl font-display">
-            â–¶
+          <div className="w-14 h-14 mx-auto border border-film-amber/30 flex items-center justify-center mb-5">
+            <span className="text-film-amber text-2xl font-display">&#9654;</span>
           </div>
-          <h3 className="font-display text-2xl tracking-wider text-film-cream mb-2">LIGHTS, CAMERAâ€¦</h3>
+          <h3 className="font-display text-2xl tracking-wider text-film-cream mb-2">LIGHTS, CAMERA...</h3>
           <p className="text-film-gray font-sans text-sm mb-7 font-serif italic">Create your first AI video in under 5 minutes</p>
           <Link href="/videos/new" className="btn-amber">
-            â†’ Create First Video
+            Create First Video \u2192
           </Link>
         </div>
       ) : (

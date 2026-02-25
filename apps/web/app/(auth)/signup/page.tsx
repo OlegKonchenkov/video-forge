@@ -55,7 +55,7 @@ export default function SignupPage() {
         </div>
 
         <h1 className="font-display text-4xl tracking-wider text-film-cream mb-1">JOIN THE STUDIO</h1>
-        <p className="font-serif italic text-film-gray-light text-sm">Start with 1 free video â€” no card needed</p>
+        <p className="font-serif italic text-film-gray-light text-sm">Start with 1 free video - no card needed</p>
       </div>
 
       {/* Card */}
@@ -113,7 +113,7 @@ export default function SignupPage() {
 
           <button type="submit" disabled={loading || oauthLoading}
             className="btn-amber w-full justify-center disabled:opacity-40">
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'â†’ Create Account'}
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create Account \u2192'}
           </button>
         </form>
 
