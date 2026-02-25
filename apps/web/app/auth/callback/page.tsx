@@ -31,32 +31,19 @@ function AuthCallbackHandler() {
       }
 
       const hardRedirect = () => window.location.assign('/dashboard');
-
-      const {
-        data: { session: initialSession },
-      } = await supabase.auth.getSession();
-
-      if (initialSession) {
-        hardRedirect();
+      const code = searchParams.get('code');
+      if (!code) {
+        router.replace('/login?error=oauth_missing_code');
         return;
       }
 
-      const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (!session) return;
-        authListener.subscription.unsubscribe();
-        hardRedirect();
-      });
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      if (error) {
+        router.replace(`/login?error=oauth_exchange_failed&reason=${encodeURIComponent(error.message.slice(0, 180))}`);
+        return;
+      }
 
-      setTimeout(async () => {
-        const {
-          data: { session: retrySession },
-        } = await supabase.auth.getSession();
-        if (retrySession) {
-          hardRedirect();
-          return;
-        }
-        router.replace('/login?error=oauth_session_missing');
-      }, 2500);
+      hardRedirect();
     };
 
     void completeOAuth();
