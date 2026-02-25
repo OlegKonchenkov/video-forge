@@ -1,5 +1,5 @@
 ﻿'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
@@ -16,6 +16,24 @@ export default function SignupPage() {
   const [oauthLoading, setOauthLoading] = useState(false);
   const [error, setError] = useState('');
   const [confirmEmail, setConfirmEmail] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted && data.session) router.replace('/dashboard');
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) router.replace('/dashboard');
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [router]);
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
