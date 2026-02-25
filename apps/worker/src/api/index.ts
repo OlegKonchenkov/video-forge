@@ -14,6 +14,10 @@ app.use(morgan('short'));
 
 // Auth middleware
 app.use((req, res, next) => {
+  if (req.path === '/health') {
+    next();
+    return;
+  }
   if (req.headers['x-api-key'] !== process.env.API_SECRET_KEY) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
