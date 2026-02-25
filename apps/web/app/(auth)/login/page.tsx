@@ -1,14 +1,20 @@
 ﻿'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 const SPROCKETS = Array.from({ length: 18 });
+const AUTH_ERROR_MESSAGES: Record<string, string> = {
+  oauth_provider_error: 'Google authentication failed before callback completion. Please try again.',
+  oauth_exchange_failed: 'Google sign-in callback failed. Please try again.',
+  oauth_session_missing: 'Google login completed but no app session was found. Please retry.',
+};
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -33,6 +39,12 @@ export default function LoginPage() {
     };
   }, [router]);
 
+  useEffect(() => {
+    const errorCode = searchParams.get('error');
+    if (!errorCode) return;
+    setError(AUTH_ERROR_MESSAGES[errorCode] ?? 'Authentication failed. Please try again.');
+  }, [searchParams]);
+
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true); setError('');
@@ -48,7 +60,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+        redirectTo: `${window.location.origin}/auth/callback`,
         queryParams: { prompt: 'select_account' },
       },
     });

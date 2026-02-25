@@ -9,17 +9,31 @@ export default function AuthCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const code = searchParams.get('code');
-  const nextPath = searchParams.get('next') ?? '/dashboard';
-  const safeNextPath = nextPath.startsWith('/') ? nextPath : '/dashboard';
+  const providerError = searchParams.get('error') || searchParams.get('error_description');
 
   useEffect(() => {
     const supabase = createClient();
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    let unsubscribe: (() => void) | undefined;
+
+    const hardRedirectToDashboard = () => {
+      window.location.assign('/dashboard');
+    };
+
+    const fail = (type: string) => {
+      router.replace(`/login?error=${encodeURIComponent(type)}`);
+    };
 
     const completeOAuth = async () => {
+      if (providerError) {
+        fail('oauth_provider_error');
+        return;
+      }
+
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (error) {
-          router.replace('/login?error=oauth_exchange_failed');
+          fail('oauth_exchange_failed');
           return;
         }
       }
@@ -29,15 +43,41 @@ export default function AuthCallbackPage() {
       } = await supabase.auth.getSession();
 
       if (session) {
-        router.replace(safeNextPath);
+        hardRedirectToDashboard();
         return;
       }
 
-      router.replace('/login?error=oauth_session_missing');
+      const { data: authListener } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+        if (!currentSession) return;
+
+        if (timeoutId) clearTimeout(timeoutId);
+        if (unsubscribe) unsubscribe();
+        hardRedirectToDashboard();
+      });
+      unsubscribe = () => authListener.subscription.unsubscribe();
+
+      // Give cookie/local storage sync a brief moment before failing the flow.
+      timeoutId = setTimeout(async () => {
+        const {
+          data: { session: retrySession },
+        } = await supabase.auth.getSession();
+
+        if (retrySession) {
+          hardRedirectToDashboard();
+          return;
+        }
+
+        fail('oauth_session_missing');
+      }, 1500);
     };
 
     void completeOAuth();
-  }, [code, router, safeNextPath]);
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (unsubscribe) unsubscribe();
+    };
+  }, [code, providerError, router]);
 
   return (
     <div className="min-h-screen bg-film-black flex items-center justify-center px-6">
