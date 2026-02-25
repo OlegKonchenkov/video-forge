@@ -23,31 +23,30 @@ function AuthCallbackHandler() {
   useEffect(() => {
     const supabase = createClient();
 
-    const completeOAuth = async () => {
-      const providerError = searchParams.get('error') || searchParams.get('error_description');
-      if (providerError) {
-        router.replace('/login?error=oauth_provider_error');
-        return;
-      }
+    // Handle OAuth provider errors
+    const providerError = searchParams.get('error');
+    if (providerError) {
+      router.replace('/login?error=oauth_provider_error');
+      return;
+    }
 
-      const hardRedirect = () => window.location.assign('/dashboard');
-      const code = searchParams.get('code');
-      if (!code) {
-        router.replace('/login?error=oauth_missing_code');
-        return;
-      }
+    const code = searchParams.get('code');
+    if (!code) {
+      router.replace('/login?error=oauth_missing_code');
+      return;
+    }
 
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
+    // Exchange the code for a session — createBrowserClient handles PKCE automatically
+    supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
       if (error) {
         router.replace(`/login?error=oauth_exchange_failed&reason=${encodeURIComponent(error.message.slice(0, 180))}`);
         return;
       }
-
-      hardRedirect();
-    };
-
-    void completeOAuth();
-  }, [router, searchParams]);
+      // Hard redirect so the server-side session cookies are sent on the next request
+      window.location.href = '/dashboard';
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return <CallbackLoading />;
 }
