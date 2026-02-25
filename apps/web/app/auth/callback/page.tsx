@@ -41,14 +41,6 @@ function AuthCallbackHandler() {
         return;
       }
 
-      if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        if (error) {
-          fail('oauth_exchange_failed');
-          return;
-        }
-      }
-
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -56,6 +48,25 @@ function AuthCallbackHandler() {
       if (session) {
         hardRedirectToDashboard();
         return;
+      }
+
+      // If session isn't ready yet and we have an auth code, complete the PKCE exchange once.
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) {
+          // In some cases the code has already been consumed by auto-detection.
+          // Re-check session before declaring failure.
+          const {
+            data: { session: postExchangeSession },
+          } = await supabase.auth.getSession();
+          if (postExchangeSession) {
+            hardRedirectToDashboard();
+            return;
+          }
+        } else {
+          hardRedirectToDashboard();
+          return;
+        }
       }
 
       const { data: authListener } = supabase.auth.onAuthStateChange((_event, currentSession) => {
