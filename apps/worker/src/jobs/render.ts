@@ -1,9 +1,50 @@
-import { execSync } from 'child_process';
+import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 
 // The agentforge-video Remotion project is at the repo root
 const REMOTION_ROOT = path.resolve(__dirname, '../../../../agentforge-video');
+
+async function runRemotionRender(outPath: string): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    const child = spawn(
+      'npx',
+      ['remotion', 'render', 'AgentForgeAd', outPath, '--codec', 'h264'],
+      { cwd: REMOTION_ROOT, stdio: ['ignore', 'pipe', 'pipe'] }
+    );
+
+    let stderr = '';
+    const timeoutMs = parseInt(process.env.RENDER_TIMEOUT_MS || '600000', 10);
+    const timer = setTimeout(() => {
+      child.kill('SIGKILL');
+      reject(new Error(`Remotion render timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    child.stdout.on('data', (chunk) => {
+      process.stdout.write(chunk);
+    });
+
+    child.stderr.on('data', (chunk) => {
+      const text = chunk.toString();
+      stderr += text;
+      process.stderr.write(chunk);
+    });
+
+    child.on('error', (err) => {
+      clearTimeout(timer);
+      reject(err);
+    });
+
+    child.on('close', (code) => {
+      clearTimeout(timer);
+      if (code === 0) {
+        resolve();
+        return;
+      }
+      reject(new Error(`Remotion render failed (exit ${code}): ${stderr.slice(-1000)}`));
+    });
+  });
+}
 
 export async function renderVideo({ videoId, scenes, audioPaths, imagePaths, workDir }: {
   videoId: string;
@@ -32,10 +73,7 @@ export async function renderVideo({ videoId, scenes, audioPaths, imagePaths, wor
     if (fs.existsSync(src)) fs.copyFileSync(src, dest);
   });
 
-  execSync(
-    `npx remotion render AgentForgeAd "${outPath}" --codec h264`,
-    { cwd: REMOTION_ROOT, stdio: 'pipe', timeout: 300_000 }
-  );
+  await runRemotionRender(outPath);
 
   return outPath;
 }
