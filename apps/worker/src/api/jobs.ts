@@ -14,7 +14,10 @@ jobsRouter.post('/', async (req, res) => {
   // Deduct credit via Supabase RPC
   const { error } = await supabase.rpc('use_credit', { p_user_id: userId, p_video_id: videoId });
   if (error) {
-    res.status(402).json({ error: 'Insufficient credits' });
+    // Roll back the queued video record so the dashboard doesn't show a stuck job
+    await supabase.from('videos').delete().eq('id', videoId);
+    const isCredit = error.message?.toLowerCase().includes('credit');
+    res.status(402).json({ error: isCredit ? 'Insufficient credits' : `Credit deduction failed: ${error.message}` });
     return;
   }
 
