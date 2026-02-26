@@ -1,3 +1,4 @@
+// apps/worker/src/jobs/pipeline.ts
 import { supabase } from '../lib/supabase';
 import { scrapeUrl } from './scraper';
 import { parsePdf, parsePpt } from './parser';
@@ -20,32 +21,42 @@ export async function runVideoPipeline(job: any) {
   try {
     await updateStatus(videoId, 'processing', 5, 'Extracting content...');
 
-    // 1. Extract text from source
+    // 1. Extract text (and brand image URL for website input)
     let sourceText = '';
-    if (inputType === 'url') sourceText = await scrapeUrl(inputData.url);
-    else if (inputType === 'pdf') sourceText = await parsePdf(inputData.fileName);
-    else if (inputType === 'ppt') sourceText = await parsePpt(inputData.fileName);
-    else sourceText = inputData.text;
+    let brandImageUrl: string | null = null;
+
+    if (inputType === 'url') {
+      const result = await scrapeUrl(inputData.url);
+      sourceText    = result.text;
+      brandImageUrl = result.brandImageUrl;
+    } else if (inputType === 'pdf') {
+      sourceText = await parsePdf(inputData.fileName);
+    } else if (inputType === 'ppt') {
+      sourceText = await parsePpt(inputData.fileName);
+    } else {
+      sourceText = inputData.text;
+    }
 
     await updateStatus(videoId, 'processing', 15, 'Writing script...');
 
-    // 2. Generate 7-scene script via Claude
-    const scenes = await generateScript(sourceText, inputType);
+    // 2. Generate structured script via GPT-4o
+    const script = await generateScript(sourceText, inputType);
 
     await updateStatus(videoId, 'processing', 25, 'Recording voiceover...');
 
-    // 3. ElevenLabs TTS for each scene
-    const audioPaths = await generateVoiceovers(scenes, workDir);
+    // 3. ElevenLabs TTS — pass only the voiceover strings
+    const voiceovers  = script.scenes.map((s) => s.voiceover);
+    const audioPaths  = await generateVoiceovers(voiceovers, workDir);
 
     await updateStatus(videoId, 'processing', 45, 'Generating visuals...');
 
-    // 4. Gemini free-tier images
-    const imagePaths = await generateImages(scenes, workDir);
+    // 4. Gemini images — use voiceovers as context + brand image for scene 1
+    const imagePaths = await generateImages(voiceovers, workDir, script.brandName, brandImageUrl);
 
     await updateStatus(videoId, 'processing', 60, 'Rendering video...');
 
-    // 5. Remotion render
-    const mp4Path = await renderVideo({ videoId, scenes, audioPaths, imagePaths, workDir });
+    // 5. Remotion render — pass full script as props
+    const mp4Path = await renderVideo({ videoId, script, audioPaths, imagePaths, workDir });
 
     await updateStatus(videoId, 'processing', 85, 'Uploading...');
 

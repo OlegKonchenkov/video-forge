@@ -1,10 +1,20 @@
+// agentforge-video/src/scenes/Scene7CTA.tsx
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate, spring, AbsoluteFill, Img, staticFile } from 'remotion';
 import { Audio } from '@remotion/media';
 import { COLORS, WIDTH, HEIGHT } from '../constants';
 import { FONT } from '../font';
+import type { SceneCTAProps } from '../types';
 
-export const Scene7CTA: React.FC = () => {
+interface Scene7CTAFullProps extends SceneCTAProps {
+  brandName: string
+  ctaText:   string
+  ctaUrl:    string
+}
+
+export const Scene7CTA: React.FC<Scene7CTAFullProps> = ({
+  brandName, ctaText, ctaUrl, headline, accentLine, sub,
+}) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
 
@@ -16,7 +26,7 @@ export const Scene7CTA: React.FC = () => {
   const CUE_URL     = dur * 0.66;
   const FINAL_PULSE = dur * 0.88;
 
-  const bgOp        = interpolate(frame, [0, fps], [0, 1], { extrapolateRight: 'clamp' });
+  const bgOp         = interpolate(frame, [0, fps], [0, 1], { extrapolateRight: 'clamp' });
   const glowProgress = interpolate(frame, [0, dur * 0.7], [0, 1], { extrapolateRight: 'clamp' });
 
   const logoScale = spring({ frame: frame - CUE_LOGO, fps, config: { damping: 200 } });
@@ -24,21 +34,24 @@ export const Scene7CTA: React.FC = () => {
 
   const line1Op = interpolate(frame - CUE_LINE1, [0, 15], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const line1Y  = interpolate(spring({ frame: frame - CUE_LINE1, fps, config: { damping: 200 } }), [0, 1], [35, 0]);
-
   const line2Op = interpolate(frame - CUE_LINE2, [0, 15], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const line2Y  = interpolate(spring({ frame: frame - CUE_LINE2, fps, config: { damping: 200 } }), [0, 1], [30, 0]);
-
-  const subOp = interpolate(frame - CUE_SUB, [0, 15], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-  const subY  = interpolate(spring({ frame: frame - CUE_SUB, fps, config: { damping: 200 } }), [0, 1], [25, 0]);
+  const subOp   = interpolate(frame - CUE_SUB, [0, 15], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const subY    = interpolate(spring({ frame: frame - CUE_SUB, fps, config: { damping: 200 } }), [0, 1], [25, 0]);
 
   const ctaScale = spring({ frame: frame - CUE_CTA, fps, config: { damping: 14, stiffness: 160 } });
   const ctaOp   = interpolate(frame - CUE_CTA, [0, 15], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-
-  const btnIdlePulse = interpolate(Math.max(0, frame - CUE_CTA - 30) % (fps * 2.2), [0, fps * 1.1, fps * 2.2], [1, 1.04, 1]);
-  const finalPulse   = interpolate(frame - FINAL_PULSE, [0, 8, 16], [1, 1.06, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-  const btnPulse     = Math.max(btnIdlePulse, finalPulse);
+  const btnIdle  = interpolate(Math.max(0, frame - CUE_CTA - 30) % (fps * 2.2), [0, fps * 1.1, fps * 2.2], [1, 1.04, 1]);
+  const finalPulse = interpolate(frame - FINAL_PULSE, [0, 8, 16], [1, 1.06, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const btnPulse = Math.max(btnIdle, finalPulse);
 
   const urlOp = interpolate(frame - CUE_URL, [0, 15], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+
+  // Split brand name: last word in accent colour
+  const words    = brandName.trim().split(/\s+/);
+  const lastWord = words.length > 1 ? words.pop()! : brandName;
+  const firstPart = words.join(' ');
+  const nameFontSize = brandName.length > 14 ? 42 : brandName.length > 10 ? 48 : 56;
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#000', overflow: 'hidden' }}>
@@ -47,6 +60,7 @@ export const Scene7CTA: React.FC = () => {
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 50%, rgba(59,130,246,${glowProgress * 0.22}) 0%, transparent 60%)` }} />
 
       <AbsoluteFill style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 120px', gap: 32, overflow: 'hidden' }}>
+        {/* Brand logo mark + name */}
         <div style={{ opacity: logoOp, transform: `scale(${logoScale})`, display: 'flex', alignItems: 'center', gap: 18 }}>
           <div style={{
             width: 64, height: 64,
@@ -59,29 +73,32 @@ export const Scene7CTA: React.FC = () => {
               <circle cx="28" cy="44" r="4" fill="white" opacity="0.6" />
             </svg>
           </div>
-          <div style={{ fontSize: 56, fontWeight: '800', color: COLORS.white, fontFamily: FONT, letterSpacing: '-2px', lineHeight: 1 }}>
-            Agent<span style={{ color: COLORS.accent }}>Forge</span>
+          <div style={{ fontSize: nameFontSize, fontWeight: '800', color: COLORS.white, fontFamily: FONT, letterSpacing: '-2px', lineHeight: 1 }}>
+            {firstPart && <span>{firstPart} </span>}
+            <span style={{ color: COLORS.accent }}>{lastWord}</span>
           </div>
         </div>
 
+        {/* Headline line 1 */}
         <div style={{ opacity: line1Op, transform: `translateY(${line1Y}px)`, textAlign: 'center', overflow: 'hidden' }}>
           <div style={{ fontSize: 80, fontWeight: '800', color: COLORS.white, fontFamily: FONT, lineHeight: 1.15, letterSpacing: '-2.5px', maxWidth: 1300 }}>
-            Stop paying people to do what
+            {headline}
           </div>
         </div>
 
+        {/* Headline line 2 — accent */}
         <div style={{ opacity: line2Op, transform: `translateY(${line2Y}px)`, textAlign: 'center', overflow: 'hidden', marginTop: -18 }}>
           <div style={{ fontSize: 80, fontWeight: '800', color: COLORS.accent, fontFamily: FONT, lineHeight: 1.15, letterSpacing: '-2.5px' }}>
-            AI does better.
+            {accentLine}
           </div>
         </div>
 
+        {/* Sub text */}
         <div style={{ opacity: subOp, transform: `translateY(${subY}px)`, textAlign: 'center', overflow: 'hidden' }}>
-          <div style={{ fontSize: 32, color: COLORS.gray, fontFamily: FONT, fontWeight: '400' }}>
-            Book your free 15-minute call today.
-          </div>
+          <div style={{ fontSize: 32, color: COLORS.gray, fontFamily: FONT, fontWeight: '400' }}>{sub}</div>
         </div>
 
+        {/* CTA button */}
         <div style={{
           opacity: ctaOp, transform: `scale(${ctaScale * btnPulse})`,
           background: `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.cyan})`,
@@ -90,11 +107,12 @@ export const Scene7CTA: React.FC = () => {
           boxShadow: `0 0 70px rgba(59,130,246,${glowProgress * 0.45})`,
           letterSpacing: '-0.5px', whiteSpace: 'nowrap',
         }}>
-          Book Free Call →
+          {ctaText} →
         </div>
 
+        {/* URL */}
         <div style={{ opacity: urlOp, fontSize: 26, color: 'rgba(148,163,184,0.7)', fontFamily: FONT, letterSpacing: '1.5px' }}>
-          automagical-teams.lovable.app
+          {ctaUrl}
         </div>
       </AbsoluteFill>
 

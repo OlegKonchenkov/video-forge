@@ -1,10 +1,16 @@
+// agentforge-video/src/scenes/Scene4Logo.tsx
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate, spring, AbsoluteFill, staticFile } from 'remotion';
 import { Audio } from '@remotion/media';
 import { COLORS } from '../constants';
 import { FONT } from '../font';
 
-export const Scene4Logo: React.FC = () => {
+interface Scene4LogoProps {
+  brandName: string
+  tagline:   string
+}
+
+export const Scene4Logo: React.FC<Scene4LogoProps> = ({ brandName, tagline }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
 
@@ -18,27 +24,37 @@ export const Scene4Logo: React.FC = () => {
   const iconOp    = interpolate(frame - CUE_ICON, [0, 10], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   const nameProgress = spring({ frame: frame - CUE_NAME, fps, config: { damping: 14, stiffness: 140 } });
-  const nameY = interpolate(nameProgress, [0, 1], [30, 0]);
+  const nameY  = interpolate(nameProgress, [0, 1], [30, 0]);
   const nameOp = interpolate(frame - CUE_NAME, [0, 10], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   const taglineOp = interpolate(frame - CUE_TAGLINE, [0, 10], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const taglineY  = interpolate(spring({ frame: frame - CUE_TAGLINE, fps, config: { damping: 14 } }), [0, 1], [20, 0]);
 
-  const ring1    = interpolate(frame % (fps * 2), [0, fps * 2], [0.7, 2.0]);
-  const ring1Op  = interpolate(frame % (fps * 2), [0, fps * 0.4, fps * 2], [0.5, 0.2, 0]);
-  const ring2    = interpolate((frame + fps) % (fps * 2), [0, fps * 2], [0.7, 2.0]);
-  const ring2Op  = interpolate((frame + fps) % (fps * 2), [0, fps * 0.4, fps * 2], [0.5, 0.2, 0]);
+  const ring1   = interpolate(frame % (fps * 2), [0, fps * 2], [0.7, 2.0]);
+  const ring1Op = interpolate(frame % (fps * 2), [0, fps * 0.4, fps * 2], [0.5, 0.2, 0]);
+  const ring2   = interpolate((frame + fps) % (fps * 2), [0, fps * 2], [0.7, 2.0]);
+  const ring2Op = interpolate((frame + fps) % (fps * 2), [0, fps * 0.4, fps * 2], [0.5, 0.2, 0]);
+
+  // Split brand name: last word gets accent colour
+  const words    = brandName.trim().split(/\s+/);
+  const lastWord = words.length > 1 ? words.pop()! : brandName;
+  const firstPart = words.join(' ');
+
+  // Scale font size to fit long brand names
+  const fontSize = brandName.length > 14 ? 72 : brandName.length > 10 ? 86 : 100;
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#000', overflow: 'hidden' }}>
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 50%, rgba(59,130,246,${glowProgress * 0.28}) 0%, transparent 55%)` }} />
 
+      {/* Pulsing rings */}
       <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ position: 'absolute', width: 260, height: 260, border: `1.5px solid rgba(59,130,246,${ring1Op * glowProgress})`, borderRadius: '50%', transform: `scale(${ring1})` }} />
         <div style={{ position: 'absolute', width: 260, height: 260, border: `1.5px solid rgba(59,130,246,${ring2Op * glowProgress})`, borderRadius: '50%', transform: `scale(${ring2})` }} />
       </AbsoluteFill>
 
       <AbsoluteFill style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 28, overflow: 'hidden' }}>
+        {/* Icon */}
         <div style={{
           opacity: iconOp, transform: `scale(${iconScale})`,
           width: 110, height: 110,
@@ -52,15 +68,18 @@ export const Scene4Logo: React.FC = () => {
           </svg>
         </div>
 
+        {/* Brand name — last word in accent colour */}
         <div style={{ opacity: nameOp, transform: `translateY(${nameY}px)` }}>
-          <div style={{ fontSize: 100, fontWeight: '800', color: COLORS.white, fontFamily: FONT, letterSpacing: '-3px', lineHeight: 1 }}>
-            Agent<span style={{ color: COLORS.accent }}>Forge</span>
+          <div style={{ fontSize, fontWeight: '800', color: COLORS.white, fontFamily: FONT, letterSpacing: '-3px', lineHeight: 1 }}>
+            {firstPart && <span>{firstPart} </span>}
+            <span style={{ color: COLORS.accent }}>{lastWord}</span>
           </div>
         </div>
 
+        {/* Tagline — from props */}
         <div style={{ opacity: taglineOp, transform: `translateY(${taglineY}px)` }}>
           <div style={{ fontSize: 28, color: COLORS.gray, fontFamily: FONT, fontWeight: '400', letterSpacing: '3px', textTransform: 'uppercase' }}>
-            Custom AI Agents · Fully Managed
+            {tagline}
           </div>
         </div>
       </AbsoluteFill>

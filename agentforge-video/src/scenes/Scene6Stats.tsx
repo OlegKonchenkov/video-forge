@@ -1,19 +1,28 @@
+// agentforge-video/src/scenes/Scene6Stats.tsx
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate, spring, AbsoluteFill, staticFile } from 'remotion';
 import { Audio } from '@remotion/media';
 import { COLORS } from '../constants';
 import { FONT } from '../font';
 import { ArrowUpIcon, ClockIcon, BrainIcon } from '../icons';
+import type { SceneStatsProps } from '../types';
 
-const StatCard: React.FC<{ value: string; label: string; sub: string; icon: React.ReactNode; cue: number; glowStart: number }> = ({
-  value, label, sub, icon, cue, glowStart,
-}) => {
+const CARD_ICONS = [
+  (frame: number, fps: number) => <ClockIcon size={44} color={COLORS.accent} frame={frame} fps={fps} />,
+  (frame: number, fps: number) => <BrainIcon size={44} color={COLORS.accent} frame={frame} fps={fps} />,
+  (frame: number, _fps: number, progress: number) => <ArrowUpIcon size={44} color={COLORS.accent} progress={progress} />,
+];
+
+const StatCard: React.FC<{
+  value: string; label: string; sub: string;
+  icon: React.ReactNode; cue: number; glowStart: number;
+}> = ({ value, label, sub, icon, cue, glowStart }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
 
-  const scale   = spring({ frame: frame - cue, fps, config: { damping: 14, stiffness: 140 } });
-  const opacity = interpolate(frame - cue, [0, 12], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-  const lineW   = interpolate(frame - cue - 15, [0, dur * 0.35], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const scale     = spring({ frame: frame - cue, fps, config: { damping: 14, stiffness: 140 } });
+  const opacity   = interpolate(frame - cue, [0, 12], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const lineW     = interpolate(frame - cue - 15, [0, dur * 0.35], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const glowPulse = interpolate(frame - glowStart, [0, 15, 30], [0, 0.5, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   return (
@@ -33,7 +42,7 @@ const StatCard: React.FC<{ value: string; label: string; sub: string; icon: Reac
   );
 };
 
-export const Scene6Stats: React.FC = () => {
+export const Scene6Stats: React.FC<SceneStatsProps> = ({ title, sub, stats }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
 
@@ -44,11 +53,17 @@ export const Scene6Stats: React.FC = () => {
   const CUE_CARD3  = dur * 0.49;
   const GLOW_START = dur * 0.85;
 
-  const titleOp = interpolate(frame - CUE_TITLE, [0, 18], [0, 1], { extrapolateRight: 'clamp' });
-  const titleY  = interpolate(spring({ frame, fps, config: { damping: 200 } }), [0, 1], [35, 0]);
-  const subOp   = interpolate(frame - CUE_SUB, [0, 15], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-
+  const titleOp  = interpolate(frame - CUE_TITLE, [0, 18], [0, 1], { extrapolateRight: 'clamp' });
+  const titleY   = interpolate(spring({ frame, fps, config: { damping: 200 } }), [0, 1], [35, 0]);
+  const subOp    = interpolate(frame - CUE_SUB, [0, 15], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const progress1 = interpolate(frame - CUE_CARD1, [0, 1], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+
+  const cardCues = [CUE_CARD1, CUE_CARD2, CUE_CARD3];
+  const icons = [
+    CARD_ICONS[0](frame, fps, 0),
+    CARD_ICONS[1](frame, fps, 0),
+    CARD_ICONS[2](frame, fps, progress1),
+  ];
 
   return (
     <AbsoluteFill style={{ backgroundColor: COLORS.bg, overflow: 'hidden' }}>
@@ -58,21 +73,18 @@ export const Scene6Stats: React.FC = () => {
         <div style={{ textAlign: 'center', overflow: 'hidden' }}>
           <div style={{ opacity: titleOp, transform: `translateY(${titleY}px)` }}>
             <div style={{ fontSize: 58, fontWeight: '800', color: COLORS.white, fontFamily: FONT, letterSpacing: '-1.5px', lineHeight: 1.1 }}>
-              Average results after{' '}
-              <span style={{ color: COLORS.accent }}>30 days</span>
+              {title}
             </div>
           </div>
           <div style={{ opacity: subOp, marginTop: 10 }}>
-            <div style={{ fontSize: 26, color: COLORS.gray, fontFamily: FONT, fontWeight: '400' }}>
-              Measured across 50+ teams on AgentForge
-            </div>
+            <div style={{ fontSize: 26, color: COLORS.gray, fontFamily: FONT, fontWeight: '400' }}>{sub}</div>
           </div>
         </div>
 
         <div style={{ display: 'flex', gap: 32, width: '100%', overflow: 'hidden' }}>
-          <StatCard value="28hrs" label="Saved per week" sub="Per team, on average" icon={<ClockIcon size={44} color={COLORS.accent} frame={frame} fps={fps} />} cue={CUE_CARD1} glowStart={GLOW_START} />
-          <StatCard value="5 days" label="To go live" sub="From first call to active agents" icon={<BrainIcon size={44} color={COLORS.accent} frame={frame} fps={fps} />} cue={CUE_CARD2} glowStart={GLOW_START} />
-          <StatCard value="$5.6K" label="Monthly ROI" sub="Average return on investment" icon={<ArrowUpIcon size={44} color={COLORS.accent} progress={progress1} />} cue={CUE_CARD3} glowStart={GLOW_START} />
+          {stats.slice(0, 3).map((s, i) => (
+            <StatCard key={i} value={s.value} label={s.label} sub={s.sub} icon={icons[i]} cue={cardCues[i]} glowStart={GLOW_START} />
+          ))}
         </div>
       </AbsoluteFill>
 

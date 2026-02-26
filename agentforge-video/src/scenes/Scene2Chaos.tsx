@@ -1,16 +1,18 @@
+// agentforge-video/src/scenes/Scene2Chaos.tsx
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate, spring, AbsoluteFill, staticFile } from 'remotion';
 import { Audio } from '@remotion/media';
 import { COLORS } from '../constants';
 import { FONT } from '../font';
+import type { SceneChaosProps } from '../types';
 
 const EmailRow: React.FC<{ subject: string; from: string; time: string; delay: number; urgent?: boolean }> = ({
-  subject, from, time, delay, urgent
+  subject, from, time, delay, urgent,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const progress = spring({ frame: frame - delay, fps, config: { damping: 200 } });
-  const x = interpolate(progress, [0, 1], [-300, 0]);
+  const x       = interpolate(progress, [0, 1], [-300, 0]);
   const opacity = interpolate(frame - delay, [0, 12], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   return (
     <div style={{
@@ -31,7 +33,7 @@ const EmailRow: React.FC<{ subject: string; from: string; time: string; delay: n
   );
 };
 
-export const Scene2Chaos: React.FC = () => {
+export const Scene2Chaos: React.FC<SceneChaosProps> = ({ items, punchWords }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
 
@@ -50,12 +52,11 @@ export const Scene2Chaos: React.FC = () => {
   const headerOp = interpolate(frame, [CUE_HEADER, CUE_HEADER + 18], [0, 1], { extrapolateRight: 'clamp' });
   const headerY  = interpolate(spring({ frame, fps, config: { damping: 200 } }), [0, 1], [30, 0]);
   const badgeCount = Math.min(Math.floor(frame / 5), 63);
-
   const inboxDimOp = interpolate(frame, [INBOX_DIM, INBOX_DIM + 20], [1, 0.25], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   const textEntry = (cue: number) => ({
     op: interpolate(frame - cue, [0, 15], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }),
-    y: interpolate(spring({ frame: frame - cue, fps, config: { damping: 200 } }), [0, 1], [30, 0]),
+    y:  interpolate(spring({ frame: frame - cue, fps, config: { damping: 200 } }), [0, 1], [30, 0]),
   });
 
   const t1 = textEntry(CUE_TEXT1);
@@ -64,19 +65,14 @@ export const Scene2Chaos: React.FC = () => {
   const tS = textEntry(CUE_SINGLE);
   const tD = textEntry(CUE_DAY);
 
-  const emails = [
-    { subject: 'Invoice #4821 — Action Required', from: 'billing@vendor.io', time: '09:14', delay: CUE_EMAIL1 },
-    { subject: 'Re: Follow-up on proposal (3rd attempt)', from: 'client@bigco.com', time: '09:32', delay: CUE_EMAIL2, urgent: true },
-    { subject: 'CRM data entry — still pending', from: 'ops@company.com', time: '10:28', delay: CUE_EMAIL3, urgent: true },
-    { subject: 'Spreadsheet needs updating', from: 'finance@company.com', time: '11:47', delay: CUE_EMAIL4 },
-  ];
+  const emailDelays = [CUE_EMAIL1, CUE_EMAIL2, CUE_EMAIL3, CUE_EMAIL4];
 
   return (
     <AbsoluteFill style={{ backgroundColor: COLORS.bg, overflow: 'hidden' }}>
       <AbsoluteFill style={{ background: 'radial-gradient(ellipse at 25% 50%, rgba(239,68,68,0.07) 0%, transparent 55%)' }} />
 
       <AbsoluteFill style={{ display: 'flex', padding: '60px 100px', gap: 70, alignItems: 'center', overflow: 'hidden' }}>
-        {/* Left: inbox dims at 50% */}
+        {/* Left: inbox */}
         <div style={{ width: 820, display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden', opacity: inboxDimOp }}>
           <div style={{ opacity: headerOp, transform: `translateY(${headerY}px)`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <div style={{ fontSize: 14, color: COLORS.gray, fontFamily: FONT, fontWeight: '600', textTransform: 'uppercase', letterSpacing: '2px' }}>INBOX</div>
@@ -84,16 +80,18 @@ export const Scene2Chaos: React.FC = () => {
               {badgeCount}
             </div>
           </div>
-          {emails.map((e) => <EmailRow key={e.subject} {...e} />)}
+          {items.slice(0, 4).map((e, i) => (
+            <EmailRow key={i} subject={e.subject} from={e.from} time={e.time} urgent={e.urgent} delay={emailDelays[i]} />
+          ))}
         </div>
 
-        {/* Right: punchy statements */}
+        {/* Right: punchWords + Every. Single. Day. */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 20, overflow: 'hidden' }}>
           <div style={{ opacity: t1.op, transform: `translateY(${t1.y}px)`, overflow: 'hidden' }}>
-            <div style={{ fontSize: 60, fontWeight: '800', color: COLORS.white, fontFamily: FONT, lineHeight: 1.1, letterSpacing: '-1.5px' }}>Emails. Data entry.</div>
+            <div style={{ fontSize: 60, fontWeight: '800', color: COLORS.white, fontFamily: FONT, lineHeight: 1.1, letterSpacing: '-1.5px' }}>{punchWords[0]}</div>
           </div>
           <div style={{ opacity: t2.op, transform: `translateY(${t2.y}px)`, overflow: 'hidden' }}>
-            <div style={{ fontSize: 60, fontWeight: '800', color: COLORS.white, fontFamily: FONT, lineHeight: 1.1, letterSpacing: '-1.5px' }}>Follow-ups.</div>
+            <div style={{ fontSize: 60, fontWeight: '800', color: COLORS.white, fontFamily: FONT, lineHeight: 1.1, letterSpacing: '-1.5px' }}>{punchWords[1]}</div>
           </div>
           <div style={{ height: 2, background: 'rgba(255,255,255,0.08)', margin: '4px 0', opacity: t2.op }} />
           <div style={{ opacity: tE.op, transform: `translateY(${tE.y}px)`, overflow: 'hidden' }}>

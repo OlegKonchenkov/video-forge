@@ -1,57 +1,17 @@
-import { spawn } from 'child_process';
+// apps/worker/src/jobs/render.ts
+import { execSync } from 'child_process';
 import path from 'path';
 import fs from 'fs';
+import type { VideoScript } from '../types/script';
 
-// The agentforge-video Remotion project is at the repo root
 const REMOTION_ROOT = path.resolve(__dirname, '../../../../agentforge-video');
 
-async function runRemotionRender(outPath: string): Promise<void> {
-  await new Promise<void>((resolve, reject) => {
-    const child = spawn(
-      'npx',
-      ['remotion', 'render', 'AgentForgeAd', outPath, '--codec', 'h264'],
-      { cwd: REMOTION_ROOT, stdio: ['ignore', 'pipe', 'pipe'] }
-    );
-
-    let stderr = '';
-    const timeoutMs = parseInt(process.env.RENDER_TIMEOUT_MS || '600000', 10);
-    const timer = setTimeout(() => {
-      child.kill('SIGKILL');
-      reject(new Error(`Remotion render timed out after ${timeoutMs}ms`));
-    }, timeoutMs);
-
-    child.stdout.on('data', (chunk) => {
-      process.stdout.write(chunk);
-    });
-
-    child.stderr.on('data', (chunk) => {
-      const text = chunk.toString();
-      stderr += text;
-      process.stderr.write(chunk);
-    });
-
-    child.on('error', (err) => {
-      clearTimeout(timer);
-      reject(err);
-    });
-
-    child.on('close', (code) => {
-      clearTimeout(timer);
-      if (code === 0) {
-        resolve();
-        return;
-      }
-      reject(new Error(`Remotion render failed (exit ${code}): ${stderr.slice(-1000)}`));
-    });
-  });
-}
-
-export async function renderVideo({ videoId, scenes, audioPaths, imagePaths, workDir }: {
-  videoId: string;
-  scenes: string[];
+export async function renderVideo({ videoId, script, audioPaths, imagePaths, workDir }: {
+  videoId:    string;
+  script:     VideoScript;
   audioPaths: string[];
   imagePaths: string[];
-  workDir: string;
+  workDir:    string;
 }): Promise<string> {
   const outPath = path.join(workDir, 'output.mp4');
   fs.mkdirSync(workDir, { recursive: true });
@@ -69,11 +29,25 @@ export async function renderVideo({ videoId, scenes, audioPaths, imagePaths, wor
   // Copy background images
   const bgNames = ['bg-hero', 'bg-chaos', 'bg-cost', 'bg-logo', 'bg-solution', 'bg-stats', 'bg-cta'];
   imagePaths.forEach((src, i) => {
-    const dest = path.join(remotionPublic, `images/${bgNames[i] || `scene${i + 1}`}.png`);
+    const dest = path.join(remotionPublic, `images/${bgNames[i] ?? `scene${i + 1}`}.png`);
     if (fs.existsSync(src)) fs.copyFileSync(src, dest);
   });
 
-  await runRemotionRender(outPath);
+  // Write props to a temp file (avoids shell command-length limits)
+  const propsPath = path.join(workDir, 'props.json');
+  const remotionProps = {
+    brandName: script.brandName,
+    tagline:   script.tagline,
+    ctaText:   script.ctaText,
+    ctaUrl:    script.ctaUrl,
+    scenes:    script.scenes,
+  };
+  fs.writeFileSync(propsPath, JSON.stringify(remotionProps));
+
+  execSync(
+    `npx remotion render AgentForgeAd "${outPath}" --codec h264 --props "${propsPath}"`,
+    { cwd: REMOTION_ROOT, stdio: 'pipe', timeout: 300_000 }
+  );
 
   return outPath;
 }
