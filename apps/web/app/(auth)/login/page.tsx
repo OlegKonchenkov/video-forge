@@ -26,11 +26,11 @@ export default function LoginPage() {
     const supabase = createClient();
 
     let mounted = true;
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(({ data }: { data: { session: any } }) => {
       if (mounted && data.session) router.replace('/dashboard');
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
       if (session) router.replace('/dashboard');
     });
 

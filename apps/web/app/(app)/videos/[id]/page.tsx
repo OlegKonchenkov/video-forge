@@ -11,13 +11,13 @@ export default function VideoPage({ params }: { params: { id: string } }) {
 
     // Initial fetch
     supabase.from('videos').select('*').eq('id', params.id).single()
-      .then(({ data }) => setVideo(data));
+      .then(({ data }: { data: any }) => setVideo(data));
 
     // Realtime subscription
     const channel = supabase.channel('video-' + params.id)
       .on('postgres_changes', {
         event: 'UPDATE', schema: 'public', table: 'videos', filter: `id=eq.${params.id}`,
-      }, ({ new: updated }) => setVideo(updated))
+      }, ({ new: updated }: { new: any }) => setVideo(updated))
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
