@@ -7,7 +7,37 @@ type CookieToSet = {
   options?: Parameters<NextResponse['cookies']['set']>[2];
 };
 
+function isAppRoute(pathname: string) {
+  return (
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/videos') ||
+    pathname.startsWith('/billing') ||
+    pathname.startsWith('/settings')
+  );
+}
+
+function isAuthRoute(pathname: string) {
+  return pathname === '/login' || pathname === '/signup';
+}
+
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // ── DEV BYPASS ──────────────────────────────────────────────────────────────
+  // When DEV_BYPASS_AUTH=true, skip Supabase and use a simple cookie instead.
+  // Remove once you have real Supabase credentials configured.
+  if (process.env.DEV_BYPASS_AUTH === 'true') {
+    const hasDevSession = request.cookies.has('dev_session');
+    if (!hasDevSession && isAppRoute(pathname)) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+    if (hasDevSession && isAuthRoute(pathname)) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+    return NextResponse.next();
+  }
+  // ── END DEV BYPASS ──────────────────────────────────────────────────────────
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -32,24 +62,11 @@ export async function middleware(request: NextRequest) {
   // Refresh session — important: do NOT add logic between createServerClient and getUser
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
-
-  // Routes that require auth
-  const isAppRoute =
-    pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/videos') ||
-    pathname.startsWith('/billing');
-
-  // Routes only for unauthenticated users
-  const isAuthRoute =
-    pathname === '/login' ||
-    pathname === '/signup';
-
-  if (!user && isAppRoute) {
+  if (!user && isAppRoute(pathname)) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  if (user && isAuthRoute) {
+  if (user && isAuthRoute(pathname)) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
@@ -58,14 +75,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths EXCEPT:
-     * - _next/static, _next/image (Next.js internals)
-     * - favicon.ico, robots.txt, sitemap.xml
-     * - Static assets (images, fonts, etc.)
-     * - API routes (handled separately)
-     * - auth/callback (must be public for OAuth redirect)
-     */
     '/((?!_next/static|_next/image|favicon\\.ico|robots\\.txt|sitemap\\.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$|auth/callback|api/).*)',
   ],
 };

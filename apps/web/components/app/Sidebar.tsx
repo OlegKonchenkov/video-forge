@@ -1,9 +1,8 @@
-﻿'use client';
+'use client';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, PlusCircle, CreditCard, Settings, LogOut } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
 
 const nav = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -12,11 +11,17 @@ const nav = [
   { href: '/settings',  icon: Settings,         label: 'Settings' },
 ];
 
-export function Sidebar({ credits }: { credits: number }) {
+export function Sidebar({ credits, userEmail }: { credits: number; userEmail?: string }) {
   const pathname = usePathname();
   const router = useRouter();
 
   async function signOut() {
+    // Dev bypass: just clear the cookie
+    if (process.env.NEXT_PUBLIC_DEV_BYPASS === 'true') {
+      document.cookie = 'dev_session=; Max-Age=0; path=/';
+      router.push('/');
+      return;
+    }
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push('/');
@@ -31,6 +36,11 @@ export function Sidebar({ credits }: { credits: number }) {
           <span className="font-display text-xl tracking-wider text-film-cream">VIDEO</span>
           <span className="font-display text-xl tracking-wider text-film-amber">FORGE</span>
         </Link>
+        {process.env.NEXT_PUBLIC_DEV_BYPASS === 'true' && (
+          <div className="mt-1.5 px-1.5 py-0.5 inline-block border border-film-amber/30 bg-film-amber/10">
+            <span className="text-[0.55rem] font-sans font-bold tracking-widest uppercase text-film-amber">Dev Mode</span>
+          </div>
+        )}
       </div>
 
       {/* Credits badge */}
@@ -53,7 +63,7 @@ export function Sidebar({ credits }: { credits: number }) {
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         {nav.map(({ href, icon: Icon, label }) => {
-          const active = pathname === href;
+          const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
           return (
             <Link
               key={href} href={href}
@@ -70,8 +80,11 @@ export function Sidebar({ credits }: { credits: number }) {
         })}
       </nav>
 
-      {/* Sign out */}
+      {/* User + Sign out */}
       <div className="px-3 pb-5 border-t border-film-border pt-4">
+        {userEmail && (
+          <p className="px-3 mb-3 text-[0.65rem] font-sans text-film-gray truncate">{userEmail}</p>
+        )}
         <button
           onClick={signOut}
           className="flex items-center gap-3 px-3 py-2.5 w-full text-sm font-sans font-medium text-film-gray hover:text-film-cream hover:bg-film-warm/60 transition-all duration-150 border-l-2 border-transparent"

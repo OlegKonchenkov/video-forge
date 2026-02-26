@@ -99,6 +99,13 @@ export default function LoginPage() {
           </div>
         )}
 
+        {/* Dev bypass login */}
+        {process.env.NEXT_PUBLIC_DEV_BYPASS === 'true' && (
+          <a href="/dev-login" className="btn-amber w-full justify-center text-center">
+            ⚡ Dev Login (local only)
+          </a>
+        )}
+
         {/* Google OAuth */}
         <button
           type="button"

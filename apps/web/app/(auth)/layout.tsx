@@ -1,14 +1,18 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user) {
-    redirect('/dashboard');
+  // Dev bypass: if dev_session cookie exists, redirect to dashboard
+  if (process.env.DEV_BYPASS_AUTH === 'true') {
+    const cookieStore = await cookies();
+    if (cookieStore.has('dev_session')) {
+      redirect('/dashboard');
+    }
+  } else {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) redirect('/dashboard');
   }
 
   return (
