@@ -53,11 +53,22 @@ export default function NewVideoPage() {
         .single();
       if (dbErr) throw new Error(dbErr.message);
 
-      await fetch(`${process.env.NEXT_PUBLIC_WORKER_URL}/jobs`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_WORKER_URL}/jobs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.NEXT_PUBLIC_WORKER_API_KEY! },
         body: JSON.stringify({ videoId: video.id, userId: user!.id, inputType, inputData }),
       });
+
+      if (!res.ok) {
+        // Clean up the orphaned video record before surfacing the error
+        await supabase.from('videos').delete().eq('id', video.id);
+        const body = await res.json().catch(() => ({}));
+        throw new Error(
+          res.status === 402
+            ? 'Insufficient credits. Please upgrade your plan.'
+            : body.error ?? `Worker error (${res.status})`
+        );
+      }
 
       router.push(`/videos/${video.id}`);
     } catch (e: unknown) {
