@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { useEffect, useState } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
+import { createClient } from '@/lib/supabase/client';
 import { motion } from 'framer-motion';
 import { CreditCard, CheckCircle, Loader2, ArrowRight } from 'lucide-react';
 
@@ -34,10 +34,7 @@ const PLANS = [
 ];
 
 export default function BillingPage() {
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+  const supabase = createClient();
 
   const [profile, setProfile] = useState<{ credits: number; plan: string } | null>(null);
   const [loading, setLoading] = useState(true);

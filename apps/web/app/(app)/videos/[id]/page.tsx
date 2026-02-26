@@ -23,58 +23,75 @@ export default function VideoPage({ params }: { params: { id: string } }) {
     return () => { supabase.removeChannel(channel); };
   }, [params.id]);
 
-  if (!video) return <div className="p-8 text-slate-400">Loading...</div>;
+  if (!video) return (
+    <div className="p-8 text-film-gray font-sans text-sm">Loading...</div>
+  );
 
   return (
-    <div className="p-8 max-w-4xl">
-      <h1 className="text-3xl font-black mb-8">{video.title}</h1>
+    <div className="max-w-4xl mx-auto px-6 py-10 space-y-8">
 
-      {/* Status */}
+      {/* Header */}
+      <div className="border-b border-film-border pb-6">
+        <span className="section-label mb-2 block">Your Video</span>
+        <h1 className="font-display text-4xl tracking-wider text-film-cream">{video.title}</h1>
+      </div>
+
+      {/* Status card — shown while not complete */}
       {video.status !== 'complete' && (
-        <div className="glass rounded-2xl p-8 mb-8 text-center">
+        <div className="film-card p-10 text-center space-y-4">
           {video.status === 'queued' && (
             <>
-              <Clock className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-              <p className="text-xl font-bold">Queued</p>
-              <p className="text-slate-400 mt-1">Your video will start processing shortly</p>
+              <Clock className="w-10 h-10 text-film-gray mx-auto" />
+              <p className="font-display text-2xl tracking-wider text-film-cream">Queued</p>
+              <p className="text-film-gray font-sans text-sm">Your video will start processing shortly</p>
             </>
           )}
           {video.status === 'processing' && (
             <>
-              <Loader2 className="w-12 h-12 text-accent mx-auto mb-3 animate-spin" />
-              <p className="text-xl font-bold">{video.current_step || 'Processing...'}</p>
-              <div className="mt-4 max-w-xs mx-auto h-2 rounded-full bg-white/10 overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-accent to-cyan rounded-full transition-all duration-1000" style={{ width: `${video.progress}%` }} />
+              <Loader2 className="w-10 h-10 text-film-amber mx-auto animate-spin" />
+              <p className="font-display text-2xl tracking-wider text-film-cream">
+                {video.current_step || 'Processing…'}
+              </p>
+              <div className="max-w-xs mx-auto">
+                <div className="h-0.5 bg-film-border overflow-hidden">
+                  <div
+                    className="h-full bg-film-amber transition-all duration-1000"
+                    style={{ width: `${video.progress}%` }}
+                  />
+                </div>
+                <p className="text-film-gray font-sans text-xs mt-2">{video.progress}% complete</p>
               </div>
-              <p className="text-slate-400 mt-2 text-sm">{video.progress}% complete</p>
             </>
           )}
           {video.status === 'failed' && (
             <>
-              <AlertCircle className="w-12 h-12 text-danger mx-auto mb-3" />
-              <p className="text-xl font-bold text-danger">Generation failed</p>
-              <p className="text-slate-400 mt-1 text-sm">{video.error_msg}</p>
+              <AlertCircle className="w-10 h-10 text-red-500 mx-auto" />
+              <p className="font-display text-2xl tracking-wider text-red-400">Generation Failed</p>
+              <p className="text-film-gray font-sans text-sm">{video.error_msg}</p>
             </>
           )}
         </div>
       )}
 
-      {/* Video player */}
+      {/* Video player — shown when complete */}
       {video.status === 'complete' && video.output_url && (
-        <div className="space-y-6">
-          <div className="rounded-2xl overflow-hidden border border-white/10 glow-blue">
-            <video controls className="w-full" src={video.output_url}>
+        <div className="space-y-5">
+          <div className="film-card overflow-hidden p-0">
+            <video controls className="w-full block" src={video.output_url}>
               Your browser does not support video.
             </video>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-success">
-              <CheckCircle className="w-5 h-5" />
-              <span className="font-semibold">Ready to use</span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-film-amber font-sans text-sm font-semibold">
+              <CheckCircle className="w-4 h-4" />
+              Ready to use
             </div>
-            <a href={video.output_url} download
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-accent to-cyan text-white font-bold hover:opacity-90 transition-all glow-blue ml-auto">
-              <Download className="w-5 h-5" />
+            <a
+              href={video.output_url}
+              download
+              className="btn-amber ml-auto flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
               Download MP4
             </a>
           </div>

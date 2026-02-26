@@ -26,14 +26,14 @@ export async function renderVideo({ videoId, scenes, audioPaths, imagePaths, wor
   });
 
   // Copy background images
-  const bgNames = ['bg-pain', 'bg-chaos', 'bg-cost', 'bg-logo', 'bg-solution', 'bg-stats', 'bg-cta'];
+  const bgNames = ['bg-hero', 'bg-chaos', 'bg-cost', 'bg-logo', 'bg-solution', 'bg-stats', 'bg-cta'];
   imagePaths.forEach((src, i) => {
     const dest = path.join(remotionPublic, `images/${bgNames[i] || `scene${i + 1}`}.png`);
     if (fs.existsSync(src)) fs.copyFileSync(src, dest);
   });
 
   execSync(
-    `npx remotion render VideoForgeAd "${outPath}" --codec h264`,
+    `npx remotion render AgentForgeAd "${outPath}" --codec h264`,
     { cwd: REMOTION_ROOT, stdio: 'pipe', timeout: 300_000 }
   );
 
