@@ -146,3 +146,52 @@ pm2 logs videoforge-worker # BullMQ worker logs
 pm2 monit                  # CPU/RAM dashboard
 redis-cli -a YOUR_REDIS_PASSWORD ping  # Redis check
 ```
+
+---
+
+## Applied production state (2026-02-25)
+
+This server is currently deployed with **Docker Compose** (not PM2).
+
+- Repo path: `/opt/videoforge`
+- Public API domain: `https://api.adventuraescaperoom.it`
+- Frontend allowed origin: `https://video-forge-sable.vercel.app`
+- Containers: `worker-api`, `worker-queue`, `redis`
+- API exposure: `127.0.0.1:3001` (proxied by host Nginx)
+- SSL: Let's Encrypt via Certbot, auto-renew enabled
+
+### Files added/used
+
+- `/opt/videoforge/Dockerfile`
+- `/opt/videoforge/docker-compose.yml`
+- `/opt/videoforge/.dockerignore`
+- `/etc/nginx/sites-enabled/api.adventuraescaperoom.it.conf`
+- `/opt/videoforge/apps/worker/.env`
+- `/opt/videoforge/.env` (Compose variables only)
+
+### Runtime checks
+
+```bash
+cd /opt/videoforge
+sudo docker compose ps
+curl https://api.adventuraescaperoom.it/health
+```
+
+Expected health response:
+
+```json
+{"ok":true}
+```
+
+### Notes for next agent
+
+- Keep Redis password only on VPS (`.env` + `apps/worker/.env`), never in Vercel.
+- Vercel variables used:
+  - `NEXT_PUBLIC_WORKER_URL=https://api.adventuraescaperoom.it`
+  - `NEXT_PUBLIC_WORKER_API_KEY=<same as VPS API_SECRET_KEY>`
+- If env changes, restart affected services:
+
+```bash
+cd /opt/videoforge
+sudo docker compose up -d --force-recreate worker-api worker-queue
+```
