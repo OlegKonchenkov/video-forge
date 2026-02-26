@@ -154,7 +154,7 @@ export default function BillingPage() {
         <div className="mt-6 flex items-center justify-between p-4 bg-film-warm border border-film-border">
           <div>
             <p className="text-film-cream font-sans text-sm font-medium">Need more videos now?</p>
-            <p className="text-film-gray font-sans text-xs mt-0.5">Buy 1 video credit for $9 â€” no subscription</p>
+            <p className="text-film-gray font-sans text-xs mt-0.5">Buy 1 video credit for $9 - no subscription</p>
           </div>
           <button
             onClick={handleBuyCredits}

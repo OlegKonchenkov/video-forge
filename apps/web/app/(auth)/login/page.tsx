@@ -160,7 +160,7 @@ export default function LoginPage() {
             type="submit" disabled={loading || oauthLoading}
             className="btn-amber w-full justify-center disabled:opacity-40"
           >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sign In \u2192'}
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sign In ->'}
           </button>
         </form>
 

@@ -39,7 +39,7 @@ export default async function DashboardPage() {
           <h3 className="font-display text-2xl tracking-wider text-film-cream mb-2">LIGHTS, CAMERA...</h3>
           <p className="text-film-gray font-sans text-sm mb-7 font-serif italic">Create your first AI video in under 5 minutes</p>
           <Link href="/videos/new" className="btn-amber">
-            Create First Video \u2192
+            Create First Video ->
           </Link>
         </div>
       ) : (
