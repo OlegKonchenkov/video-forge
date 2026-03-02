@@ -1,0 +1,113 @@
+// agentforge-video/src/scenes/SceneInboxChaos.tsx
+import React from 'react';
+import { useCurrentFrame, useVideoConfig, interpolate, spring, AbsoluteFill, staticFile } from 'remotion';
+import { Audio } from '@remotion/media';
+import { FONT, DISPLAY_FONT, MONO_FONT } from '../font';
+import { NoiseOverlay } from '../shared/NoiseOverlay';
+import { SceneCounter } from '../shared/SceneCounter';
+import { accentVariants } from '../shared/colorUtils';
+import type { SceneInboxChaosProps, SharedSceneProps } from '../types';
+
+export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> = ({
+  items, punchWords,
+  accentColor, audioPath, sceneIndex, sceneTotal,
+}) => {
+  const frame = useCurrentFrame();
+  const { fps, durationInFrames: dur } = useVideoConfig();
+  const av = accentVariants(accentColor);
+
+  const ITEM_SPACING = dur * 0.14;
+  const PUNCH_CUE    = dur * 0.72;
+
+  return (
+    <AbsoluteFill style={{ backgroundColor: '#050d1a', overflow: 'hidden' }}>
+      {/* Subtle grid */}
+      <AbsoluteFill style={{
+        backgroundImage: 'linear-gradient(rgba(148,163,184,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.04) 1px, transparent 1px)',
+        backgroundSize: '80px 80px',
+      }} />
+      <AbsoluteFill style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(5,13,26,0) 30%, #050d1a 75%)' }} />
+      <NoiseOverlay />
+
+      {/* Email cards */}
+      <AbsoluteFill style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 16, padding: '0 180px' }}>
+        {items.map((item, i) => {
+          const cue = i * ITEM_SPACING;
+          const p   = spring({ frame: frame - cue, fps, config: { damping: 200 } });
+          const x   = interpolate(p, [0, 1], [200, 0]);
+          const op  = interpolate(frame - cue, [0, 12], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+          const urgentGlow = item.urgent
+            ? `0 0 ${interpolate(frame % 60, [0, 30, 60], [8, 20, 8])}px rgba(239,68,68,0.35)`
+            : 'none';
+
+          const initials = item.from.split('@')[0].slice(0, 2).toUpperCase();
+
+          return (
+            <div key={i} style={{
+              opacity: op, transform: `translateX(${x}px)`,
+              width: '100%',
+              background: item.urgent ? 'rgba(239,68,68,0.06)' : 'rgba(10,22,40,0.9)',
+              border: item.urgent ? '1px solid rgba(239,68,68,0.35)' : `1px solid ${av.border}`,
+              borderLeft: item.urgent ? '3px solid #ef4444' : `3px solid ${av.strong}`,
+              borderRadius: 14, padding: '18px 24px',
+              display: 'flex', alignItems: 'center', gap: 18,
+              boxShadow: urgentGlow,
+            }}>
+              {/* Avatar */}
+              <div style={{
+                width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
+                background: item.urgent ? 'rgba(239,68,68,0.2)' : av.bg,
+                border: item.urgent ? '1px solid rgba(239,68,68,0.4)' : `1px solid ${av.border}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <span style={{ fontSize: 14, color: item.urgent ? '#ef4444' : accentColor, fontFamily: MONO_FONT, fontWeight: '600' }}>{initials}</span>
+              </div>
+
+              {/* Subject + from */}
+              <div style={{ flex: 1, overflow: 'hidden' }}>
+                <div style={{ fontSize: 22, color: item.urgent ? '#fca5a5' : '#e2e8f0', fontFamily: FONT, fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {item.subject}
+                </div>
+                <div style={{ fontSize: 17, color: 'rgba(148,163,184,0.7)', fontFamily: MONO_FONT, marginTop: 3 }}>
+                  {item.from}
+                </div>
+              </div>
+
+              {/* Time + urgent badge */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
+                <span style={{ fontSize: 17, color: 'rgba(148,163,184,0.6)', fontFamily: MONO_FONT }}>{item.time}</span>
+                {item.urgent && (
+                  <div style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 6, padding: '3px 10px' }}>
+                    <span style={{ fontSize: 13, color: '#ef4444', fontFamily: MONO_FONT, fontWeight: '600', letterSpacing: '1.5px' }}>URGENT</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </AbsoluteFill>
+
+      {/* Punch words */}
+      <AbsoluteFill style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: 90 }}>
+        <div style={{ display: 'flex', gap: 48 }}>
+          {punchWords.map((word, i) => {
+            const cue = PUNCH_CUE + i * (dur * 0.07);
+            const p   = spring({ frame: frame - cue, fps, config: { damping: 15 } });
+            const scale = interpolate(p, [0, 1], [0.6, 1]);
+            const op  = interpolate(frame - cue, [0, 8], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+            return (
+              <div key={i} style={{ opacity: op, transform: `scale(${scale})` }}>
+                <span style={{ fontSize: 68, fontWeight: '800', color: i === 1 ? accentColor : '#f1f5f9', fontFamily: DISPLAY_FONT, letterSpacing: '2px' }}>
+                  {word}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </AbsoluteFill>
+
+      <SceneCounter current={sceneIndex + 1} total={sceneTotal} />
+      <Audio src={staticFile(audioPath)} />
+    </AbsoluteFill>
+  );
+};
