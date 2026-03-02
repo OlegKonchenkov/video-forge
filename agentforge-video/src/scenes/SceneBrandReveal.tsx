@@ -6,6 +6,7 @@ import { FONT, DISPLAY_FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
 import { accentVariants } from '../shared/colorUtils';
+import { useSceneLayout } from '../shared/useSceneLayout';
 import type { SceneBrandRevealProps, SharedSceneProps } from '../types';
 
 export const SceneBrandReveal: React.FC<SceneBrandRevealProps & SharedSceneProps> = ({
@@ -14,6 +15,7 @@ export const SceneBrandReveal: React.FC<SceneBrandRevealProps & SharedSceneProps
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
   const av = accentVariants(accentColor);
+  const layout = useSceneLayout();
 
   const CUE_NAME    = 0;
   const CUE_TAGLINE = dur * 0.40;
@@ -31,7 +33,10 @@ export const SceneBrandReveal: React.FC<SceneBrandRevealProps & SharedSceneProps
   const charCount = Math.floor(interpolate(frame - CUE_TAGLINE, [0, tagline.length * 3], [0, tagline.length], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }));
 
   // Accent line
-  const lineW = interpolate(spring({ frame: frame - CUE_LINE, fps, config: { damping: 200 } }), [0, 1], [0, 280]);
+  const lineW = interpolate(spring({ frame: frame - CUE_LINE, fps, config: { damping: 200 } }), [0, 1], [0, Math.round(layout.maxContentWidth * 0.25)]);
+
+  // Brand name font — scales with canvas, shorter names get bigger
+  const brandFontSize = Math.max(layout.headingSize, Math.round(layout.displaySize * 1.8) - brandName.length * 3);
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#050d1a', overflow: 'hidden' }}>
@@ -54,7 +59,7 @@ export const SceneBrandReveal: React.FC<SceneBrandRevealProps & SharedSceneProps
         {/* Brand name with clip reveal */}
         <div style={{ overflow: 'hidden', position: 'relative' as const }}>
           <div style={{
-            fontSize: Math.max(100, 180 - brandName.length * 4),
+            fontSize: brandFontSize,
             fontFamily: DISPLAY_FONT,
             color: '#f1f5f9',
             letterSpacing: '6px',
@@ -70,7 +75,7 @@ export const SceneBrandReveal: React.FC<SceneBrandRevealProps & SharedSceneProps
 
         {/* Tagline typewriter */}
         {frame >= CUE_TAGLINE && (
-          <div style={{ fontSize: 28, color: 'rgba(148,163,184,0.75)', fontFamily: MONO_FONT, letterSpacing: '4px', textTransform: 'uppercase' as const }}>
+          <div style={{ fontSize: layout.bodySize, color: 'rgba(148,163,184,0.75)', fontFamily: MONO_FONT, letterSpacing: '4px', textTransform: 'uppercase' as const }}>
             {tagline.slice(0, charCount)}
             <span style={{ opacity: Math.sin(frame * 0.3) > 0 ? 0.7 : 0 }}>|</span>
           </div>

@@ -1,6 +1,6 @@
 // agentforge-video/src/AgentForgeAd.tsx
 import React from 'react';
-import { AbsoluteFill, staticFile } from 'remotion';
+import { AbsoluteFill, staticFile, useVideoConfig } from 'remotion';
 import { Audio } from '@remotion/media';
 import { TransitionSeries, linearTiming, type TransitionPresentation } from '@remotion/transitions';
 import { fade }      from '@remotion/transitions/fade';
@@ -8,19 +8,9 @@ import { slide }     from '@remotion/transitions/slide';
 import { wipe }      from '@remotion/transitions/wipe';
 import { clockWipe } from '@remotion/transitions/clock-wipe';
 import { flip }      from '@remotion/transitions/flip';
-import { WIDTH, HEIGHT, TRANSITION_FRAMES } from './constants';
+import { TRANSITION_FRAMES } from './constants';
 import { SCENE_REGISTRY } from './sceneRegistry';
 import type { AgentForgeAdProps, SharedSceneProps } from './types';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const TRANSITIONS: TransitionPresentation<any>[] = [
-  slide({ direction: 'from-right' }),
-  wipe({ direction: 'from-left' }),
-  fade(),
-  slide({ direction: 'from-bottom' }),
-  clockWipe({ width: WIDTH, height: HEIGHT }),
-  flip(),
-];
 
 export const AgentForgeAd: React.FC<AgentForgeAdProps> = ({
   scenes,
@@ -31,6 +21,19 @@ export const AgentForgeAd: React.FC<AgentForgeAdProps> = ({
   ctaUrl,
   accentColor,
 }) => {
+  // Must be inside component so useVideoConfig() receives live width/height from calculateMetadata
+  const { width, height } = useVideoConfig();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const TRANSITIONS: TransitionPresentation<any>[] = [
+    slide({ direction: 'from-right' }),
+    wipe({ direction: 'from-left' }),
+    fade(),
+    slide({ direction: 'from-bottom' }),
+    clockWipe({ width, height }),
+    flip(),
+  ];
+
   const tf = TRANSITION_FRAMES;
   const totalFrames = sceneDurations.reduce((s, d) => s + d, 0) - (scenes.length - 1) * tf;
 

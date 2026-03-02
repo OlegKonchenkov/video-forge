@@ -65,19 +65,41 @@ SELECTION RULES:
 - For SaaS/tech: prefer "comparison" + "how_it_works"
 - For e-commerce: prefer "product_showcase" + "offer_countdown"
 - For service businesses: prefer "testimonial" + "before_after"
+- For B2B: prefer "how_it_works" + "stats_grid" + "comparison"; avoid "offer_countdown"
+- For B2C: prefer "product_showcase" + "offer_countdown" + "testimonial"
 `;
 
-function buildPrompt(sourceText: string, inputType: string, knownAccentColor: string | null): string {
+function buildPrompt(
+  sourceText:       string,
+  inputType:        string,
+  language:         string,
+  businessType:     string,
+  knownAccentColor: string | null,
+): string {
   const colorHint = knownAccentColor
     ? `Use this exact hex color as accentColor: "${knownAccentColor}"`
     : `Pick a strong brand accent color (hex) that matches the brand personality — NOT generic blue #3b82f6 unless it genuinely fits`;
 
+  const langInstruction = language !== 'en'
+    ? `CRITICAL LANGUAGE RULE: Write ALL copy (voiceovers, headlines, taglines, labels, CTAs) in "${language}" — the language of the source website. Never mix in English words unless they are brand names or technical terms universally understood.`
+    : `Write all copy in English.`;
+
+  const b2bHint = businessType === 'b2b'
+    ? `BUSINESS TYPE: B2B — focus on ROI, efficiency, cost savings, professional benefits. Avoid consumer/retail language like prices, discounts, or "shop now".`
+    : businessType === 'b2c'
+    ? `BUSINESS TYPE: B2C — focus on lifestyle, desire, personal value, convenience. Use emotional and aspirational language.`
+    : `BUSINESS TYPE: Mixed — balance professional credibility with approachable consumer appeal.`;
+
   return `Analyse this ${inputType} content and create a 5-7 scene video ad script.
 
 SOURCE CONTENT:
-${sourceText.slice(0, 4000)}
+${sourceText.slice(0, 7000)}
 
 ${SCENE_CATALOGUE}
+
+${b2bHint}
+
+${langInstruction}
 
 Return a JSON object with this EXACT structure:
 {
@@ -86,6 +108,7 @@ Return a JSON object with this EXACT structure:
   "ctaText": "CTA button text matching the business type",
   "ctaUrl": "Website URL from content or infer from brand",
   "accentColor": "#hex — ${colorHint}",
+  "language": "${language}",
   "scenes": [
     { "type": "<scene_type>", "props": { /* matching schema above */ } },
     ...
@@ -94,25 +117,28 @@ Return a JSON object with this EXACT structure:
 
 COPY RULES:
 - All voiceovers: 15-25 words, conversational, read naturally aloud
+- CRITICAL: NEVER concatenate adjacent words — always keep proper spaces between every single word
 - Extract real stats/numbers from content where possible; otherwise invent plausible industry-specific ones
 - All copy must be specific to THIS business — never generic placeholder text
-- headlineLines[3] in feature_list must be one punchy word + period ("Automatically." / "Instantly." / "Effortlessly.")
+- headlineLines[3] in feature_list must be one punchy word + period ("Automaticamente." / "Instantly." / "Effortlessly.")
 - punchWords in inbox_chaos: short (1-3 words each), punchy, end with period
 - comparison: brandLabel should be the actual brand name; show clear advantage
-- ctaText: match the action ("Book a Demo" for SaaS, "Get a Quote" for services, "Shop Now" for retail)`;
+- ctaText: match the action ("Prenota una Demo" for SaaS, "Richiedi un Preventivo" for services, "Acquista Ora" for retail)`;
 }
 
 export async function generateScript(
-  sourceText: string,
-  inputType: string,
+  sourceText:       string,
+  inputType:        string,
+  language:         string = 'en',
+  businessType:     string = 'mixed',
   knownAccentColor: string | null = null,
 ): Promise<VideoScript> {
   const response = await client.chat.completions.create({
-    model: 'gpt-4o',
+    model: 'gpt-5.2',
     response_format: { type: 'json_object' },
     messages: [
       { role: 'system', content: SYSTEM },
-      { role: 'user',   content: buildPrompt(sourceText, inputType, knownAccentColor) },
+      { role: 'user',   content: buildPrompt(sourceText, inputType, language, businessType, knownAccentColor) },
     ],
     max_tokens: 4000,
     temperature: 0.7,

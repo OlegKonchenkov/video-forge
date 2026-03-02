@@ -7,6 +7,7 @@ import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
 import { WordByWord } from '../shared/WordByWord';
 import { accentVariants } from '../shared/colorUtils';
+import { useSceneLayout } from '../shared/useSceneLayout';
 import type { SceneTestimonialProps, SharedSceneProps } from '../types';
 
 export const SceneTestimonial: React.FC<SceneTestimonialProps & SharedSceneProps> = ({
@@ -16,6 +17,7 @@ export const SceneTestimonial: React.FC<SceneTestimonialProps & SharedSceneProps
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
   const av = accentVariants(accentColor);
+  const layout = useSceneLayout();
 
   const CUE_QUOTE  = 0;
   const CUE_AUTHOR = dur * 0.68;
@@ -36,9 +38,9 @@ export const SceneTestimonial: React.FC<SceneTestimonialProps & SharedSceneProps
       <NoiseOverlay />
 
       {/* Giant decorative quote mark */}
-      <AbsoluteFill style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', pointerEvents: 'none', padding: '40px 80px' }}>
+      <AbsoluteFill style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', pointerEvents: 'none', padding: `${layout.outerPadding * 0.5}px ${layout.outerPadding}px` }}>
         <div style={{
-          fontSize: 300,
+          fontSize: layout.isPortrait ? 180 : 300,
           fontFamily: DISPLAY_FONT,
           color: accentColor,
           opacity: markOp * 0.12,
@@ -50,9 +52,9 @@ export const SceneTestimonial: React.FC<SceneTestimonialProps & SharedSceneProps
         </div>
       </AbsoluteFill>
 
-      <AbsoluteFill style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 120px', gap: 48 }}>
+      <AbsoluteFill style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: `0 ${layout.outerPadding + 40}px`, gap: layout.innerGap }}>
         {/* Quote text — word by word */}
-        <div style={{ maxWidth: 900, textAlign: 'center' as const }}>
+        <div style={{ maxWidth: layout.maxContentWidth, textAlign: 'center' as const }}>
           <WordByWord
             text={quote}
             frame={frame}
@@ -60,7 +62,7 @@ export const SceneTestimonial: React.FC<SceneTestimonialProps & SharedSceneProps
             startFrame={CUE_QUOTE}
             staggerFrames={3}
             wordStyle={{
-              fontSize: 44,
+              fontSize: layout.headingSize - 12,
               fontWeight: '600',
               color: '#f1f5f9',
               fontFamily: FONT,
@@ -74,10 +76,10 @@ export const SceneTestimonial: React.FC<SceneTestimonialProps & SharedSceneProps
         <div style={{ opacity: authorOp, transform: `translateY(${authorY}px)`, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
           {/* Divider line */}
           <div style={{ width: 48, height: 2, background: accentColor, borderRadius: 1 }} />
-          <div style={{ fontSize: 24, color: accentColor, fontFamily: FONT, fontWeight: '700', letterSpacing: '0.3px' }}>
+          <div style={{ fontSize: layout.bodySize, color: accentColor, fontFamily: FONT, fontWeight: '700', letterSpacing: '0.3px' }}>
             {name}
           </div>
-          <div style={{ fontSize: 18, color: 'rgba(148,163,184,0.65)', fontFamily: MONO_FONT, letterSpacing: '1.5px', textTransform: 'uppercase' as const }}>
+          <div style={{ fontSize: layout.labelSize + 2, color: 'rgba(148,163,184,0.65)', fontFamily: MONO_FONT, letterSpacing: '1.5px', textTransform: 'uppercase' as const }}>
             {role}{displayCompany}
           </div>
         </div>

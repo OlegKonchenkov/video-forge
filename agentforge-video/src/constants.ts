@@ -1,6 +1,7 @@
 export const FPS = 30;
-export const WIDTH = 1920;
-export const HEIGHT = 1080;
+
+// WIDTH and HEIGHT are now dynamic — resolved by calculateMetadata from props.aspectRatio
+// Use useVideoConfig() inside components for live values
 
 export const COLORS = {
   bg: '#050d1a',
@@ -13,19 +14,4 @@ export const COLORS = {
   danger: '#ef4444',
 };
 
-export const SCENES = {
-  s1: 150,
-  s2: 150,
-  s3: 150,
-  s4: 90,
-  s5: 360,
-  s6: 240,
-  s7: 210,
-};
-
 export const TRANSITION_FRAMES = 15;
-
-export const TOTAL_FRAMES =
-  SCENES.s1 + SCENES.s2 + SCENES.s3 + SCENES.s4 +
-  SCENES.s5 + SCENES.s6 + SCENES.s7 -
-  6 * TRANSITION_FRAMES;

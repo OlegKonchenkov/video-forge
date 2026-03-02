@@ -6,6 +6,7 @@ import { FONT, DISPLAY_FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
 import { accentVariants } from '../shared/colorUtils';
+import { useSceneLayout } from '../shared/useSceneLayout';
 import type { SceneCTAProps, SharedSceneProps } from '../types';
 
 export const SceneCTA: React.FC<SceneCTAProps & SharedSceneProps> = ({
@@ -15,6 +16,7 @@ export const SceneCTA: React.FC<SceneCTAProps & SharedSceneProps> = ({
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
   const av = accentVariants(accentColor);
+  const layout = useSceneLayout();
 
   const CUE_BRAND  = 0;
   const CUE_HEAD   = dur * 0.15;
@@ -55,29 +57,33 @@ export const SceneCTA: React.FC<SceneCTAProps & SharedSceneProps> = ({
 
       {/* Ghost brand name background */}
       <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-        <div style={{ fontSize: 340, color: '#f1f5f9', fontFamily: DISPLAY_FONT, opacity: brandOp, letterSpacing: '20px', textTransform: 'uppercase' as const, whiteSpace: 'nowrap' as const }}>
+        <div style={{ fontSize: layout.isPortrait ? 180 : 340, color: '#f1f5f9', fontFamily: DISPLAY_FONT, opacity: brandOp, letterSpacing: '20px', textTransform: 'uppercase' as const, whiteSpace: 'nowrap' as const }}>
           {brandName}
         </div>
       </AbsoluteFill>
 
-      <AbsoluteFill style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '0 100px' }}>
+      <AbsoluteFill style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        gap: 16,
+        padding: `0 ${layout.outerPadding}px`,
+      }}>
         {/* Headline */}
         <div style={{ opacity: headOp, transform: `translateY(${headY}px)`, textAlign: 'center' as const }}>
-          <div style={{ fontSize: 64, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, lineHeight: 1.1, letterSpacing: '-2px' }}>
+          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, lineHeight: 1.1, letterSpacing: '-2px' }}>
             {headline}
           </div>
         </div>
 
         {/* Accent line */}
         <div style={{ opacity: accOp, transform: `translateY(${accY}px)`, textAlign: 'center' as const }}>
-          <div style={{ fontSize: 64, fontWeight: '800', color: accentColor, fontFamily: FONT, lineHeight: 1.1, letterSpacing: '-2px' }}>
+          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: accentColor, fontFamily: FONT, lineHeight: 1.1, letterSpacing: '-2px' }}>
             {accentLine}
           </div>
         </div>
 
         {/* Sub */}
         <div style={{ opacity: subOp, marginTop: 8 }}>
-          <div style={{ fontSize: 26, color: 'rgba(148,163,184,0.8)', fontFamily: FONT, fontWeight: '400', textAlign: 'center' as const }}>
+          <div style={{ fontSize: layout.bodySize, color: 'rgba(148,163,184,0.8)', fontFamily: FONT, fontWeight: '400', textAlign: 'center' as const }}>
             {sub}
           </div>
         </div>
@@ -88,7 +94,7 @@ export const SceneCTA: React.FC<SceneCTAProps & SharedSceneProps> = ({
             background: accentColor, borderRadius: 100, padding: '18px 52px',
             boxShadow: `0 0 40px ${av.glow}`,
           }}>
-            <span style={{ fontSize: 28, color: '#ffffff', fontFamily: FONT, fontWeight: '700', letterSpacing: '0.5px' }}>
+            <span style={{ fontSize: layout.bodySize, color: '#ffffff', fontFamily: FONT, fontWeight: '700', letterSpacing: '0.5px' }}>
               {ctaText}
             </span>
           </div>
@@ -97,7 +103,7 @@ export const SceneCTA: React.FC<SceneCTAProps & SharedSceneProps> = ({
         {/* URL typewriter */}
         {frame >= CUE_URL && (
           <div style={{ marginTop: 8 }}>
-            <span style={{ fontSize: 20, color: 'rgba(148,163,184,0.5)', fontFamily: MONO_FONT, letterSpacing: '2px' }}>
+            <span style={{ fontSize: layout.labelSize + 4, color: 'rgba(148,163,184,0.5)', fontFamily: MONO_FONT, letterSpacing: '2px' }}>
               {ctaUrl.slice(0, urlLen)}<span style={{ opacity: Math.sin(frame * 0.3) > 0 ? 0.5 : 0 }}>|</span>
             </span>
           </div>

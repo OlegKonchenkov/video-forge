@@ -2,10 +2,11 @@
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate, spring, AbsoluteFill, staticFile } from 'remotion';
 import { Audio } from '@remotion/media';
-import { FONT, DISPLAY_FONT, MONO_FONT } from '../font';
+import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
 import { accentVariants } from '../shared/colorUtils';
+import { useSceneLayout } from '../shared/useSceneLayout';
 import type { SceneOfferCountdownProps, SharedSceneProps } from '../types';
 
 export const SceneOfferCountdown: React.FC<SceneOfferCountdownProps & SharedSceneProps> = ({
@@ -15,6 +16,7 @@ export const SceneOfferCountdown: React.FC<SceneOfferCountdownProps & SharedScen
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
   const av = accentVariants(accentColor);
+  const layout = useSceneLayout();
 
   const CUE_BADGE   = 0;
   const CUE_OFFER   = dur * 0.20;
@@ -43,7 +45,7 @@ export const SceneOfferCountdown: React.FC<SceneOfferCountdownProps & SharedScen
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 40%, ${av.bg} 0%, transparent 65%)` }} />
       <NoiseOverlay />
 
-      <AbsoluteFill style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 100px', gap: 32 }}>
+      <AbsoluteFill style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: `0 ${layout.outerPadding}px`, gap: layout.innerGap * 0.8 }}>
         {/* Badge */}
         <div style={{ opacity: badgeOp, transform: `scale(${badgeSc})` }}>
           <div style={{
@@ -51,7 +53,7 @@ export const SceneOfferCountdown: React.FC<SceneOfferCountdownProps & SharedScen
             border: `1px solid ${av.strong}`, borderRadius: 100,
             padding: '8px 24px',
           }}>
-            <span style={{ fontSize: 16, color: accentColor, fontFamily: MONO_FONT, letterSpacing: '2px', textTransform: 'uppercase' as const, fontWeight: '600' }}>
+            <span style={{ fontSize: layout.labelSize, color: accentColor, fontFamily: MONO_FONT, letterSpacing: '2px', textTransform: 'uppercase' as const, fontWeight: '600' }}>
               {badge}
             </span>
           </div>
@@ -59,23 +61,23 @@ export const SceneOfferCountdown: React.FC<SceneOfferCountdownProps & SharedScen
 
         {/* Main offer text */}
         <div style={{ opacity: offerOp, transform: `translateY(${offerY}px)`, textAlign: 'center' as const }}>
-          <div style={{ fontSize: 68, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, lineHeight: 1.1, letterSpacing: '-2px' }}>
+          <div style={{ fontSize: layout.headingSize + 12, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, lineHeight: 1.1, letterSpacing: '-2px' }}>
             {offer}
           </div>
         </div>
 
         {/* Benefit */}
         <div style={{ opacity: benefitOp, textAlign: 'center' as const }}>
-          <div style={{ fontSize: 28, color: 'rgba(148,163,184,0.8)', fontFamily: FONT, fontWeight: '400' }}>
+          <div style={{ fontSize: layout.bodySize, color: 'rgba(148,163,184,0.8)', fontFamily: FONT, fontWeight: '400' }}>
             {benefit}
           </div>
         </div>
 
         {/* Progress bar */}
-        <div style={{ opacity: barOp, width: '100%', maxWidth: 600 }}>
+        <div style={{ opacity: barOp, width: '100%', maxWidth: layout.isPortrait ? layout.maxContentWidth : 600 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-            <span style={{ fontSize: 14, color: 'rgba(148,163,184,0.6)', fontFamily: MONO_FONT, letterSpacing: '1px' }}>SPOTS REMAINING</span>
-            <span style={{ fontSize: 14, color: accentColor, fontFamily: MONO_FONT, letterSpacing: '1px', fontWeight: '600' }}>{Math.round(barWidth)}%</span>
+            <span style={{ fontSize: layout.labelSize - 2, color: 'rgba(148,163,184,0.6)', fontFamily: MONO_FONT, letterSpacing: '1px' }}>SPOTS REMAINING</span>
+            <span style={{ fontSize: layout.labelSize - 2, color: accentColor, fontFamily: MONO_FONT, letterSpacing: '1px', fontWeight: '600' }}>{Math.round(barWidth)}%</span>
           </div>
           <div style={{ width: '100%', height: 8, background: 'rgba(148,163,184,0.12)', borderRadius: 4, overflow: 'hidden' }}>
             <div style={{
@@ -89,7 +91,7 @@ export const SceneOfferCountdown: React.FC<SceneOfferCountdownProps & SharedScen
 
         {/* Urgency text */}
         <div style={{ opacity: urgencyOp * urgencyFlash }}>
-          <div style={{ fontSize: 22, color: '#ef4444', fontFamily: MONO_FONT, letterSpacing: '1.5px', textTransform: 'uppercase' as const, fontWeight: '600' }}>
+          <div style={{ fontSize: layout.bodySize - 4, color: '#ef4444', fontFamily: MONO_FONT, letterSpacing: '1.5px', textTransform: 'uppercase' as const, fontWeight: '600' }}>
             ⚡ {urgency}
           </div>
         </div>

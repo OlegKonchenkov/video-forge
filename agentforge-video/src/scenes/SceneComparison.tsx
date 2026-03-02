@@ -6,6 +6,7 @@ import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
 import { accentVariants } from '../shared/colorUtils';
+import { useSceneLayout } from '../shared/useSceneLayout';
 import type { SceneComparisonProps, SharedSceneProps } from '../types';
 
 export const SceneComparison: React.FC<SceneComparisonProps & SharedSceneProps> = ({
@@ -15,6 +16,7 @@ export const SceneComparison: React.FC<SceneComparisonProps & SharedSceneProps> 
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
   const av = accentVariants(accentColor);
+  const layout = useSceneLayout();
 
   const CUE_HEADER = 0;
   const rowCues    = features.map((_, i) => dur * 0.18 + i * (dur * 0.09));
@@ -24,26 +26,29 @@ export const SceneComparison: React.FC<SceneComparisonProps & SharedSceneProps> 
 
   const displayFeatures = features.slice(0, 6);
 
+  const compColW  = layout.isPortrait ? 130 : 180;
+  const brandColW = layout.isPortrait ? 150 : 200;
+
   return (
     <AbsoluteFill style={{ backgroundColor: '#050d1a', overflow: 'hidden' }}>
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 75% 50%, ${av.bg} 0%, transparent 55%)` }} />
       <NoiseOverlay />
 
-      <AbsoluteFill style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 80px', gap: 0 }}>
+      <AbsoluteFill style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: `0 ${layout.outerPadding}px`, gap: 0 }}>
         {/* Table */}
-        <div style={{ width: '100%', maxWidth: 860 }}>
+        <div style={{ width: '100%', maxWidth: layout.isPortrait ? layout.maxContentWidth : 860 }}>
           {/* Header row */}
           <div style={{ opacity: headerOp, transform: `translateY(${headerY}px)`, display: 'flex', marginBottom: 16 }}>
             <div style={{ flex: 1 }} />
             {/* Competitor header */}
-            <div style={{ width: 180, textAlign: 'center' as const, padding: '12px 0' }}>
-              <span style={{ fontSize: 16, color: 'rgba(148,163,184,0.55)', fontFamily: MONO_FONT, letterSpacing: '2px', textTransform: 'uppercase' as const }}>
+            <div style={{ width: compColW, textAlign: 'center' as const, padding: '12px 0' }}>
+              <span style={{ fontSize: layout.labelSize, color: 'rgba(148,163,184,0.55)', fontFamily: MONO_FONT, letterSpacing: '2px', textTransform: 'uppercase' as const }}>
                 {competitorLabel}
               </span>
             </div>
             {/* Brand header — highlighted */}
             <div style={{
-              width: 200,
+              width: brandColW,
               background: av.bg,
               borderRadius: '12px 12px 0 0',
               border: `1px solid ${av.border}`,
@@ -52,7 +57,7 @@ export const SceneComparison: React.FC<SceneComparisonProps & SharedSceneProps> 
               textAlign: 'center' as const,
               padding: '14px 0',
             }}>
-              <span style={{ fontSize: 16, color: accentColor, fontFamily: MONO_FONT, letterSpacing: '2px', textTransform: 'uppercase' as const, fontWeight: '600' }}>
+              <span style={{ fontSize: layout.labelSize, color: accentColor, fontFamily: MONO_FONT, letterSpacing: '2px', textTransform: 'uppercase' as const, fontWeight: '600' }}>
                 {brandLabel || brandName}
               </span>
             </div>
@@ -73,12 +78,12 @@ export const SceneComparison: React.FC<SceneComparisonProps & SharedSceneProps> 
                 borderBottom: isLast ? 'none' : `1px solid rgba(148,163,184,0.08)`,
               }}>
                 {/* Feature label */}
-                <div style={{ flex: 1, padding: '16px 0', display: 'flex', alignItems: 'center' }}>
-                  <span style={{ fontSize: 20, color: 'rgba(241,245,249,0.85)', fontFamily: FONT, fontWeight: '500' }}>{feat.label}</span>
+                <div style={{ flex: 1, padding: '14px 0', display: 'flex', alignItems: 'center' }}>
+                  <span style={{ fontSize: layout.bodySize - 4, color: 'rgba(241,245,249,0.85)', fontFamily: FONT, fontWeight: '500' }}>{feat.label}</span>
                 </div>
 
                 {/* Competitor cell */}
-                <div style={{ width: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: compColW, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <div style={{
                     width: 32, height: 32, borderRadius: '50%',
                     background: feat.competitor ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.12)',
@@ -92,7 +97,7 @@ export const SceneComparison: React.FC<SceneComparisonProps & SharedSceneProps> 
 
                 {/* Brand cell — highlighted column */}
                 <div style={{
-                  width: 200,
+                  width: brandColW,
                   background: av.bg,
                   border: `1px solid ${av.border}`,
                   borderTop: 'none',
@@ -102,7 +107,7 @@ export const SceneComparison: React.FC<SceneComparisonProps & SharedSceneProps> 
                 }}>
                   <div style={{
                     width: 32, height: 32, borderRadius: '50%',
-                    background: feat.brand ? `rgba(${accentColor},0.15)` : 'rgba(239,68,68,0.12)',
+                    background: feat.brand ? `${av.bg}` : 'rgba(239,68,68,0.12)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     boxShadow: feat.brand ? `0 0 10px ${av.glow}` : 'none',
                   }}>

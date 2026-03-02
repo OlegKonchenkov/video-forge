@@ -133,5 +133,6 @@ export interface VideoScript {
   ctaText:     string
   ctaUrl:      string
   accentColor: string   // hex e.g. "#3b82f6"
+  language:    string   // 'it', 'en', 'de', etc.
   scenes:      SceneConfig[]
 }

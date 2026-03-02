@@ -6,6 +6,7 @@ import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
 import { accentVariants } from '../shared/colorUtils';
+import { useSceneLayout } from '../shared/useSceneLayout';
 import type { SceneMapLocationProps, SharedSceneProps } from '../types';
 
 // Dot grid map background
@@ -27,6 +28,7 @@ export const SceneMapLocation: React.FC<SceneMapLocationProps & SharedSceneProps
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
   const av = accentVariants(accentColor);
+  const layout = useSceneLayout();
 
   const CUE_PIN    = dur * 0.10;
   const CUE_INFO   = dur * 0.38;
@@ -51,9 +53,21 @@ export const SceneMapLocation: React.FC<SceneMapLocationProps & SharedSceneProps
       <AbsoluteFill style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(5,13,26,0) 30%, #050d1a 75%)' }} />
       <NoiseOverlay />
 
-      {/* Pin + ripples — centered in left 55% */}
-      <AbsoluteFill style={{ display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
-        <div style={{ width: '55%', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' as const }}>
+      <AbsoluteFill style={{
+        display: 'flex',
+        flexDirection: layout.direction,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: layout.isPortrait ? `${layout.outerPadding}px ${layout.outerPadding}px` : '0',
+        gap: layout.innerGap,
+      }}>
+        {/* Pin + ripples */}
+        <div style={{
+          width: layout.isPortrait ? '100%' : '55%',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          position: 'relative' as const,
+          minHeight: layout.isPortrait ? 160 : undefined,
+        }}>
           {/* Ripple rings */}
           {frame >= CUE_PIN && rippleFrames.map((delay, i) => {
             const rFrame = frame - CUE_PIN - delay;
@@ -75,45 +89,53 @@ export const SceneMapLocation: React.FC<SceneMapLocationProps & SharedSceneProps
           {/* Pin */}
           <div style={{ opacity: pinOp, transform: `translateY(${pinY}px)`, position: 'relative' as const, zIndex: 2 }}>
             <div style={{
-              width: 56, height: 56, borderRadius: '50% 50% 50% 0',
+              width: layout.isPortrait ? 44 : 56,
+              height: layout.isPortrait ? 44 : 56,
+              borderRadius: '50% 50% 50% 0',
               background: accentColor,
               transform: 'rotate(-45deg)',
               boxShadow: `0 0 32px ${av.glow}`,
             }}>
               <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', transform: 'rotate(45deg)' }}>
-                <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#ffffff', opacity: 0.9 }} />
+                <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#ffffff', opacity: 0.9 }} />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Info card — right side */}
-        <div style={{ flex: 1, padding: '0 60px 0 0', opacity: infoOp, transform: `translateY(${infoY}px)` }}>
+        {/* Info card */}
+        <div style={{
+          flex: layout.isPortrait ? undefined : 1,
+          width: layout.isPortrait ? '100%' : undefined,
+          padding: layout.isPortrait ? 0 : `0 ${layout.outerPadding * 0.75}px 0 0`,
+          opacity: infoOp,
+          transform: `translateY(${infoY}px)`,
+        }}>
           <div style={{
             background: av.bg, borderRadius: 20,
             border: `1px solid ${av.border}`, borderLeft: `3px solid ${accentColor}`,
-            padding: '36px 32px',
-            display: 'flex', flexDirection: 'column', gap: 20,
+            padding: `${layout.innerGap}px ${layout.innerGap}px`,
+            display: 'flex', flexDirection: 'column', gap: layout.cardGap,
           }}>
             {/* City */}
             <div>
-              <div style={{ fontSize: 44, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1px', lineHeight: 1 }}>{city}</div>
+              <div style={{ fontSize: layout.headingSize - 12, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1px', lineHeight: 1 }}>{city}</div>
             </div>
             {/* Address */}
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-              <span style={{ fontSize: 20, marginTop: 2 }}>📍</span>
-              <div style={{ fontSize: 22, color: 'rgba(148,163,184,0.85)', fontFamily: FONT, lineHeight: 1.4 }}>{address}</div>
+              <span style={{ fontSize: layout.bodySize - 4, marginTop: 2 }}>📍</span>
+              <div style={{ fontSize: layout.bodySize - 4, color: 'rgba(148,163,184,0.85)', fontFamily: FONT, lineHeight: 1.4 }}>{address}</div>
             </div>
             {/* Hours */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 20 }}>🕐</span>
-              <div style={{ fontSize: 20, color: 'rgba(148,163,184,0.75)', fontFamily: MONO_FONT }}>{hours}</div>
+              <span style={{ fontSize: layout.bodySize - 4 }}>🕐</span>
+              <div style={{ fontSize: layout.bodySize - 6, color: 'rgba(148,163,184,0.75)', fontFamily: MONO_FONT }}>{hours}</div>
             </div>
             {/* Phone (optional) */}
             {phone && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{ fontSize: 20 }}>📞</span>
-                <div style={{ fontSize: 20, color: accentColor, fontFamily: MONO_FONT, fontWeight: '600' }}>{phone}</div>
+                <span style={{ fontSize: layout.bodySize - 4 }}>📞</span>
+                <div style={{ fontSize: layout.bodySize - 6, color: accentColor, fontFamily: MONO_FONT, fontWeight: '600' }}>{phone}</div>
               </div>
             )}
           </div>

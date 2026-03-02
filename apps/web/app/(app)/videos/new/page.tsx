@@ -11,12 +11,18 @@ const inputTypes = [
   { id: 'prompt', label: 'Text Prompt',    icon: MessageSquare, desc: 'Describe your product in plain English' },
 ];
 
+const aspectRatioOptions = [
+  { id: '16:9', label: '16 : 9', sub: 'Landscape', hint: 'YouTube · LinkedIn' },
+  { id: '9:16', label: '9 : 16', sub: 'Portrait',  hint: 'TikTok · Reels · Stories' },
+] as const;
+
 const STEP_LABELS = ['Input Type', 'Your Content', 'Review'];
 
 export default function NewVideoPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [inputType, setInputType] = useState<string>('');
+  const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16'>('16:9');
   const [url, setUrl] = useState('');
   const [prompt, setPrompt] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -56,7 +62,7 @@ export default function NewVideoPage() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_WORKER_URL}/jobs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.NEXT_PUBLIC_WORKER_API_KEY! },
-        body: JSON.stringify({ videoId: video.id, userId: user!.id, inputType, inputData }),
+        body: JSON.stringify({ videoId: video.id, userId: user!.id, inputType, inputData, aspectRatio }),
       });
 
       if (!res.ok) {
@@ -145,6 +151,45 @@ export default function NewVideoPage() {
       {/* Step 2: Content */}
       {step === 2 && (
         <div className="film-card p-8 space-y-6">
+
+          {/* Aspect Ratio */}
+          <div>
+            <label className="block text-xs font-sans font-semibold tracking-widest uppercase text-film-gray-light mb-3">
+              Aspect Ratio
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {aspectRatioOptions.map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setAspectRatio(opt.id)}
+                  className={`flex items-center gap-4 p-4 border transition-all text-left ${
+                    aspectRatio === opt.id
+                      ? 'border-film-amber bg-film-amber/10'
+                      : 'border-film-border hover:border-film-amber/30 bg-film-warm'
+                  }`}
+                >
+                  {/* Mini canvas preview */}
+                  <div className="flex-shrink-0 flex items-center justify-center" style={{ width: 40, height: 40 }}>
+                    {opt.id === '16:9' ? (
+                      <div className={`border-2 ${aspectRatio === opt.id ? 'border-film-amber' : 'border-film-gray'}`}
+                        style={{ width: 36, height: 20 }} />
+                    ) : (
+                      <div className={`border-2 ${aspectRatio === opt.id ? 'border-film-amber' : 'border-film-gray'}`}
+                        style={{ width: 20, height: 36 }} />
+                    )}
+                  </div>
+                  <div>
+                    <div className={`font-display tracking-wider text-sm ${aspectRatio === opt.id ? 'text-film-amber' : 'text-film-cream'}`}>
+                      {opt.label}
+                    </div>
+                    <div className="text-xs text-film-gray font-sans">{opt.sub}</div>
+                    <div className="text-xs text-film-gray/60 font-sans mt-0.5">{opt.hint}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Video title */}
           <div>
@@ -239,10 +284,11 @@ export default function NewVideoPage() {
 
           <div className="space-y-0 mb-8 border border-film-border">
             {[
-              { label: 'Input Type',   value: inputTypes.find(t => t.id === inputType)?.label },
-              { label: 'Content',      value: url || file?.name || (prompt?.slice(0, 80) + (prompt?.length > 80 ? '…' : '')) || '—' },
-              { label: 'Title',        value: title || 'Auto-generated' },
-              { label: 'Credit Cost',  value: '1 credit' },
+              { label: 'Input Type',    value: inputTypes.find(t => t.id === inputType)?.label },
+              { label: 'Aspect Ratio',  value: aspectRatioOptions.find(o => o.id === aspectRatio)?.sub + ' (' + aspectRatio + ')' },
+              { label: 'Content',       value: url || file?.name || (prompt?.slice(0, 80) + (prompt?.length > 80 ? '…' : '')) || '—' },
+              { label: 'Title',         value: title || 'Auto-generated' },
+              { label: 'Credit Cost',   value: '1 credit' },
             ].map(({ label, value }, idx, arr) => (
               <div
                 key={label}

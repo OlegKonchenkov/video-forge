@@ -1,7 +1,7 @@
 import { Composition } from 'remotion';
 import { AgentForgeAd } from './AgentForgeAd';
 import { calculateMetadata } from './calculateMetadata';
-import { FPS, WIDTH, HEIGHT } from './constants';
+import { FPS } from './constants';
 import type { AgentForgeAdProps } from './types';
 
 const DEFAULT_PROPS: AgentForgeAdProps = {
@@ -12,6 +12,7 @@ const DEFAULT_PROPS: AgentForgeAdProps = {
   tagline: 'AI Automation for Growing Businesses',
   ctaText: 'Book a Free Call',
   ctaUrl: 'agentforge.ai/start',
+  aspectRatio: '16:9',
   scenes: [
     {
       type: 'pain_hook',
@@ -70,8 +71,8 @@ export const RemotionRoot = () => (
     component={AgentForgeAd}
     durationInFrames={DEFAULT_PROPS.sceneDurations.reduce((s, d) => s + d, 0) - (DEFAULT_PROPS.scenes.length - 1) * 15}
     fps={FPS}
-    width={WIDTH}
-    height={HEIGHT}
+    width={1920}
+    height={1080}
     defaultProps={DEFAULT_PROPS}
     calculateMetadata={calculateMetadata}
   />

@@ -143,5 +143,6 @@ export type AgentForgeAdProps = {
   ctaText:        string;
   ctaUrl:         string;
   accentColor:    string;
+  aspectRatio:    '16:9' | '9:16';
   scenes:         SceneConfig[];
 };

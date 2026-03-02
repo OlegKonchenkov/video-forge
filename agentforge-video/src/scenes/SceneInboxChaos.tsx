@@ -6,6 +6,7 @@ import { FONT, DISPLAY_FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
 import { accentVariants } from '../shared/colorUtils';
+import { useSceneLayout } from '../shared/useSceneLayout';
 import type { SceneInboxChaosProps, SharedSceneProps } from '../types';
 
 export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> = ({
@@ -15,6 +16,7 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
   const av = accentVariants(accentColor);
+  const layout = useSceneLayout();
 
   const ITEM_SPACING = dur * 0.14;
   const PUNCH_CUE    = dur * 0.72;
@@ -30,7 +32,11 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
       <NoiseOverlay />
 
       {/* Email cards */}
-      <AbsoluteFill style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 16, padding: '0 180px' }}>
+      <AbsoluteFill style={{
+        display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+        gap: layout.cardGap,
+        padding: `0 ${layout.outerPadding + 40}px`,
+      }}>
         {items.map((item, i) => {
           const cue = i * ITEM_SPACING;
           const p   = spring({ frame: frame - cue, fps, config: { damping: 200 } });
@@ -65,20 +71,20 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
 
               {/* Subject + from */}
               <div style={{ flex: 1, overflow: 'hidden' }}>
-                <div style={{ fontSize: 22, color: item.urgent ? '#fca5a5' : '#e2e8f0', fontFamily: FONT, fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontSize: layout.bodySize, color: item.urgent ? '#fca5a5' : '#e2e8f0', fontFamily: FONT, fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {item.subject}
                 </div>
-                <div style={{ fontSize: 17, color: 'rgba(148,163,184,0.7)', fontFamily: MONO_FONT, marginTop: 3 }}>
+                <div style={{ fontSize: layout.labelSize + 4, color: 'rgba(148,163,184,0.7)', fontFamily: MONO_FONT, marginTop: 3 }}>
                   {item.from}
                 </div>
               </div>
 
               {/* Time + urgent badge */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
-                <span style={{ fontSize: 17, color: 'rgba(148,163,184,0.6)', fontFamily: MONO_FONT }}>{item.time}</span>
+                <span style={{ fontSize: layout.labelSize + 4, color: 'rgba(148,163,184,0.6)', fontFamily: MONO_FONT }}>{item.time}</span>
                 {item.urgent && (
                   <div style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 6, padding: '3px 10px' }}>
-                    <span style={{ fontSize: 13, color: '#ef4444', fontFamily: MONO_FONT, fontWeight: '600', letterSpacing: '1.5px' }}>URGENT</span>
+                    <span style={{ fontSize: layout.labelSize, color: '#ef4444', fontFamily: MONO_FONT, fontWeight: '600', letterSpacing: '1.5px' }}>URGENT</span>
                   </div>
                 )}
               </div>
@@ -89,7 +95,7 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
 
       {/* Punch words */}
       <AbsoluteFill style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: 90 }}>
-        <div style={{ display: 'flex', gap: 48 }}>
+        <div style={{ display: 'flex', gap: layout.isPortrait ? 24 : 48 }}>
           {punchWords.map((word, i) => {
             const cue = PUNCH_CUE + i * (dur * 0.07);
             const p   = spring({ frame: frame - cue, fps, config: { damping: 15 } });
@@ -97,7 +103,7 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
             const op  = interpolate(frame - cue, [0, 8], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
             return (
               <div key={i} style={{ opacity: op, transform: `scale(${scale})` }}>
-                <span style={{ fontSize: 68, fontWeight: '800', color: i === 1 ? accentColor : '#f1f5f9', fontFamily: DISPLAY_FONT, letterSpacing: '2px' }}>
+                <span style={{ fontSize: layout.displaySize - 4, fontWeight: '800', color: i === 1 ? accentColor : '#f1f5f9', fontFamily: DISPLAY_FONT, letterSpacing: '2px' }}>
                   {word}
                 </span>
               </div>

@@ -19,8 +19,15 @@ export const calculateMetadata: CalculateMetadataFunction<AgentForgeAdProps> = a
     sceneDurations.reduce((sum: number, d: number) => sum + d, 0) -
     (sceneCount - 1) * TRANSITION_FRAMES;
 
+  // Dynamic canvas size from aspectRatio prop
+  const isPortrait = props.aspectRatio === '9:16';
+  const width  = isPortrait ? 1080 : 1920;
+  const height = isPortrait ? 1920 : 1080;
+
   return {
     durationInFrames: Math.max(totalFrames, 30),
+    width,
+    height,
     props: { ...props, sceneDurations },
   };
 };

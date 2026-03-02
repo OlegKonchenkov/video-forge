@@ -6,6 +6,7 @@ import { FONT, DISPLAY_FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
 import { accentVariants } from '../shared/colorUtils';
+import { useSceneLayout } from '../shared/useSceneLayout';
 import type { SceneStatsGridProps, SharedSceneProps } from '../types';
 
 const CHARS = '0123456789ABCDEFX#%';
@@ -21,8 +22,8 @@ function scramble(target: string, frame: number, cue: number): string {
   }).join('');
 }
 
-const StatCard: React.FC<{ value: string; label: string; sub: string; cue: number; frame: number; fps: number; accentColor: string }> = ({
-  value, label, sub, cue, frame, fps, accentColor,
+const StatCard: React.FC<{ value: string; label: string; sub: string; cue: number; frame: number; fps: number; accentColor: string; displaySize: number; bodySize: number; labelSize: number }> = ({
+  value, label, sub, cue, frame, fps, accentColor, displaySize, bodySize, labelSize,
 }) => {
   const av  = accentVariants(accentColor);
   const p   = spring({ frame: frame - cue, fps, config: { damping: 200 } });
@@ -37,11 +38,11 @@ const StatCard: React.FC<{ value: string; label: string; sub: string; cue: numbe
       border: `1px solid ${av.border}`, borderTop: `2px solid ${av.strong}`,
       padding: '36px 32px', display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center',
     }}>
-      <div style={{ fontSize: 100, color: accentColor, fontFamily: DISPLAY_FONT, lineHeight: 1, letterSpacing: '1px' }}>
+      <div style={{ fontSize: displaySize, color: accentColor, fontFamily: DISPLAY_FONT, lineHeight: 1, letterSpacing: '1px' }}>
         {display}
       </div>
-      <div style={{ fontSize: 24, color: '#f1f5f9', fontFamily: FONT, fontWeight: '700', textAlign: 'center' as const }}>{label}</div>
-      <div style={{ fontSize: 18, color: 'rgba(148,163,184,0.6)', fontFamily: MONO_FONT, textAlign: 'center' as const }}>{sub}</div>
+      <div style={{ fontSize: bodySize - 4, color: '#f1f5f9', fontFamily: FONT, fontWeight: '700', textAlign: 'center' as const }}>{label}</div>
+      <div style={{ fontSize: labelSize + 2, color: 'rgba(148,163,184,0.6)', fontFamily: MONO_FONT, textAlign: 'center' as const }}>{sub}</div>
     </div>
   );
 };
@@ -52,6 +53,7 @@ export const SceneStatsGrid: React.FC<SceneStatsGridProps & SharedSceneProps> = 
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
+  const layout = useSceneLayout();
 
   const titleOp = interpolate(frame, [0, 20], [0, 1], { extrapolateRight: 'clamp' });
   const titleY  = interpolate(spring({ frame, fps, config: { damping: 200 } }), [0, 1], [20, 0]);
@@ -62,17 +64,22 @@ export const SceneStatsGrid: React.FC<SceneStatsGridProps & SharedSceneProps> = 
       <AbsoluteFill style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(10,22,40,0.8) 0%, #050d1a 60%)' }} />
       <NoiseOverlay />
 
-      <AbsoluteFill style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 80px', gap: 40 }}>
+      <AbsoluteFill style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        padding: `0 ${layout.outerPadding}px`,
+        gap: layout.innerGap,
+      }}>
         {/* Title */}
         <div style={{ opacity: titleOp, transform: `translateY(${titleY}px)`, textAlign: 'center' as const }}>
-          <div style={{ fontSize: 52, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px' }}>{title}</div>
-          <div style={{ fontSize: 22, color: 'rgba(148,163,184,0.7)', fontFamily: FONT, marginTop: 8 }}>{sub}</div>
+          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px' }}>{title}</div>
+          <div style={{ fontSize: layout.bodySize - 6, color: 'rgba(148,163,184,0.7)', fontFamily: FONT, marginTop: 8 }}>{sub}</div>
         </div>
 
         {/* Stat cards */}
-        <div style={{ display: 'flex', gap: 24, width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: layout.direction, gap: layout.cardGap, width: '100%' }}>
           {stats.slice(0, 3).map((s, i) => (
-            <StatCard key={i} {...s} cue={cardCues[i]} frame={frame} fps={fps} accentColor={accentColor} />
+            <StatCard key={i} {...s} cue={cardCues[i]} frame={frame} fps={fps} accentColor={accentColor}
+              displaySize={layout.displaySize} bodySize={layout.bodySize} labelSize={layout.labelSize} />
           ))}
         </div>
       </AbsoluteFill>

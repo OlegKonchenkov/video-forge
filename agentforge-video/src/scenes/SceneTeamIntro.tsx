@@ -6,6 +6,7 @@ import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
 import { accentVariants } from '../shared/colorUtils';
+import { useSceneLayout } from '../shared/useSceneLayout';
 import type { SceneTeamIntroProps, SharedSceneProps } from '../types';
 
 export const SceneTeamIntro: React.FC<SceneTeamIntroProps & SharedSceneProps> = ({
@@ -15,6 +16,7 @@ export const SceneTeamIntro: React.FC<SceneTeamIntroProps & SharedSceneProps> = 
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
   const av = accentVariants(accentColor);
+  const layout = useSceneLayout();
 
   const CUE_TITLE = 0;
   const memberCues = members.slice(0, 4).map((_, i) => dur * 0.22 + i * (dur * 0.12));
@@ -25,6 +27,9 @@ export const SceneTeamIntro: React.FC<SceneTeamIntroProps & SharedSceneProps> = 
   // Warm tint overlay
   const warmOp = interpolate(frame, [0, 40], [0, 1], { extrapolateRight: 'clamp' });
 
+  const cardWidth = layout.isPortrait ? 160 : 200;
+  const avatarSize = layout.isPortrait ? 60 : 80;
+
   return (
     <AbsoluteFill style={{ backgroundColor: '#050d1a', overflow: 'hidden' }}>
       {/* Warm tint radial */}
@@ -32,14 +37,14 @@ export const SceneTeamIntro: React.FC<SceneTeamIntroProps & SharedSceneProps> = 
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 0%, ${av.bg} 0%, transparent 55%)` }} />
       <NoiseOverlay />
 
-      <AbsoluteFill style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 80px', gap: 52 }}>
+      <AbsoluteFill style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: `0 ${layout.outerPadding}px`, gap: layout.innerGap }}>
         {/* Title */}
         <div style={{ opacity: titleOp, transform: `translateY(${titleY}px)`, textAlign: 'center' as const }}>
-          <div style={{ fontSize: 48, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px' }}>{title}</div>
+          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px' }}>{title}</div>
         </div>
 
         {/* Member cards */}
-        <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap' as const, justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: layout.cardGap, flexWrap: 'wrap' as const, justifyContent: 'center' }}>
           {members.slice(0, 4).map((member, i) => {
             const cue = memberCues[i];
             const p   = spring({ frame: frame - cue, fps, config: { damping: 200 } });
@@ -49,31 +54,31 @@ export const SceneTeamIntro: React.FC<SceneTeamIntroProps & SharedSceneProps> = 
             return (
               <div key={i} style={{
                 opacity: op, transform: `translateY(${y}px)`,
-                width: 200,
+                width: cardWidth,
                 background: av.bg,
                 borderRadius: 20,
                 border: `1px solid ${av.border}`,
-                padding: '28px 20px',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14,
+                padding: `${layout.innerGap * 0.7}px ${layout.cardGap}px`,
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: layout.cardGap * 0.5,
               }}>
                 {/* Avatar circle */}
                 <div style={{
-                  width: 80, height: 80, borderRadius: '50%',
+                  width: avatarSize, height: avatarSize, borderRadius: '50%',
                   background: `linear-gradient(135deg, ${accentColor}, ${av.strong})`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   boxShadow: `0 0 24px ${av.glow}`,
                   flexShrink: 0,
                 }}>
-                  <span style={{ fontSize: 28, fontWeight: '700', color: '#ffffff', fontFamily: FONT }}>
+                  <span style={{ fontSize: layout.bodySize - 4, fontWeight: '700', color: '#ffffff', fontFamily: FONT }}>
                     {member.initials}
                   </span>
                 </div>
                 {/* Name */}
-                <div style={{ fontSize: 20, fontWeight: '700', color: '#f1f5f9', fontFamily: FONT, textAlign: 'center' as const, lineHeight: 1.3 }}>
+                <div style={{ fontSize: layout.bodySize - 6, fontWeight: '700', color: '#f1f5f9', fontFamily: FONT, textAlign: 'center' as const, lineHeight: 1.3 }}>
                   {member.name}
                 </div>
                 {/* Role */}
-                <div style={{ fontSize: 14, color: 'rgba(148,163,184,0.65)', fontFamily: MONO_FONT, textTransform: 'uppercase' as const, letterSpacing: '1.5px', textAlign: 'center' as const }}>
+                <div style={{ fontSize: layout.labelSize, color: 'rgba(148,163,184,0.65)', fontFamily: MONO_FONT, textTransform: 'uppercase' as const, letterSpacing: '1.5px', textAlign: 'center' as const }}>
                   {member.role}
                 </div>
               </div>

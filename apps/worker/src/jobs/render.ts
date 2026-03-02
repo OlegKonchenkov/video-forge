@@ -6,12 +6,13 @@ import type { VideoScript } from '../types/script';
 
 const REMOTION_ROOT = path.resolve(__dirname, '../../../../agentforge-video');
 
-export async function renderVideo({ videoId, script, audioPaths, imagePaths, workDir }: {
-  videoId:    string;
-  script:     VideoScript;
-  audioPaths: string[];
-  imagePaths: string[];
-  workDir:    string;
+export async function renderVideo({ videoId, script, audioPaths, imagePaths, workDir, aspectRatio }: {
+  videoId:     string;
+  script:      VideoScript;
+  audioPaths:  string[];
+  imagePaths:  string[];
+  workDir:     string;
+  aspectRatio: '16:9' | '9:16';
 }): Promise<string> {
   const outPath = path.join(workDir, 'output.mp4');
   fs.mkdirSync(workDir, { recursive: true });
@@ -26,7 +27,7 @@ export async function renderVideo({ videoId, script, audioPaths, imagePaths, wor
     if (fs.existsSync(src)) fs.copyFileSync(src, dest);
   });
 
-  // Copy background images — 0-indexed to match SceneProductShowcase: `images/scene_${sceneIndex}.png`
+  // Copy background images — 0-indexed to match scene components: `images/scene_${sceneIndex}.png`
   imagePaths.forEach((src, i) => {
     const dest = path.join(remotionPublic, `images/scene_${i}.png`);
     if (fs.existsSync(src)) fs.copyFileSync(src, dest);
@@ -40,6 +41,7 @@ export async function renderVideo({ videoId, script, audioPaths, imagePaths, wor
     ctaText:        script.ctaText,
     ctaUrl:         script.ctaUrl,
     accentColor:    script.accentColor,
+    aspectRatio,                            // ← threads 16:9 / 9:16 into calculateMetadata
     // Placeholder durations — calculateMetadata overwrites them from audio files
     sceneDurations: Array(script.scenes.length).fill(150),
     scenes:         script.scenes,

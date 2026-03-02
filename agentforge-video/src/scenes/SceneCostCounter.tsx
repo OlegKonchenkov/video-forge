@@ -6,12 +6,13 @@ import { FONT, DISPLAY_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
 import { accentVariants } from '../shared/colorUtils';
+import { useSceneLayout } from '../shared/useSceneLayout';
 import type { SceneCostCounterProps, SharedSceneProps } from '../types';
 
 const Stat: React.FC<{
   value: number; unit: string; label: string;
-  cue: number; frame: number; fps: number; accentColor: string;
-}> = ({ value, unit, label, cue, frame, fps, accentColor }) => {
+  cue: number; frame: number; fps: number; accentColor: string; displaySize: number; bodySize: number;
+}> = ({ value, unit, label, cue, frame, fps, accentColor, displaySize, bodySize }) => {
   const av = accentVariants(accentColor);
   const p  = spring({ frame: frame - cue, fps, config: { damping: 200 } });
   const y  = interpolate(p, [0, 1], [50, 0]);
@@ -35,11 +36,11 @@ const Stat: React.FC<{
         pointerEvents: 'none',
       }} />
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, justifyContent: 'center' }}>
-        <span style={{ fontSize: 160, color: accentColor, fontFamily: DISPLAY_FONT, lineHeight: 1, letterSpacing: '-2px' }}>
+        <span style={{ fontSize: Math.round(displaySize * 1.5), color: accentColor, fontFamily: DISPLAY_FONT, lineHeight: 1, letterSpacing: '-2px' }}>
           {unit.startsWith('€') || unit.startsWith('$') ? unit : ''}{formatted}{unit.startsWith('€') || unit.startsWith('$') ? '' : unit}
         </span>
       </div>
-      <div style={{ fontSize: 28, color: 'rgba(148,163,184,0.8)', fontFamily: FONT, fontWeight: '500', marginTop: -8, letterSpacing: '0.5px' }}>
+      <div style={{ fontSize: bodySize, color: 'rgba(148,163,184,0.8)', fontFamily: FONT, fontWeight: '500', marginTop: -8, letterSpacing: '0.5px' }}>
         {label}
       </div>
       <div style={{ width: '80%', height: 1, background: `linear-gradient(90deg, transparent, ${av.border}, transparent)`, margin: '14px auto 0' }} />
@@ -53,6 +54,7 @@ export const SceneCostCounter: React.FC<SceneCostCounterProps & SharedSceneProps
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
+  const layout = useSceneLayout();
 
   const CUE_INTRO = 0;
   const CUE_STAT1 = dur * 0.22;
@@ -66,19 +68,26 @@ export const SceneCostCounter: React.FC<SceneCostCounterProps & SharedSceneProps
       <AbsoluteFill style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(5,13,26,0) 20%, #050d1a 65%)' }} />
       <NoiseOverlay />
 
-      <AbsoluteFill style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 40, padding: '0 100px' }}>
+      <AbsoluteFill style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        gap: layout.innerGap,
+        padding: `0 ${layout.outerPadding}px`,
+      }}>
         {/* Intro text */}
         <div style={{ opacity: introOp, transform: `translateY(${introY}px)`, textAlign: 'center' as const }}>
-          <div style={{ fontSize: 32, color: 'rgba(148,163,184,0.75)', fontFamily: FONT, fontWeight: '400', maxWidth: 800, lineHeight: 1.5 }}>
+          <div style={{ fontSize: layout.bodySize + 4, color: 'rgba(148,163,184,0.75)', fontFamily: FONT, fontWeight: '400', maxWidth: 800, lineHeight: 1.5 }}>
             {intro}
           </div>
         </div>
 
-        {/* Stats */}
-        <div style={{ display: 'flex', gap: 100, alignItems: 'center' }}>
-          <Stat {...stat1} cue={CUE_STAT1} frame={frame} fps={fps} accentColor={accentColor} />
-          <div style={{ width: 1, height: 140, background: `linear-gradient(to bottom, transparent, rgba(148,163,184,0.2), transparent)` }} />
-          <Stat {...stat2} cue={CUE_STAT2} frame={frame} fps={fps} accentColor={accentColor} />
+        {/* Stats — row in landscape, column in portrait */}
+        <div style={{ display: 'flex', flexDirection: layout.direction, gap: layout.isPortrait ? layout.innerGap : 100, alignItems: 'center' }}>
+          <Stat {...stat1} cue={CUE_STAT1} frame={frame} fps={fps} accentColor={accentColor} displaySize={layout.displaySize} bodySize={layout.bodySize} />
+          <div style={layout.isPortrait
+            ? { width: 140, height: 1, background: `linear-gradient(to right, transparent, rgba(148,163,184,0.2), transparent)` }
+            : { width: 1, height: 140, background: `linear-gradient(to bottom, transparent, rgba(148,163,184,0.2), transparent)` }
+          } />
+          <Stat {...stat2} cue={CUE_STAT2} frame={frame} fps={fps} accentColor={accentColor} displaySize={layout.displaySize} bodySize={layout.bodySize} />
         </div>
       </AbsoluteFill>
 
