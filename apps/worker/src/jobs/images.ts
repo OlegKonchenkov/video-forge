@@ -2,17 +2,29 @@
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
+import type { SceneConfig } from '../types/script';
 
-// Scene-specific cinematic prompt templates
-const SCENE_TEMPLATES = [
-  (brand: string, hint: string) => `dark cinematic background: frustrated person overwhelmed in ${brand} business context, ${hint}, film noir style`,
-  (brand: string, hint: string) => `chaotic digital overload: inbox flooding with ${brand} related tasks, ${hint}, dark moody background`,
-  (brand: string, hint: string) => `burning money and wasted time visualization for ${brand}, ${hint}, minimalist dark background with red accents`,
-  (brand: string, hint: string) => `elegant brand identity reveal: professional ${brand} company atmosphere, ${hint}, dark premium background`,
-  (brand: string, hint: string) => `futuristic AI automation dashboard for ${brand}, ${hint}, blue glowing interface, dark background`,
-  (brand: string, hint: string) => `${brand} team celebrating results, growth charts, success metrics, ${hint}, cinematic lighting`,
-  (brand: string, hint: string) => `professional CTA scene for ${brand}, ${hint}, sleek dark background with glowing elements`,
-];
+// Scene-type-aware cinematic prompt templates
+const SCENE_PROMPTS: Record<string, (brand: string, hint: string) => string> = {
+  pain_hook:        (brand, hint) => `dark cinematic: overwhelmed frustrated person in ${brand} business context, ${hint}, film noir style`,
+  inbox_chaos:      (brand, hint) => `chaotic digital inbox overload flooding with ${brand} tasks, ${hint}, dark moody neon background`,
+  cost_counter:     (brand, hint) => `burning money wasted time visualization for ${brand} business, ${hint}, minimalist dark background red accents`,
+  brand_reveal:     (brand, hint) => `elegant premium brand identity: ${brand} company atmosphere, ${hint}, dark luxury background with bokeh`,
+  feature_list:     (brand, hint) => `futuristic AI automation dashboard interface for ${brand}, ${hint}, glowing blue panels dark background`,
+  stats_grid:       (brand, hint) => `${brand} growth metrics celebration success charts, ${hint}, dark background with golden light`,
+  cta:              (brand, hint) => `cinematic call to action for ${brand}, confident decisive moment, ${hint}, sleek dark background glowing elements`,
+  testimonial:      (brand, hint) => `authentic happy ${brand} customer success story, ${hint}, warm cinematic portrait lighting dark background`,
+  before_after:     (brand, hint) => `striking visual contrast: chaos vs order transformation for ${brand}, ${hint}, split dark background`,
+  how_it_works:     (brand, hint) => `clean process diagram visualization for ${brand} workflow, ${hint}, dark background with glowing step indicators`,
+  product_showcase: (brand, hint) => `professional hero product shot for ${brand}, ${hint}, studio quality dramatic lighting dark background`,
+  offer_countdown:  (brand, hint) => `urgent limited offer for ${brand}, ${hint}, dark background with warm gold accent countdown energy`,
+  map_location:     (brand, hint) => `${brand} premium physical location exterior, ${hint}, cinematic evening lighting professional photography`,
+  team_intro:       (brand, hint) => `professional ${brand} team portrait group, ${hint}, warm cinematic lighting corporate photography`,
+  comparison:       (brand, hint) => `${brand} winning comparison competitive advantage visual, ${hint}, clean dark background with accent highlights`,
+};
+
+const FALLBACK_PROMPT = (brand: string, hint: string) =>
+  `professional cinematic business scene for ${brand} video advertisement, ${hint}, dark premium background`;
 
 async function downloadImage(imageUrl: string, outPath: string): Promise<boolean> {
   try {
@@ -52,7 +64,7 @@ async function generateWithGemini(prompt: string, outPath: string): Promise<bool
   }
 }
 
-function writePlaceholder(outPath: string, sceneNum: number) {
+function writePlaceholder(outPath: string, sceneIndex: number) {
   const pngHeader = Buffer.from([
     0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A,0x00,0x00,0x00,0x0D,0x49,0x48,0x44,0x52,
     0x00,0x00,0x00,0x01,0x00,0x00,0x00,0x01,0x08,0x02,0x00,0x00,0x00,0x90,0x77,0x53,
@@ -61,11 +73,11 @@ function writePlaceholder(outPath: string, sceneNum: number) {
     0x44,0xAE,0x42,0x60,0x82,
   ]);
   fs.writeFileSync(outPath, pngHeader);
-  console.log(`[images] Scene ${sceneNum}: using placeholder`);
+  console.log(`[images] scene_${sceneIndex}: using placeholder`);
 }
 
 export async function generateImages(
-  voiceovers: string[],
+  scenes: SceneConfig[],
   workDir: string,
   brandName: string,
   brandImageUrl: string | null,
@@ -73,29 +85,31 @@ export async function generateImages(
   fs.mkdirSync(path.join(workDir, 'images'), { recursive: true });
   const outPaths: string[] = [];
 
-  for (let i = 0; i < voiceovers.length; i++) {
-    const outPath = path.join(workDir, 'images', `scene${i + 1}.png`);
-    const hint    = voiceovers[i].slice(0, 60);
-    const prompt  = SCENE_TEMPLATES[i]?.(brandName, hint) ?? `professional business scene for ${brandName}`;
+  for (let i = 0; i < scenes.length; i++) {
+    const outPath    = path.join(workDir, 'images', `scene_${i}.png`);
+    const scene      = scenes[i];
+    const hint       = scene.props.voiceover.slice(0, 60);
+    const promptFn   = SCENE_PROMPTS[scene.type] ?? FALLBACK_PROMPT;
+    const prompt     = promptFn(brandName, hint);
 
     let ok = false;
 
-    // Scene 1 (hero): try the scraped brand image first
+    // First scene: try the scraped brand image (og:image from website)
     if (i === 0 && brandImageUrl) {
-      console.log(`[images] Scene 1: trying brand og:image`);
+      console.log(`[images] scene_0: trying brand og:image`);
       ok = await downloadImage(brandImageUrl, outPath);
     }
 
     // Gemini generation
     if (!ok) {
-      console.log(`[images] Scene ${i + 1}: generating with Gemini`);
+      console.log(`[images] scene_${i} (${scene.type}): generating with Gemini`);
       ok = await generateWithGemini(prompt, outPath);
     }
 
-    if (!ok) writePlaceholder(outPath, i + 1);
+    if (!ok) writePlaceholder(outPath, i);
 
     outPaths.push(outPath);
-    if (i < voiceovers.length - 1) await new Promise(r => setTimeout(r, 500));
+    if (i < scenes.length - 1) await new Promise(r => setTimeout(r, 500));
   }
 
   return outPaths;

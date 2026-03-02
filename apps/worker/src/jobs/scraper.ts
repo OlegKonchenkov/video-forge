@@ -3,7 +3,8 @@ import axios from 'axios';
 
 export interface ScrapeResult {
   text:          string
-  brandImageUrl: string | null  // og:image or first large hero image
+  brandImageUrl: string | null
+  accentColor:   string | null  // from <meta name="theme-color"> hex value
 }
 
 export async function scrapeUrl(url: string): Promise<ScrapeResult> {
@@ -20,6 +21,11 @@ export async function scrapeUrl(url: string): Promise<ScrapeResult> {
                   || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
     const brandImageUrl = ogMatch ? ogMatch[1] : null;
 
+    // Extract theme-color (brand accent color)
+    const themeMatch = html.match(/<meta[^>]+name=["']theme-color["'][^>]+content=["'](#[0-9a-fA-F]{3,6})["']/i)
+                    || html.match(/<meta[^>]+content=["'](#[0-9a-fA-F]{3,6})["'][^>]+name=["']theme-color["']/i);
+    const accentColor = themeMatch ? themeMatch[1] : null;
+
     // Strip HTML to plain text
     const text = html
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
@@ -29,7 +35,7 @@ export async function scrapeUrl(url: string): Promise<ScrapeResult> {
       .trim()
       .slice(0, 5000);
 
-    return { text, brandImageUrl };
+    return { text, brandImageUrl, accentColor };
   } catch {
     throw new Error(`Failed to scrape URL: ${url}`);
   }

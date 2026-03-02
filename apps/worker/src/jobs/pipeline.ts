@@ -21,14 +21,16 @@ export async function runVideoPipeline(job: any) {
   try {
     await updateStatus(videoId, 'processing', 5, 'Extracting content...');
 
-    // 1. Extract text (and brand image URL for website input)
+    // 1. Extract text (and brand image URL + accent color for website input)
     let sourceText = '';
     let brandImageUrl: string | null = null;
+    let accentColor: string | null   = null;
 
     if (inputType === 'url') {
-      const result = await scrapeUrl(inputData.url);
+      const result  = await scrapeUrl(inputData.url);
       sourceText    = result.text;
       brandImageUrl = result.brandImageUrl;
+      accentColor   = result.accentColor;
     } else if (inputType === 'pdf') {
       sourceText = await parsePdf(inputData.fileName);
     } else if (inputType === 'ppt') {
@@ -39,19 +41,19 @@ export async function runVideoPipeline(job: any) {
 
     await updateStatus(videoId, 'processing', 15, 'Writing script...');
 
-    // 2. Generate structured script via GPT-4o
-    const script = await generateScript(sourceText, inputType);
+    // 2. Generate structured script via GPT-4o (pass accentColor hint if found)
+    const script = await generateScript(sourceText, inputType, accentColor);
 
     await updateStatus(videoId, 'processing', 25, 'Recording voiceover...');
 
-    // 3. ElevenLabs TTS — pass only the voiceover strings
-    const voiceovers  = script.scenes.map((s) => s.voiceover);
-    const audioPaths  = await generateVoiceovers(voiceovers, workDir);
+    // 3. ElevenLabs TTS — pass only the voiceover strings (0-indexed filenames)
+    const voiceovers = script.scenes.map((s) => s.props.voiceover);
+    const audioPaths = await generateVoiceovers(voiceovers, workDir);
 
     await updateStatus(videoId, 'processing', 45, 'Generating visuals...');
 
-    // 4. Gemini images — use voiceovers as context + brand image for scene 1
-    const imagePaths = await generateImages(voiceovers, workDir, script.brandName, brandImageUrl);
+    // 4. Gemini images — use scene type + voiceover as context
+    const imagePaths = await generateImages(script.scenes, workDir, script.brandName, brandImageUrl);
 
     await updateStatus(videoId, 'processing', 60, 'Rendering video...');
 

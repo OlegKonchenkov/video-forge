@@ -4,96 +4,117 @@ import type { VideoScript } from '../types/script';
 
 const client = new OpenAI(); // reads OPENAI_API_KEY from env
 
-const SYSTEM = `You are an expert video ad scriptwriter and marketing strategist.
-Analyse business content and output a 7-scene video advertisement script.
-Always respond with valid JSON matching the EXACT schema given. No extra keys.`;
+const SYSTEM = `You are an expert video ad scriptwriter. Analyse business content and output a
+dynamic 5-7 scene video advertisement script. Choose the best scene types from the catalogue
+below to match the business. Always respond with valid JSON matching the exact schema. No extra keys.`;
 
-function buildPrompt(sourceText: string, inputType: string): string {
-  return `Analyse this ${inputType} content and create a complete 7-scene video ad script.
+// Full scene type catalogue with schemas for GPT
+const SCENE_CATALOGUE = `
+AVAILABLE SCENE TYPES (pick 5-7 that best tell this business's story):
+
+1. "pain_hook" — Opens with the customer's key frustration
+   props: { voiceover, headline, sub, painPoints: [str, str, str] }
+
+2. "inbox_chaos" — Visual overload: a flood of urgent tasks/emails
+   props: { voiceover, items: [{subject, from, time, urgent?}]×4, punchWords: [str, str, str] }
+
+3. "cost_counter" — Shocking cost-of-inaction with animated numbers
+   props: { voiceover, intro, stat1: {value:number, unit, label}, stat2: {value:number, unit, label} }
+
+4. "brand_reveal" — Cinematic reveal of the brand name (no extra props needed)
+   props: { voiceover }
+
+5. "feature_list" — The solution with 3 key features
+   props: { voiceover, headlineLines: [str,str,str,str], sub, features: [{icon,title,detail,status}]×3 }
+
+6. "stats_grid" — 3 impressive metrics in large display numbers
+   props: { voiceover, title, sub, stats: [{value:str, label, sub}]×3 }
+
+7. "cta" — Final call-to-action with urgency
+   props: { voiceover, headline, accentLine, sub }
+
+8. "testimonial" — A powerful customer quote
+   props: { voiceover, quote, name, role, company? }
+
+9. "before_after" — Side-by-side contrast of old vs new state
+   props: { voiceover, beforeLabel, beforePoints: [str,str,str], afterLabel, afterPoints: [str,str,str] }
+
+10. "how_it_works" — 3-step process explanation
+    props: { voiceover, title, steps: [{number,icon,title,description}]×3 }
+
+11. "product_showcase" — Full-screen product/service visual
+    props: { voiceover, productName, tagline, price? }
+
+12. "offer_countdown" — Limited-time offer with urgency bar
+    props: { voiceover, badge, offer, benefit, urgency }
+
+13. "map_location" — Location reveal for local businesses
+    props: { voiceover, address, city, hours, phone? }
+
+14. "team_intro" — Team members with avatar cards
+    props: { voiceover, title, members: [{name,role,initials}]×2-4 }
+
+15. "comparison" — Side-by-side vs competitor table
+    props: { voiceover, competitorLabel, brandLabel, features: [{label, competitor:bool, brand:bool}]×4-6 }
+
+SELECTION RULES:
+- Always end with "cta" as the last scene
+- Always include "brand_reveal" for strong brand identity
+- Choose scenes that tell a compelling story arc: problem → solution → proof → CTA
+- For local businesses: prefer "map_location" + "team_intro"
+- For SaaS/tech: prefer "comparison" + "how_it_works"
+- For e-commerce: prefer "product_showcase" + "offer_countdown"
+- For service businesses: prefer "testimonial" + "before_after"
+`;
+
+function buildPrompt(sourceText: string, inputType: string, knownAccentColor: string | null): string {
+  const colorHint = knownAccentColor
+    ? `Use this exact hex color as accentColor: "${knownAccentColor}"`
+    : `Pick a strong brand accent color (hex) that matches the brand personality — NOT generic blue #3b82f6 unless it genuinely fits`;
+
+  return `Analyse this ${inputType} content and create a 5-7 scene video ad script.
 
 SOURCE CONTENT:
 ${sourceText.slice(0, 4000)}
 
-Return a JSON object with this EXACT structure (fill every field, no nulls):
+${SCENE_CATALOGUE}
+
+Return a JSON object with this EXACT structure:
 {
   "brandName": "Company/product name from content",
   "tagline": "Compelling one-line tagline (max 6 words)",
-  "ctaText": "CTA button text e.g. 'Book a Free Demo'",
-  "ctaUrl": "Website URL from content or guess from brand name",
+  "ctaText": "CTA button text matching the business type",
+  "ctaUrl": "Website URL from content or infer from brand",
+  "accentColor": "#hex — ${colorHint}",
   "scenes": [
-    {
-      "voiceover": "15-25 word narration for scene 1 (pain hook, grabs attention)",
-      "headline": "5-8 word punchy display headline about the pain",
-      "sub": "1-2 supporting sentences expanding the pain point",
-      "painPoints": ["Specific pain 1", "Specific pain 2", "Specific pain 3"]
-    },
-    {
-      "voiceover": "15-25 word narration for scene 2 (amplify chaos, makes it visceral)",
-      "items": [
-        {"subject": "Relevant realistic task/email subject", "from": "sender@domain.com", "time": "09:14", "urgent": true},
-        {"subject": "Another relevant task", "from": "ops@thisbusiness.com", "time": "10:32", "urgent": false},
-        {"subject": "Third relevant problem", "from": "team@thisbusiness.com", "time": "11:15", "urgent": true},
-        {"subject": "Fourth relevant issue", "from": "admin@thisbusiness.com", "time": "14:22", "urgent": false}
-      ],
-      "punchWords": ["One word.", "Two words.", "Three word."]
-    },
-    {
-      "voiceover": "15-25 word narration for scene 3 (cost of problem, shocking numbers)",
-      "intro": "That's what [this type of business] loses every year",
-      "stat1": {"value": 25, "unit": "hrs", "label": "wasted per week"},
-      "stat2": {"value": 32000, "unit": "€", "label": "lost per year"}
-    },
-    {
-      "voiceover": "15-25 word narration for scene 4 (brand introduction, turning point)"
-    },
-    {
-      "voiceover": "15-25 word narration for scene 5 (solution, what the product does)",
-      "headlineLines": ["First line about the solution", "second line here", "third compelling line", "Automatically."],
-      "sub": "One short line: setup time + key differentiator (e.g. 'No setup. Fully managed.')",
-      "features": [
-        {"icon": "📧", "title": "Specific feature name 1", "detail": "One line: exactly what it does", "status": "47 handled"},
-        {"icon": "📊", "title": "Specific feature name 2", "detail": "One line: exactly what it does", "status": "Synced live"},
-        {"icon": "🔔", "title": "Specific feature name 3", "detail": "One line: exactly what it does", "status": "Running now"}
-      ]
-    },
-    {
-      "voiceover": "15-25 word narration for scene 6 (social proof, real-feeling results)",
-      "title": "Average results after 30 days",
-      "sub": "Across 50+ [this type of business] clients",
-      "stats": [
-        {"value": "28hrs", "label": "Saved per week", "sub": "Per team average"},
-        {"value": "5 days", "label": "To go live", "sub": "From first call"},
-        {"value": "$5.6K", "label": "Monthly ROI", "sub": "Average return"}
-      ]
-    },
-    {
-      "voiceover": "15-25 word narration for scene 7 (call to action, urgency + offer)",
-      "headline": "Stop losing [customers/patients/clients] to",
-      "accentLine": "[the specific problem this brand solves].",
-      "sub": "Book your free 15-minute call today."
-    }
+    { "type": "<scene_type>", "props": { /* matching schema above */ } },
+    ...
   ]
 }
 
-RULES:
-- Extract real numbers/stats from the content where possible
-- If no real stats found, invent plausible ones for this industry (not too round, not too precise)
-- Make ALL copy specific to this business type — never generic
-- Voiceovers must flow naturally read aloud (conversational, not corporate)
-- headlineLines[3] in scene 5 must be one punchy word + period ("Automatically." / "Instantly." / "Effortlessly.")
-- punchWords in scene 2 must be short (1-3 words each) and punchy
-- ctaText matches the business ("Book a Demo" for SaaS, "Book Appointment" for clinics, etc.)`;
+COPY RULES:
+- All voiceovers: 15-25 words, conversational, read naturally aloud
+- Extract real stats/numbers from content where possible; otherwise invent plausible industry-specific ones
+- All copy must be specific to THIS business — never generic placeholder text
+- headlineLines[3] in feature_list must be one punchy word + period ("Automatically." / "Instantly." / "Effortlessly.")
+- punchWords in inbox_chaos: short (1-3 words each), punchy, end with period
+- comparison: brandLabel should be the actual brand name; show clear advantage
+- ctaText: match the action ("Book a Demo" for SaaS, "Get a Quote" for services, "Shop Now" for retail)`;
 }
 
-export async function generateScript(sourceText: string, inputType: string): Promise<VideoScript> {
+export async function generateScript(
+  sourceText: string,
+  inputType: string,
+  knownAccentColor: string | null = null,
+): Promise<VideoScript> {
   const response = await client.chat.completions.create({
     model: 'gpt-4o',
     response_format: { type: 'json_object' },
     messages: [
       { role: 'system', content: SYSTEM },
-      { role: 'user',   content: buildPrompt(sourceText, inputType) },
+      { role: 'user',   content: buildPrompt(sourceText, inputType, knownAccentColor) },
     ],
-    max_tokens: 3000,
+    max_tokens: 4000,
     temperature: 0.7,
   });
 

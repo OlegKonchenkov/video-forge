@@ -20,27 +20,29 @@ export async function renderVideo({ videoId, script, audioPaths, imagePaths, wor
   fs.mkdirSync(path.join(remotionPublic, 'audio/voiceover'), { recursive: true });
   fs.mkdirSync(path.join(remotionPublic, 'images'), { recursive: true });
 
-  // Copy voiceover audio files
+  // Copy voiceover audio — 0-indexed to match AgentForgeAd audioPath: `audio/voiceover/scene_${i}.mp3`
   audioPaths.forEach((src, i) => {
-    const dest = path.join(remotionPublic, `audio/voiceover/scene${i + 1}.mp3`);
+    const dest = path.join(remotionPublic, `audio/voiceover/scene_${i}.mp3`);
     if (fs.existsSync(src)) fs.copyFileSync(src, dest);
   });
 
-  // Copy background images
-  const bgNames = ['bg-hero', 'bg-chaos', 'bg-cost', 'bg-logo', 'bg-solution', 'bg-stats', 'bg-cta'];
+  // Copy background images — 0-indexed to match SceneProductShowcase: `images/scene_${sceneIndex}.png`
   imagePaths.forEach((src, i) => {
-    const dest = path.join(remotionPublic, `images/${bgNames[i] ?? `scene${i + 1}`}.png`);
+    const dest = path.join(remotionPublic, `images/scene_${i}.png`);
     if (fs.existsSync(src)) fs.copyFileSync(src, dest);
   });
 
   // Write props to a temp file (avoids shell command-length limits)
   const propsPath = path.join(workDir, 'props.json');
   const remotionProps = {
-    brandName: script.brandName,
-    tagline:   script.tagline,
-    ctaText:   script.ctaText,
-    ctaUrl:    script.ctaUrl,
-    scenes:    script.scenes,
+    brandName:      script.brandName,
+    tagline:        script.tagline,
+    ctaText:        script.ctaText,
+    ctaUrl:         script.ctaUrl,
+    accentColor:    script.accentColor,
+    // Placeholder durations — calculateMetadata overwrites them from audio files
+    sceneDurations: Array(script.scenes.length).fill(150),
+    scenes:         script.scenes,
   };
   fs.writeFileSync(propsPath, JSON.stringify(remotionProps));
 
