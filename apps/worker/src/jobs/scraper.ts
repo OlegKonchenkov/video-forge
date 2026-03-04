@@ -1,14 +1,88 @@
 // apps/worker/src/jobs/scraper.ts
 import axios from 'axios';
 
+export interface BrandPalette {
+  bg:      string;   // primary background hex
+  surface: string;   // card/panel background hex
+  accent:  string;   // brand accent hex
+  text:    string;   // primary text hex
+  isDark:  boolean;  // luminance(bg) < 0.5
+}
+
 export interface ScrapeResult {
   text:          string
   brandImageUrl: string | null
   imageUrls:     string[]           // collected content images from the page
   accentColor:   string | null      // from <meta name="theme-color">
+  palette:       BrandPalette | null // CSS-mined brand palette
   language:      string             // from <html lang="...">
   businessType:  'b2b' | 'b2c' | 'mixed'
 }
+
+// ─── Brand Palette Extraction ─────────────────────────────────────────────────
+
+function hexToRgbPalette(hex: string): { r: number; g: number; b: number } | null {
+  const clean = hex.replace('#', '');
+  const full = clean.length === 3
+    ? clean.split('').map(c => c + c).join('')
+    : clean;
+  if (full.length !== 6) return null;
+  const n = parseInt(full, 16);
+  if (isNaN(n)) return null;
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+function relativeLuminancePalette(hex: string): number {
+  const rgb = hexToRgbPalette(hex);
+  if (!rgb) return 0;
+  const [rs, gs, bs] = [rgb.r, rgb.g, rgb.b].map(c => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+}
+
+function normalizeHex(hex: string): string | null {
+  const clean = hex.replace('#', '');
+  const full = clean.length === 3
+    ? clean.split('').map(c => c + c).join('')
+    : clean;
+  if (full.length !== 6) return null;
+  if (isNaN(parseInt(full, 16))) return null;
+  return '#' + full.toLowerCase();
+}
+
+export function extractBrandPalette(html: string): BrandPalette | null {
+  // Extract all hex colors from <style> blocks and inline style="" attributes
+  const styleBlocks: string[] = [];
+  for (const m of html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)) styleBlocks.push(m[1]);
+  for (const m of html.matchAll(/style="([^"]*)"/gi)) styleBlocks.push(m[1]);
+  const combined = styleBlocks.join(' ');
+
+  const freq = new Map<string, number>();
+  for (const m of combined.matchAll(/#[0-9a-fA-F]{3,6}\b/g)) {
+    const n = normalizeHex(m[0]);
+    if (n) freq.set(n, (freq.get(n) || 0) + 1);
+  }
+  if (freq.size < 2) return null;
+
+  const sorted = [...freq.entries()].sort((a, b) => b[1] - a[1]);
+
+  const darks  = sorted.filter(([h]) => relativeLuminancePalette(h) < 0.15);
+  const mids   = sorted.filter(([h]) => { const l = relativeLuminancePalette(h); return l >= 0.1 && l <= 0.6; });
+  const lights = sorted.filter(([h]) => relativeLuminancePalette(h) > 0.7);
+
+  const bg      = darks[0]?.[0]  ?? sorted[0][0];
+  const surface = darks[1]?.[0]  ?? mids[0]?.[0] ?? bg;
+  const accent  = mids[0]?.[0]   ?? lights[0]?.[0] ?? '#3b82f6';
+  const isDark  = relativeLuminancePalette(bg) < 0.5;
+  const text    = isDark ? '#f1f5f9' : '#0f172a';
+
+  console.log(`[scraper] palette: bg=${bg} accent=${accent} isDark=${isDark} (from ${freq.size} colors)`);
+  return { bg, surface, accent, text, isDark };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 function detectLanguage(html: string): string {
   const m = html.match(/<html[^>]+lang=["']([^"']+)["']/i);
@@ -153,6 +227,9 @@ export async function scrapeUrl(url: string): Promise<ScrapeResult> {
                     || html.match(/<meta[^>]+content=["'](#[0-9a-fA-F]{3,6})["'][^>]+name=["']theme-color["']/i);
     const accentColor = themeMatch ? themeMatch[1] : null;
 
+    // Extract brand palette via CSS color mining
+    const palette = extractBrandPalette(html);
+
     const language = detectLanguage(html);
     let   allText  = extractText(html);
 
@@ -180,7 +257,7 @@ export async function scrapeUrl(url: string): Promise<ScrapeResult> {
     const businessType = detectBusinessType(text);
 
     console.log(`[scraper] language=${language} businessType=${businessType} chars=${text.length} images=${imageUrls.length}`);
-    return { text, brandImageUrl, imageUrls, accentColor, language, businessType };
+    return { text, brandImageUrl, imageUrls, accentColor, palette, language, businessType };
 
   } catch {
     throw new Error(`Failed to scrape URL: ${url}`);
