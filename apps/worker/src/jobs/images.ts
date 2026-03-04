@@ -22,6 +22,10 @@ const SCENE_PROMPTS: Record<string, (brand: string, hint: string) => string> = {
   map_location:     (brand, hint) => `${brand} premium physical location exterior, ${hint}, cinematic evening lighting professional photography`,
   team_intro:       (brand, hint) => `professional ${brand} team portrait group, ${hint}, warm cinematic lighting corporate photography`,
   comparison:       (brand, hint) => `${brand} winning comparison competitive advantage visual, ${hint}, clean dark background with accent highlights`,
+  big_stat:          (brand, hint) => `enormous glowing number visualization for ${brand} achievement, ${hint}, dark dramatic background with light rays`,
+  mission_statement: (brand, hint) => `cinematic brand vision for ${brand}, inspiring atmospheric environment, ${hint}, dark premium background`,
+  social_proof:      (brand, hint) => `${brand} trust credibility professional achievement wall, ${hint}, clean dark background gold accents`,
+  timeline:          (brand, hint) => `${brand} company history timeline journey milestones, ${hint}, dark background with glowing path`,
 };
 
 const FALLBACK_PROMPT = (brand: string, hint: string) =>
@@ -161,12 +165,13 @@ async function generateWithGemini(prompt: string, outPath: string, sceneIndex: n
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export async function generateImages(
-  scenes:        SceneConfig[],
-  workDir:       string,
-  brandName:     string,
-  brandImageUrl: string | null,
-  accentColor:   string = '#3b82f6',
-  imageUrls:     string[] = [],    // priority images: scraped from site or user-uploaded
+  scenes:         SceneConfig[],
+  workDir:        string,
+  brandName:      string,
+  brandImageUrl:  string | null,
+  accentColor:    string    = '#3b82f6',
+  imageUrls:      string[]  = [],    // priority images: scraped from site or user-uploaded
+  showImageFlags: boolean[] = [],    // one per scene — false = skip Gemini entirely
 ): Promise<string[]> {
   fs.mkdirSync(path.join(workDir, 'images'), { recursive: true });
   const outPaths: string[] = [];
@@ -177,6 +182,13 @@ export async function generateImages(
     const hint     = scene.props.voiceover.slice(0, 60);
     const promptFn = SCENE_PROMPTS[scene.type] ?? FALLBACK_PROMPT;
     const prompt   = promptFn(brandName, hint);
+
+    // Skip image generation entirely if this scene doesn't show a background image
+    if (showImageFlags[i] === false) {
+      console.log(`[images] scene_${i} (${scene.type}): showImage=false — skipping generation`);
+      outPaths.push('');  // empty string — scene won't use it
+      continue;
+    }
 
     let ok = false;
 
