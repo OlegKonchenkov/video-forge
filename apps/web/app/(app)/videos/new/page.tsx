@@ -1,8 +1,14 @@
 'use client';
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Globe, FileText, Presentation, MessageSquare, ArrowRight, ArrowLeft, Loader2, Upload, ImageIcon, X } from 'lucide-react';
+import {
+  Globe, FileText, Presentation, MessageSquare,
+  ArrowRight, ArrowLeft, Loader2, Upload, ImageIcon, X,
+  Play, Square, ChevronDown,
+} from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+
+// ─── Static data ─────────────────────────────────────────────────────────────
 
 const inputTypes = [
   { id: 'url',    label: 'Website URL',    icon: Globe,         desc: 'We scrape and extract key messages' },
@@ -16,33 +22,127 @@ const aspectRatioOptions = [
   { id: '9:16', label: '9 : 16', sub: 'Portrait',  hint: 'TikTok · Reels · Stories' },
 ] as const;
 
-const STEP_LABELS = ['Input Type', 'Your Content', 'Review'];
+const STEP_LABELS = ['Input Type', 'Your Content', 'Settings', 'Review'];
+
+// Curated voice list (preview_url populated from /api/voices on step load)
+const CURATED_VOICES_DEFAULT: Voice[] = [
+  { voice_id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel',    preview_url: '' },
+  { voice_id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel',    preview_url: '' },
+  { voice_id: '2EiwWnXFnvU5JabPnv8n', name: 'Clyde',     preview_url: '' },
+  { voice_id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi',      preview_url: '' },
+  { voice_id: 'EXAVITQu4vr4xnSDxMaL', name: 'Bella',     preview_url: '' },
+  { voice_id: 'ErXwobaYiN019PkySvjV', name: 'Antoni',    preview_url: '' },
+  { voice_id: 'MF3mGyEYCl7XYWbV9V6O', name: 'Elli',      preview_url: '' },
+  { voice_id: 'TxGEqnHWrfWFTfGW9XjX', name: 'Josh',      preview_url: '' },
+  { voice_id: 'VR6AewLTigWG4xSOukaG', name: 'Arnold',    preview_url: '' },
+  { voice_id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam',      preview_url: '' },
+  { voice_id: 'yoZ06aMxZJJ28mfd3POQ', name: 'Sam',       preview_url: '' },
+  { voice_id: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte', preview_url: '' },
+];
+
+const MUSIC_CATEGORIES = ['Corporate', 'Energetic', 'Cinematic', 'Calm', 'Upbeat'] as const;
+type MusicCategory = typeof MUSIC_CATEGORIES[number];
+
+const MUSIC_TRACKS: Record<MusicCategory, { id: string; label: string }[]> = {
+  Corporate: [{ id: 'Song-3', label: 'Song 3' }, { id: 'Song-7', label: 'Song 7' }, { id: 'Song-11', label: 'Song 11' }],
+  Energetic: [{ id: 'Song-1', label: 'Song 1' }, { id: 'Song-5', label: 'Song 5' }, { id: 'Song-14', label: 'Song 14' }],
+  Cinematic: [{ id: 'Song-6', label: 'Song 6' }, { id: 'Song-9', label: 'Song 9' }, { id: 'Song-12', label: 'Song 12' }],
+  Calm:      [{ id: 'Song-2', label: 'Song 2' }, { id: 'Song-8', label: 'Song 8' }, { id: 'Song-15', label: 'Song 15' }],
+  Upbeat:    [{ id: 'Song-4', label: 'Song 4' }, { id: 'Song-10', label: 'Song 10' }, { id: 'Song-17', label: 'Song 17' }],
+};
+
+type Voice = { voice_id: string; name: string; preview_url: string };
+
+// ─── Component ───────────────────────────────────────────────────────────────
 
 export default function NewVideoPage() {
-  const router    = useRouter();
-  const resRef    = useRef<HTMLInputElement>(null);
+  const router   = useRouter();
+  const resRef   = useRef<HTMLInputElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Wizard state
   const [step, setStep]               = useState(1);
   const [inputType, setInputType]     = useState<string>('');
   const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16'>('16:9');
   const [url, setUrl]                 = useState('');
   const [prompt, setPrompt]           = useState('');
   const [file, setFile]               = useState<File | null>(null);
-  const [resources, setResources]     = useState<File[]>([]);  // user images/videos
+  const [resources, setResources]     = useState<File[]>([]);
   const [title, setTitle]             = useState('');
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState('');
+
+  // Settings step state
+  const [voiceMode, setVoiceMode]             = useState<'off' | 'auto' | 'choose'>('auto');
+  const [selectedVoiceId, setSelectedVoiceId] = useState<string>('');
+  const [voices, setVoices]                   = useState<Voice[]>(CURATED_VOICES_DEFAULT);
+  const [voicesLoading, setVoicesLoading]     = useState(false);
+  const [playingId, setPlayingId]             = useState<string>('');  // id of currently previewing item
+  const [musicCategory, setMusicCategory]     = useState<MusicCategory | ''>('');  // '' = Auto
+  const [selectedMusicId, setSelectedMusicId] = useState<string>('auto');
+
+  // ── Audio preview helpers ──────────────────────────────────────────────────
+
+  function stopAudio() {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
+    }
+    setPlayingId('');
+  }
+
+  function playPreview(id: string, previewUrl: string) {
+    if (playingId === id) { stopAudio(); return; }
+    stopAudio();
+    const audio = new Audio(previewUrl);
+    audioRef.current = audio;
+    audio.play();
+    setPlayingId(id);
+    audio.onended = () => setPlayingId('');
+  }
+
+  async function loadAllVoices() {
+    setVoicesLoading(true);
+    try {
+      const res = await fetch('/api/voices?curated=false');
+      if (res.ok) setVoices(await res.json());
+    } finally {
+      setVoicesLoading(false);
+    }
+  }
+
+  // Fetch preview URLs for the curated list when entering Settings step
+  async function loadCuratedPreviews() {
+    if (voices[0]?.preview_url) return; // already loaded
+    try {
+      const res = await fetch('/api/voices?curated=true');
+      if (res.ok) setVoices(await res.json());
+    } catch { /* silent — voices remain without preview_url */ }
+  }
+
+  // ── Resource upload helpers ────────────────────────────────────────────────
 
   function addResources(files: FileList | null) {
     if (!files) return;
     const allowed = Array.from(files).filter(f =>
       f.type.startsWith('image/') || f.type.startsWith('video/')
     );
-    setResources(prev => [...prev, ...allowed].slice(0, 8));  // max 8 assets
+    setResources(prev => [...prev, ...allowed].slice(0, 8));
   }
 
   function removeResource(idx: number) {
     setResources(prev => prev.filter((_, i) => i !== idx));
   }
+
+  // ── Resolved voiceId for the worker ───────────────────────────────────────
+
+  function resolvedVoiceId(): string | null {
+    if (voiceMode === 'off')  return null;
+    if (voiceMode === 'auto') return 'auto';
+    return selectedVoiceId || 'auto';
+  }
+
+  // ── Submit ─────────────────────────────────────────────────────────────────
 
   async function handleSubmit() {
     setLoading(true); setError('');
@@ -51,15 +151,13 @@ export default function NewVideoPage() {
       const { data: { user } } = await supabase.auth.getUser();
 
       let inputData: Record<string, string> = {};
-      let uploadedFileName: string | undefined;
 
       if (file && (inputType === 'pdf' || inputType === 'ppt')) {
-        const ext  = file.name.split('.').pop();
-        const path = `${user!.id}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from('uploads').upload(path, file);
+        const ext        = file.name.split('.').pop();
+        const uploadPath = `${user!.id}/${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from('uploads').upload(uploadPath, file);
         if (upErr) throw new Error('File upload failed: ' + upErr.message);
-        uploadedFileName = path;
-        inputData = { fileName: uploadedFileName };
+        inputData = { fileName: uploadPath };
       } else if (inputType === 'url') {
         inputData = { url };
       } else {
@@ -69,7 +167,7 @@ export default function NewVideoPage() {
       // Upload user resource images/videos to Supabase Storage
       const resourcePaths: string[] = [];
       for (const resFile of resources) {
-        const ext  = resFile.name.split('.').pop();
+        const ext   = resFile.name.split('.').pop();
         const rPath = `${user!.id}/resources/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
         const { error: rErr } = await supabase.storage.from('uploads').upload(rPath, resFile);
         if (!rErr) resourcePaths.push(rPath);
@@ -85,7 +183,16 @@ export default function NewVideoPage() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_WORKER_URL}/jobs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.NEXT_PUBLIC_WORKER_API_KEY! },
-        body: JSON.stringify({ videoId: video.id, userId: user!.id, inputType, inputData, aspectRatio, resourcePaths }),
+        body: JSON.stringify({
+          videoId: video.id,
+          userId:  user!.id,
+          inputType,
+          inputData,
+          aspectRatio,
+          resourcePaths,
+          voiceId: resolvedVoiceId(),
+          musicId: selectedMusicId,
+        }),
       });
 
       if (!res.ok) {
@@ -105,6 +212,8 @@ export default function NewVideoPage() {
       setLoading(false);
     }
   }
+
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="p-8 max-w-3xl">
@@ -134,7 +243,9 @@ export default function NewVideoPage() {
                 </span>
                 <span className="font-sans text-xs tracking-widest uppercase">{label}</span>
               </div>
-              {s < 3 && <div className={`w-8 h-px ${s < step ? 'bg-film-amber/40' : 'bg-film-border'}`} />}
+              {s < STEP_LABELS.length && (
+                <div className={`w-8 h-px ${s < step ? 'bg-film-amber/40' : 'bg-film-border'}`} />
+              )}
             </div>
           );
         })}
@@ -147,7 +258,7 @@ export default function NewVideoPage() {
         </div>
       )}
 
-      {/* Step 1: Input type */}
+      {/* ── Step 1: Input type ─────────────────────────────────────────────── */}
       {step === 1 && (
         <div className="grid grid-cols-2 gap-4">
           {inputTypes.map((t) => (
@@ -166,7 +277,7 @@ export default function NewVideoPage() {
         </div>
       )}
 
-      {/* Step 2: Content */}
+      {/* ── Step 2: Content ────────────────────────────────────────────────── */}
       {step === 2 && (
         <div className="film-card p-8 space-y-6">
 
@@ -268,7 +379,7 @@ export default function NewVideoPage() {
             </div>
           )}
 
-          {/* ─── Resource upload (optional, all input types) ─────────────────── */}
+          {/* Resource upload */}
           <div>
             <label className="block text-xs font-sans font-semibold tracking-widest uppercase text-film-gray-light mb-1">
               Your Images &amp; Videos <span className="text-film-gray normal-case tracking-normal font-normal">(optional · max 8)</span>
@@ -277,7 +388,6 @@ export default function NewVideoPage() {
               Upload photos, product shots, or clips — they'll be used as scene backgrounds instead of AI-generated images.
             </p>
 
-            {/* Thumbnails */}
             {resources.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-3">
                 {resources.map((f, idx) => (
@@ -322,15 +432,178 @@ export default function NewVideoPage() {
             <button onClick={() => setStep(1)} className="btn-ghost">
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
-            <button onClick={() => setStep(3)} className="btn-amber">
+            <button onClick={() => { setStep(3); loadCuratedPreviews(); }} className="btn-amber">
+              Next: Settings <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Step 3: Settings ───────────────────────────────────────────────── */}
+      {step === 3 && (
+        <div className="film-card p-8 space-y-8">
+
+          {/* ── Voice section ────────────────────────────────────────────── */}
+          <div>
+            <label className="block text-xs font-sans font-semibold tracking-widest uppercase text-film-gray-light mb-4">
+              Voiceover
+            </label>
+
+            {/* Mode toggle */}
+            <div className="flex gap-2 mb-5">
+              {(['off', 'auto', 'choose'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setVoiceMode(mode)}
+                  className={`px-4 py-2 border text-xs font-sans tracking-widest uppercase transition-colors ${
+                    voiceMode === mode
+                      ? 'border-film-amber bg-film-amber/10 text-film-amber'
+                      : 'border-film-border text-film-gray hover:border-film-amber/30'
+                  }`}
+                >
+                  {mode === 'off' ? 'Off' : mode === 'auto' ? '✦ Auto' : 'Choose Voice'}
+                </button>
+              ))}
+            </div>
+
+            {voiceMode === 'off' && (
+              <p className="text-xs text-film-gray/60 font-sans">No voiceover will be generated. Scenes use a fixed 6-second duration each.</p>
+            )}
+
+            {voiceMode === 'auto' && (
+              <p className="text-xs text-film-gray/60 font-sans">AI picks the best voice based on your content language and tone.</p>
+            )}
+
+            {voiceMode === 'choose' && (
+              <div>
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  {voices.map((v) => (
+                    <div
+                      key={v.voice_id}
+                      onClick={() => setSelectedVoiceId(v.voice_id)}
+                      className={`border p-3 cursor-pointer transition-all ${
+                        selectedVoiceId === v.voice_id
+                          ? 'border-film-amber bg-film-amber/10'
+                          : 'border-film-border bg-film-warm hover:border-film-amber/30'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`font-display tracking-wide text-sm ${selectedVoiceId === v.voice_id ? 'text-film-amber' : 'text-film-cream'}`}>
+                          {v.name}
+                        </span>
+                        {v.preview_url && (
+                          <button
+                            onClick={e => { e.stopPropagation(); playPreview(v.voice_id, v.preview_url); }}
+                            className="w-6 h-6 flex items-center justify-center text-film-gray hover:text-film-amber transition-colors"
+                          >
+                            {playingId === v.voice_id
+                              ? <Square className="w-3 h-3" />
+                              : <Play className="w-3 h-3" />}
+                          </button>
+                        )}
+                      </div>
+                      <div className={`w-full h-px ${selectedVoiceId === v.voice_id ? 'bg-film-amber/40' : 'bg-film-border'}`} />
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={loadAllVoices}
+                  disabled={voicesLoading}
+                  className="flex items-center gap-2 text-xs text-film-gray hover:text-film-amber transition-colors font-sans tracking-widest uppercase"
+                >
+                  {voicesLoading
+                    ? <><Loader2 className="w-3 h-3 animate-spin" /> Loading…</>
+                    : <><ChevronDown className="w-3 h-3" /> Load all voices</>}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* ── Music section ────────────────────────────────────────────── */}
+          <div>
+            <label className="block text-xs font-sans font-semibold tracking-widest uppercase text-film-gray-light mb-4">
+              Background Music
+            </label>
+
+            {/* Category tabs */}
+            <div className="flex flex-wrap gap-2 mb-5">
+              <button
+                onClick={() => { setMusicCategory(''); setSelectedMusicId('auto'); stopAudio(); }}
+                className={`px-4 py-2 border text-xs font-sans tracking-widest uppercase transition-colors ${
+                  musicCategory === ''
+                    ? 'border-film-amber bg-film-amber/10 text-film-amber'
+                    : 'border-film-border text-film-gray hover:border-film-amber/30'
+                }`}
+              >
+                ✦ Auto
+              </button>
+              {MUSIC_CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => { setMusicCategory(cat); stopAudio(); }}
+                  className={`px-4 py-2 border text-xs font-sans tracking-widest uppercase transition-colors ${
+                    musicCategory === cat
+                      ? 'border-film-amber bg-film-amber/10 text-film-amber'
+                      : 'border-film-border text-film-gray hover:border-film-amber/30'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {musicCategory === '' && (
+              <p className="text-xs text-film-gray/60 font-sans">AI picks the best music style for your content type.</p>
+            )}
+
+            {musicCategory !== '' && (
+              <div className="grid grid-cols-2 gap-3">
+                {MUSIC_TRACKS[musicCategory].map((track) => {
+                  const previewUrl = `https://www.soundhelix.com/examples/mp3/SoundHelix-${track.id}.mp3`;
+                  return (
+                    <div
+                      key={track.id}
+                      onClick={() => setSelectedMusicId(track.id)}
+                      className={`border p-3 cursor-pointer transition-all ${
+                        selectedMusicId === track.id
+                          ? 'border-film-amber bg-film-amber/10'
+                          : 'border-film-border bg-film-warm hover:border-film-amber/30'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className={`font-display tracking-wide text-sm ${selectedMusicId === track.id ? 'text-film-amber' : 'text-film-cream'}`}>
+                          {track.label}
+                        </span>
+                        <button
+                          onClick={e => { e.stopPropagation(); playPreview(track.id, previewUrl); }}
+                          className="w-6 h-6 flex items-center justify-center text-film-gray hover:text-film-amber transition-colors"
+                        >
+                          {playingId === track.id
+                            ? <Square className="w-3 h-3" />
+                            : <Play className="w-3 h-3" />}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button onClick={() => { stopAudio(); setStep(2); }} className="btn-ghost">
+              <ArrowLeft className="w-4 h-4" /> Back
+            </button>
+            <button onClick={() => { stopAudio(); setStep(4); }} className="btn-amber">
               Review <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>
       )}
 
-      {/* Step 3: Review & Submit */}
-      {step === 3 && (
+      {/* ── Step 4: Review & Submit ────────────────────────────────────────── */}
+      {step === 4 && (
         <div className="film-card p-8">
           <div className="flex items-center gap-3 mb-6">
             <span className="h-px w-6 bg-film-amber" />
@@ -340,12 +613,24 @@ export default function NewVideoPage() {
 
           <div className="space-y-0 mb-8 border border-film-border">
             {[
-              { label: 'Input Type',    value: inputTypes.find(t => t.id === inputType)?.label },
-              { label: 'Aspect Ratio',  value: aspectRatioOptions.find(o => o.id === aspectRatio)?.sub + ' (' + aspectRatio + ')' },
-              { label: 'Content',       value: url || file?.name || (prompt?.slice(0, 80) + (prompt?.length > 80 ? '…' : '')) || '—' },
-              { label: 'Your Assets',   value: resources.length ? `${resources.length} file${resources.length > 1 ? 's' : ''} attached` : 'AI-generated' },
-              { label: 'Title',         value: title || 'Auto-generated' },
-              { label: 'Credit Cost',   value: '1 credit' },
+              { label: 'Input Type',   value: inputTypes.find(t => t.id === inputType)?.label },
+              { label: 'Aspect Ratio', value: aspectRatioOptions.find(o => o.id === aspectRatio)?.sub + ' (' + aspectRatio + ')' },
+              { label: 'Content',      value: url || file?.name || (prompt?.slice(0, 80) + (prompt?.length > 80 ? '…' : '')) || '—' },
+              { label: 'Your Assets',  value: resources.length ? `${resources.length} file${resources.length > 1 ? 's' : ''} attached` : 'AI-generated' },
+              {
+                label: 'Voiceover',
+                value: voiceMode === 'off'  ? 'Off'
+                     : voiceMode === 'auto' ? 'Auto (AI picks)'
+                     : voices.find(v => v.voice_id === selectedVoiceId)?.name ?? 'Auto',
+              },
+              {
+                label: 'Music',
+                value: selectedMusicId === 'auto'
+                  ? 'Auto (AI picks)'
+                  : `${musicCategory} — ${musicCategory ? MUSIC_TRACKS[musicCategory as MusicCategory]?.find(t => t.id === selectedMusicId)?.label ?? selectedMusicId : selectedMusicId}`,
+              },
+              { label: 'Title',       value: title || 'Auto-generated' },
+              { label: 'Credit Cost', value: '1 credit' },
             ].map(({ label, value }, idx, arr) => (
               <div
                 key={label}
@@ -358,7 +643,7 @@ export default function NewVideoPage() {
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => setStep(2)} className="btn-ghost">
+            <button onClick={() => setStep(3)} className="btn-ghost">
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
             <button
