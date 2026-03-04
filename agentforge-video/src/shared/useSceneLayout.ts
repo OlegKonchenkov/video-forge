@@ -17,6 +17,7 @@ export interface SceneLayout {
   // Layout direction for split-panel scenes
   direction:       'row' | 'column';
   maxContentWidth: number;   // max-width for centered text blocks
+  maxListItems:    number;   // max items to render (portrait: 2, landscape: 3)
 }
 
 export function useSceneLayout(): SceneLayout {
@@ -27,15 +28,16 @@ export function useSceneLayout(): SceneLayout {
     isPortrait,
     width,
     height,
-    // Portrait (9:16): smaller text to fit narrower canvas
-    displaySize:     isPortrait ? 72  : 96,
-    headingSize:     isPortrait ? 44  : 56,
-    bodySize:        isPortrait ? 22  : 28,
-    labelSize:       isPortrait ? 13  : 16,
-    outerPadding:    isPortrait ? 48  : 80,
-    innerGap:        isPortrait ? 28  : 40,
-    cardGap:         isPortrait ? 16  : 28,
+    // Portrait (9:16): Instagram Reel style — fewer items, BIGGER text to fill vertical space
+    displaySize:     isPortrait ? 100 : 96,
+    headingSize:     isPortrait ? 54  : 56,
+    bodySize:        isPortrait ? 26  : 28,
+    labelSize:       isPortrait ? 15  : 16,
+    outerPadding:    isPortrait ? 72  : 80,
+    innerGap:        isPortrait ? 56  : 40,
+    cardGap:         isPortrait ? 24  : 28,
     direction:       isPortrait ? 'column' : 'row',
-    maxContentWidth: isPortrait ? width - 96 : 1200,
+    maxContentWidth: isPortrait ? width - 144 : 1200,
+    maxListItems:    isPortrait ? 2 : 3,
   };
 }
