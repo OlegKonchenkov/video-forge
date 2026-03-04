@@ -50,6 +50,8 @@ export async function runVideoPipeline(job: any) {
   const { videoId, inputType, inputData } = job.data;
   const aspectRatio:   '16:9' | '9:16' = job.data.aspectRatio   ?? '16:9';
   const resourcePaths: string[]         = job.data.resourcePaths ?? [];
+  const voiceId:       string | null    = job.data.voiceId       ?? 'auto'; // null=Off, 'auto'=AI picks
+  const musicId:       string           = job.data.musicId       ?? 'auto';
   const workDir = `/tmp/videoforge/${videoId}`;
 
   try {
@@ -95,9 +97,10 @@ export async function runVideoPipeline(job: any) {
 
     await updateStatus(videoId, 'processing', 28, 'Recording voiceover...');
 
-    // 4. ElevenLabs TTS — pass only the voiceover strings
+    // 4. ElevenLabs TTS — pass voiceId (null=skip, 'auto'=AI picks, string=specific voice)
     const voiceovers = script.scenes.map((s) => s.props.voiceover);
-    const audioPaths = await generateVoiceovers(voiceovers, workDir);
+    const audioPaths = await generateVoiceovers(voiceovers, workDir, voiceId, language, businessType);
+    const hasVoiceover = audioPaths.length > 0;
 
     await updateStatus(videoId, 'processing', 48, 'Generating visuals...');
 
@@ -108,8 +111,8 @@ export async function runVideoPipeline(job: any) {
 
     await updateStatus(videoId, 'processing', 63, 'Rendering video...');
 
-    // 6. Remotion render — pass aspectRatio
-    const mp4Path = await renderVideo({ videoId, script, audioPaths, imagePaths, workDir, aspectRatio });
+    // 6. Remotion render — pass aspectRatio, hasVoiceover, musicId, businessType
+    const mp4Path = await renderVideo({ videoId, script, audioPaths, imagePaths, workDir, aspectRatio, hasVoiceover, musicId, businessType });
 
     await updateStatus(videoId, 'processing', 85, 'Uploading...');
 

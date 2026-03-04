@@ -2,23 +2,54 @@
 import { execSync } from 'child_process';
 import path from 'path';
 import fs from 'fs';
+import axios from 'axios';
 import type { VideoScript } from '../types/script';
 
 const REMOTION_ROOT = path.resolve(__dirname, '../../../../agentforge-video');
 
-export async function renderVideo({ videoId, script, audioPaths, imagePaths, workDir, aspectRatio }: {
-  videoId:     string;
-  script:      VideoScript;
-  audioPaths:  string[];
-  imagePaths:  string[];
-  workDir:     string;
-  aspectRatio: '16:9' | '9:16';
+// ─── Music resolution ─────────────────────────────────────────────────────────
+
+const AUTO_MUSIC_MAP: Record<string, string[]> = {
+  b2b:   ['Song-3', 'Song-7', 'Song-11'],   // Corporate
+  b2c:   ['Song-4', 'Song-10', 'Song-17'],  // Upbeat
+  mixed: ['Song-6', 'Song-9', 'Song-12'],   // Cinematic
+};
+
+function resolveMusic(musicId: string, businessType: string): string {
+  if (musicId === 'auto') {
+    const tracks = AUTO_MUSIC_MAP[businessType] ?? AUTO_MUSIC_MAP.mixed;
+    return tracks[Math.floor(Math.random() * tracks.length)];
+  }
+  return musicId; // e.g. 'Song-3'
+}
+
+async function downloadMusic(songName: string, outPath: string): Promise<void> {
+  const url = `https://www.soundhelix.com/examples/mp3/SoundHelix-${songName}.mp3`;
+  console.log(`[render] downloading music: ${songName}`);
+  const response = await axios.get(url, { responseType: 'arraybuffer', timeout: 30_000 });
+  fs.writeFileSync(outPath, Buffer.from(response.data));
+  console.log(`[render] music downloaded → ${path.basename(outPath)}`);
+}
+
+// ─── Main export ──────────────────────────────────────────────────────────────
+
+export async function renderVideo({ videoId, script, audioPaths, imagePaths, workDir, aspectRatio, hasVoiceover, musicId, businessType }: {
+  videoId:      string;
+  script:       VideoScript;
+  audioPaths:   string[];
+  imagePaths:   string[];
+  workDir:      string;
+  aspectRatio:  '16:9' | '9:16';
+  hasVoiceover: boolean;
+  musicId:      string;
+  businessType: string;
 }): Promise<string> {
   const outPath = path.join(workDir, 'output.mp4');
   fs.mkdirSync(workDir, { recursive: true });
 
   const remotionPublic = path.join(REMOTION_ROOT, 'public');
   fs.mkdirSync(path.join(remotionPublic, 'audio/voiceover'), { recursive: true });
+  fs.mkdirSync(path.join(remotionPublic, 'audio/music'), { recursive: true });
   fs.mkdirSync(path.join(remotionPublic, 'images'), { recursive: true });
 
   // Copy voiceover audio — 0-indexed to match AgentForgeAd audioPath: `audio/voiceover/scene_${i}.mp3`
@@ -33,6 +64,11 @@ export async function renderVideo({ videoId, script, audioPaths, imagePaths, wor
     if (fs.existsSync(src)) fs.copyFileSync(src, dest);
   });
 
+  // Download background music
+  const songName  = resolveMusic(musicId, businessType);
+  const musicDest = path.join(remotionPublic, 'audio/music/background.mp3');
+  await downloadMusic(songName, musicDest);
+
   // Write props to a temp file (avoids shell command-length limits)
   const propsPath = path.join(workDir, 'props.json');
   const remotionProps = {
@@ -41,8 +77,9 @@ export async function renderVideo({ videoId, script, audioPaths, imagePaths, wor
     ctaText:        script.ctaText,
     ctaUrl:         script.ctaUrl,
     accentColor:    script.accentColor,
-    aspectRatio,                            // ← threads 16:9 / 9:16 into calculateMetadata
-    // Placeholder durations — calculateMetadata overwrites them from audio files
+    aspectRatio,
+    hasVoiceover,
+    // Placeholder durations — calculateMetadata overwrites them from audio files (or uses fallback)
     sceneDurations: Array(script.scenes.length).fill(150),
     scenes:         script.scenes,
   };

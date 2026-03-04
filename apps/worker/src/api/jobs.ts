@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 export const jobsRouter = Router();
 
 jobsRouter.post('/', async (req, res) => {
-  const { videoId, userId, inputType, inputData, aspectRatio, resourcePaths } = req.body;
+  const { videoId, userId, inputType, inputData, aspectRatio, resourcePaths, voiceId, musicId } = req.body;
   if (!videoId || !userId || !inputType) {
     res.status(400).json({ error: 'Missing required fields' });
     return;
@@ -29,6 +29,8 @@ jobsRouter.post('/', async (req, res) => {
     inputData,
     aspectRatio:   aspectRatio   ?? '16:9',
     resourcePaths: resourcePaths ?? [],
+    voiceId:       voiceId       ?? 'auto',  // null = Off, 'auto' = AI picks, string = ElevenLabs voice ID
+    musicId:       musicId       ?? 'auto',  // 'auto' or SoundHelix song name e.g. 'Song-3'
   }, {
     attempts: 2, backoff: { type: 'exponential', delay: 5000 },
   });

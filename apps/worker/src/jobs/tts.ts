@@ -1,18 +1,49 @@
+// apps/worker/src/jobs/tts.ts
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
 
-const VOICE_ID = 'onwK4e9ZLuTAKqWW03F9'; // ElevenLabs Daniel
 const MODEL_ID = 'eleven_multilingual_v2';
 
-export async function generateVoiceovers(scenes: string[], workDir: string): Promise<string[]> {
+// Default Daniel voice
+const DEFAULT_VOICE_ID = 'onwK4e9ZLuTAKqWW03F9';
+
+/** Pick a voice when the user selected "Auto" */
+function resolveAutoVoice(language: string, businessType: string): string {
+  // Language-specific voices (non-English)
+  if (language === 'it') return 'XB0fDUnXU5powFXDhCwa'; // Charlotte (multilingual)
+  // Business-type voices (English)
+  if (businessType === 'b2b') return 'pNInz6obpgDQGcFmaJgB'; // Adam – authoritative narration
+  if (businessType === 'b2c') return 'AZnzlk1XvdvUeBnXmlld'; // Domi – energetic
+  return DEFAULT_VOICE_ID; // Daniel – balanced default
+}
+
+export async function generateVoiceovers(
+  scenes:       string[],
+  workDir:      string,
+  voiceId:      string | null | 'auto' = 'auto',
+  language:     string = 'en',
+  businessType: string = 'mixed',
+): Promise<string[]> {
+  // Off — return empty; pipeline will set hasVoiceover=false
+  if (voiceId === null) {
+    console.log('[tts] voiceover disabled — skipping');
+    return [];
+  }
+
+  const resolvedVoiceId = voiceId === 'auto'
+    ? resolveAutoVoice(language, businessType)
+    : voiceId;
+
+  console.log(`[tts] using voice ${resolvedVoiceId} (requested: ${voiceId})`);
+
   fs.mkdirSync(path.join(workDir, 'audio'), { recursive: true });
   const paths: string[] = [];
 
   for (let i = 0; i < scenes.length; i++) {
     const outPath = path.join(workDir, 'audio', `scene${i + 1}.mp3`);
     const response = await axios.post(
-      `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${resolvedVoiceId}`,
       { text: scenes[i], model_id: MODEL_ID, voice_settings: { stability: 0.5, similarity_boost: 0.75 } },
       {
         headers: { 'xi-api-key': process.env.ELEVENLABS_API_KEY!, 'Content-Type': 'application/json' },
