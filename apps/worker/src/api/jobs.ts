@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 export const jobsRouter = Router();
 
 jobsRouter.post('/', async (req, res) => {
-  const { videoId, userId, inputType, inputData } = req.body;
+  const { videoId, userId, inputType, inputData, aspectRatio, resourcePaths } = req.body;
   if (!videoId || !userId || !inputType) {
     res.status(400).json({ error: 'Missing required fields' });
     return;
@@ -21,8 +21,15 @@ jobsRouter.post('/', async (req, res) => {
     return;
   }
 
-  // Enqueue
-  const job = await videoQueue.add('generate-video', { videoId, userId, inputType, inputData }, {
+  // Enqueue — forward aspectRatio and any user-uploaded resource paths
+  const job = await videoQueue.add('generate-video', {
+    videoId,
+    userId,
+    inputType,
+    inputData,
+    aspectRatio:   aspectRatio   ?? '16:9',
+    resourcePaths: resourcePaths ?? [],
+  }, {
     attempts: 2, backoff: { type: 'exponential', delay: 5000 },
   });
 

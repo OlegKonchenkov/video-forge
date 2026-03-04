@@ -90,15 +90,27 @@ function writeGradientPlaceholder(outPath: string, accentColor: string) {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 async function downloadImage(imageUrl: string, outPath: string): Promise<boolean> {
+  // Local file path (user-uploaded resources already downloaded to disk)
+  if (imageUrl.startsWith('/') || imageUrl.startsWith('file://')) {
+    const localPath = imageUrl.replace('file://', '');
+    if (fs.existsSync(localPath)) {
+      fs.copyFileSync(localPath, outPath);
+      console.log(`[images] copied local resource → ${path.basename(outPath)}`);
+      return true;
+    }
+    return false;
+  }
+  // Remote URL
   try {
     const response = await axios.get(imageUrl, {
       responseType: 'arraybuffer',
-      timeout: 10000,
+      timeout: 12000,
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VideoForgeBot/1.0)' },
     });
     const contentType = response.headers['content-type'] || '';
     if (!contentType.includes('image')) return false;
     fs.writeFileSync(outPath, Buffer.from(response.data));
+    console.log(`[images] downloaded ${path.basename(outPath)} from ${imageUrl.slice(0, 80)}`);
     return true;
   } catch {
     return false;
@@ -116,24 +128,29 @@ async function generateWithGemini(prompt: string, outPath: string, sceneIndex: n
         'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent',
         {
           contents: [{ parts: [{ text: `Generate a professional cinematic 16:9 image for a video advertisement: ${prompt}` }] }],
-          generationConfig: { responseModalities: ['IMAGE'], candidateCount: 1 },
+          // TEXT must be listed alongside IMAGE — some API versions reject IMAGE-only
+          generationConfig: { responseModalities: ['TEXT', 'IMAGE'], candidateCount: 1 },
         },
         {
           params: { key: process.env.GEMINI_API_KEY },
           headers: { 'Content-Type': 'application/json' },
         }
       );
-      const imageData = response.data?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-      if (!imageData) {
-        console.warn(`[images] scene_${sceneIndex} Gemini attempt ${attempt + 1}: no imageData in response`);
+
+      // Image can appear in ANY part (text parts come first in multi-modal responses)
+      const parts: any[] = response.data?.candidates?.[0]?.content?.parts ?? [];
+      const imagePart = parts.find((p: any) => p.inlineData?.data);
+      if (!imagePart) {
+        console.warn(`[images] scene_${sceneIndex} Gemini attempt ${attempt + 1}: no image part in response (parts: ${JSON.stringify(parts.map((p: any) => Object.keys(p)))})`);
         if (attempt < 2) await sleep(delays[attempt]);
         continue;
       }
-      fs.writeFileSync(outPath, Buffer.from(imageData, 'base64'));
+      fs.writeFileSync(outPath, Buffer.from(imagePart.inlineData.data, 'base64'));
+      console.log(`[images] scene_${sceneIndex} Gemini OK (attempt ${attempt + 1})`);
       return true;
     } catch (err: any) {
       const status = err?.response?.status ?? '?';
-      const body   = JSON.stringify(err?.response?.data ?? '').slice(0, 200);
+      const body   = JSON.stringify(err?.response?.data ?? '').slice(0, 300);
       console.warn(`[images] scene_${sceneIndex} Gemini attempt ${attempt + 1} HTTP ${status}: ${body}`);
       if (attempt < 2) await sleep(delays[attempt]);
     }
@@ -149,6 +166,7 @@ export async function generateImages(
   brandName:     string,
   brandImageUrl: string | null,
   accentColor:   string = '#3b82f6',
+  imageUrls:     string[] = [],    // priority images: scraped from site or user-uploaded
 ): Promise<string[]> {
   fs.mkdirSync(path.join(workDir, 'images'), { recursive: true });
   const outPaths: string[] = [];
@@ -162,19 +180,26 @@ export async function generateImages(
 
     let ok = false;
 
-    // Scene 0: try scraped og:image first
-    if (i === 0 && brandImageUrl) {
+    // 1. Priority: user-uploaded or scraped images (round-robin across scenes)
+    if (!ok && imageUrls.length > 0) {
+      const candidateUrl = imageUrls[i % imageUrls.length];
+      console.log(`[images] scene_${i}: trying priority image URL`);
+      ok = await downloadImage(candidateUrl, outPath);
+    }
+
+    // 2. og:image for scene 0 (brand hero image)
+    if (!ok && i === 0 && brandImageUrl) {
       console.log(`[images] scene_0: trying brand og:image`);
       ok = await downloadImage(brandImageUrl, outPath);
     }
 
-    // Gemini generation (with 3-attempt retry + backoff)
+    // 3. Gemini generation (with 3-attempt retry + backoff)
     if (!ok) {
       console.log(`[images] scene_${i} (${scene.type}): generating with Gemini`);
       ok = await generateWithGemini(prompt, outPath, i);
     }
 
-    // Scenes N > 0: try og:image as last-resort fallback if Gemini failed
+    // 4. og:image as last-resort fallback (scenes N > 0)
     if (!ok && i > 0 && brandImageUrl) {
       console.log(`[images] scene_${i}: falling back to og:image`);
       ok = await downloadImage(brandImageUrl, outPath);

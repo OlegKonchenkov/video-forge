@@ -4,8 +4,9 @@ import axios from 'axios';
 export interface ScrapeResult {
   text:          string
   brandImageUrl: string | null
-  accentColor:   string | null   // from <meta name="theme-color">
-  language:      string          // from <html lang="...">
+  imageUrls:     string[]           // collected content images from the page
+  accentColor:   string | null      // from <meta name="theme-color">
+  language:      string             // from <html lang="...">
   businessType:  'b2b' | 'b2c' | 'mixed'
 }
 
@@ -70,6 +71,66 @@ function extractText(html: string): string {
     .trim();
 }
 
+// ─── Image URL extraction ─────────────────────────────────────────────────────
+// Patterns that indicate small utility images to skip
+const SKIP_IMAGE = /icon|logo|avatar|badge|sprite|pixel|tracking|placeholder|blank|loading|spinner|\.gif|\.svg|\.ico/i;
+const GOOD_EXT   = /\.(jpe?g|png|webp)(\?|$)/i;
+
+function extractImageUrls(html: string, baseUrl: string): string[] {
+  let origin: string;
+  try { origin = new URL(baseUrl).origin; } catch { return []; }
+
+  const found = new Set<string>();
+
+  // 1. og:image / og:image:secure_url / twitter:image (highest quality, curated by site)
+  const META_PATTERNS = [
+    /<meta[^>]+property=["']og:image(?::secure_url)?["'][^>]+content=["']([^"']+)["']/gi,
+    /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image(?::secure_url)?["']/gi,
+    /<meta[^>]+name=["']twitter:image(?::src)?["'][^>]+content=["']([^"']+)["']/gi,
+    /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image(?::src)?["']/gi,
+  ];
+  for (const rx of META_PATTERNS) {
+    for (const m of html.matchAll(rx)) {
+      const url = m[1].trim();
+      if (url && !url.startsWith('data:') && GOOD_EXT.test(url)) {
+        try { found.add(new URL(url, origin).href); } catch { /* skip */ }
+      }
+    }
+  }
+
+  // 2. JSON-LD images (schema.org)
+  const jsonldMatches = [...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+  for (const m of jsonldMatches) {
+    try {
+      const obj = JSON.parse(m[1]);
+      const imgs: string[] = [];
+      if (obj.image) imgs.push(...(Array.isArray(obj.image) ? obj.image : [obj.image]));
+      if (obj.logo?.url) imgs.push(obj.logo.url);
+      for (const img of imgs) {
+        if (typeof img === 'string' && GOOD_EXT.test(img)) {
+          try { found.add(new URL(img, origin).href); } catch { /* skip */ }
+        }
+      }
+    } catch { /* invalid JSON, skip */ }
+  }
+
+  // 3. <img src> — hero / product images (skip small utilities)
+  const imgMatches = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)].map(m => m[1]);
+  for (const src of imgMatches) {
+    if (found.size >= 10) break;
+    if (!src || src.startsWith('data:')) continue;
+    if (SKIP_IMAGE.test(src)) continue;
+    if (!GOOD_EXT.test(src)) continue;
+    try {
+      found.add(new URL(src, origin).href);
+    } catch { /* skip invalid */ }
+  }
+
+  return [...found].slice(0, 8);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export async function scrapeUrl(url: string): Promise<ScrapeResult> {
   try {
     const { data } = await axios.get(url, {
@@ -79,10 +140,13 @@ export async function scrapeUrl(url: string): Promise<ScrapeResult> {
 
     const html = data as string;
 
-    // Extract og:image
+    // Extract og:image (primary brand image — kept separate for scene 0)
     const ogMatch  = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
                   || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
     const brandImageUrl = ogMatch ? ogMatch[1] : null;
+
+    // Collect all usable image URLs from this page
+    const imageUrls = extractImageUrls(html, url);
 
     // Extract theme-color (brand accent color)
     const themeMatch = html.match(/<meta[^>]+name=["']theme-color["'][^>]+content=["'](#[0-9a-fA-F]{3,6})["']/i)
@@ -101,7 +165,13 @@ export async function scrapeUrl(url: string): Promise<ScrapeResult> {
           headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VideoForgeBot/1.0)' },
           timeout: 10000,
         });
-        allText += ' ' + extractText(subHtml as string);
+        const subHtmlStr = subHtml as string;
+        allText += ' ' + extractText(subHtmlStr);
+        // Also collect images from subpages
+        const subImages = extractImageUrls(subHtmlStr, subUrl);
+        for (const img of subImages) {
+          if (!imageUrls.includes(img) && imageUrls.length < 12) imageUrls.push(img);
+        }
         console.log(`[scraper] scraped subpage: ${subUrl}`);
       } catch { /* skip failed subpages */ }
     }
@@ -109,8 +179,8 @@ export async function scrapeUrl(url: string): Promise<ScrapeResult> {
     const text         = allText.slice(0, 8000);
     const businessType = detectBusinessType(text);
 
-    console.log(`[scraper] language=${language} businessType=${businessType} chars=${text.length}`);
-    return { text, brandImageUrl, accentColor, language, businessType };
+    console.log(`[scraper] language=${language} businessType=${businessType} chars=${text.length} images=${imageUrls.length}`);
+    return { text, brandImageUrl, imageUrls, accentColor, language, businessType };
 
   } catch {
     throw new Error(`Failed to scrape URL: ${url}`);

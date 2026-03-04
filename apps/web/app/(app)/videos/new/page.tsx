@@ -1,7 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Globe, FileText, Presentation, MessageSquare, ArrowRight, ArrowLeft, Loader2, Upload } from 'lucide-react';
+import { Globe, FileText, Presentation, MessageSquare, ArrowRight, ArrowLeft, Loader2, Upload, ImageIcon, X } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 const inputTypes = [
@@ -19,16 +19,30 @@ const aspectRatioOptions = [
 const STEP_LABELS = ['Input Type', 'Your Content', 'Review'];
 
 export default function NewVideoPage() {
-  const router = useRouter();
-  const [step, setStep] = useState(1);
-  const [inputType, setInputType] = useState<string>('');
+  const router    = useRouter();
+  const resRef    = useRef<HTMLInputElement>(null);
+  const [step, setStep]               = useState(1);
+  const [inputType, setInputType]     = useState<string>('');
   const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16'>('16:9');
-  const [url, setUrl] = useState('');
-  const [prompt, setPrompt] = useState('');
-  const [file, setFile] = useState<File | null>(null);
-  const [title, setTitle] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [url, setUrl]                 = useState('');
+  const [prompt, setPrompt]           = useState('');
+  const [file, setFile]               = useState<File | null>(null);
+  const [resources, setResources]     = useState<File[]>([]);  // user images/videos
+  const [title, setTitle]             = useState('');
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState('');
+
+  function addResources(files: FileList | null) {
+    if (!files) return;
+    const allowed = Array.from(files).filter(f =>
+      f.type.startsWith('image/') || f.type.startsWith('video/')
+    );
+    setResources(prev => [...prev, ...allowed].slice(0, 8));  // max 8 assets
+  }
+
+  function removeResource(idx: number) {
+    setResources(prev => prev.filter((_, i) => i !== idx));
+  }
 
   async function handleSubmit() {
     setLoading(true); setError('');
@@ -40,7 +54,7 @@ export default function NewVideoPage() {
       let uploadedFileName: string | undefined;
 
       if (file && (inputType === 'pdf' || inputType === 'ppt')) {
-        const ext = file.name.split('.').pop();
+        const ext  = file.name.split('.').pop();
         const path = `${user!.id}/${Date.now()}.${ext}`;
         const { error: upErr } = await supabase.storage.from('uploads').upload(path, file);
         if (upErr) throw new Error('File upload failed: ' + upErr.message);
@@ -50,6 +64,15 @@ export default function NewVideoPage() {
         inputData = { url };
       } else {
         inputData = { text: prompt };
+      }
+
+      // Upload user resource images/videos to Supabase Storage
+      const resourcePaths: string[] = [];
+      for (const resFile of resources) {
+        const ext  = resFile.name.split('.').pop();
+        const rPath = `${user!.id}/resources/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error: rErr } = await supabase.storage.from('uploads').upload(rPath, resFile);
+        if (!rErr) resourcePaths.push(rPath);
       }
 
       const { data: video, error: dbErr } = await supabase
@@ -62,11 +85,10 @@ export default function NewVideoPage() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_WORKER_URL}/jobs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.NEXT_PUBLIC_WORKER_API_KEY! },
-        body: JSON.stringify({ videoId: video.id, userId: user!.id, inputType, inputData, aspectRatio }),
+        body: JSON.stringify({ videoId: video.id, userId: user!.id, inputType, inputData, aspectRatio, resourcePaths }),
       });
 
       if (!res.ok) {
-        // Clean up the orphaned video record before surfacing the error
         await supabase.from('videos').delete().eq('id', video.id);
         const body = await res.json().catch(() => ({}));
         throw new Error(
@@ -97,26 +119,22 @@ export default function NewVideoPage() {
       {/* Step indicator */}
       <div className="flex items-center gap-0 mb-8">
         {STEP_LABELS.map((label, i) => {
-          const s = i + 1;
+          const s      = i + 1;
           const active = s === step;
-          const done = s < step;
+          const done   = s < step;
           return (
             <div key={s} className="flex items-center">
               <div className={`flex items-center gap-2 px-3 py-1.5 border transition-colors ${
-                active
-                  ? 'border-film-amber bg-film-amber/10 text-film-amber'
-                  : done
-                  ? 'border-film-amber/40 text-film-amber/60'
-                  : 'border-film-border text-film-gray'
+                active ? 'border-film-amber bg-film-amber/10 text-film-amber'
+                       : done  ? 'border-film-amber/40 text-film-amber/60'
+                               : 'border-film-border text-film-gray'
               }`}>
                 <span className={`font-display text-sm tracking-wider ${active ? 'text-film-amber' : done ? 'text-film-amber/60' : 'text-film-gray'}`}>
                   {String(s).padStart(2, '0')}
                 </span>
                 <span className="font-sans text-xs tracking-widest uppercase">{label}</span>
               </div>
-              {s < 3 && (
-                <div className={`w-8 h-px ${s < step ? 'bg-film-amber/40' : 'bg-film-border'}`} />
-              )}
+              {s < 3 && <div className={`w-8 h-px ${s < step ? 'bg-film-amber/40' : 'bg-film-border'}`} />}
             </div>
           );
         })}
@@ -169,20 +187,14 @@ export default function NewVideoPage() {
                       : 'border-film-border hover:border-film-amber/30 bg-film-warm'
                   }`}
                 >
-                  {/* Mini canvas preview */}
                   <div className="flex-shrink-0 flex items-center justify-center" style={{ width: 40, height: 40 }}>
-                    {opt.id === '16:9' ? (
-                      <div className={`border-2 ${aspectRatio === opt.id ? 'border-film-amber' : 'border-film-gray'}`}
-                        style={{ width: 36, height: 20 }} />
-                    ) : (
-                      <div className={`border-2 ${aspectRatio === opt.id ? 'border-film-amber' : 'border-film-gray'}`}
-                        style={{ width: 20, height: 36 }} />
-                    )}
+                    {opt.id === '16:9'
+                      ? <div className={`border-2 ${aspectRatio === opt.id ? 'border-film-amber' : 'border-film-gray'}`} style={{ width: 36, height: 20 }} />
+                      : <div className={`border-2 ${aspectRatio === opt.id ? 'border-film-amber' : 'border-film-gray'}`} style={{ width: 20, height: 36 }} />
+                    }
                   </div>
                   <div>
-                    <div className={`font-display tracking-wider text-sm ${aspectRatio === opt.id ? 'text-film-amber' : 'text-film-cream'}`}>
-                      {opt.label}
-                    </div>
+                    <div className={`font-display tracking-wider text-sm ${aspectRatio === opt.id ? 'text-film-amber' : 'text-film-cream'}`}>{opt.label}</div>
                     <div className="text-xs text-film-gray font-sans">{opt.sub}</div>
                     <div className="text-xs text-film-gray/60 font-sans mt-0.5">{opt.hint}</div>
                   </div>
@@ -256,17 +268,61 @@ export default function NewVideoPage() {
             </div>
           )}
 
+          {/* ─── Resource upload (optional, all input types) ─────────────────── */}
+          <div>
+            <label className="block text-xs font-sans font-semibold tracking-widest uppercase text-film-gray-light mb-1">
+              Your Images &amp; Videos <span className="text-film-gray normal-case tracking-normal font-normal">(optional · max 8)</span>
+            </label>
+            <p className="text-xs text-film-gray/60 font-sans mb-3">
+              Upload photos, product shots, or clips — they'll be used as scene backgrounds instead of AI-generated images.
+            </p>
+
+            {/* Thumbnails */}
+            {resources.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {resources.map((f, idx) => (
+                  <div key={idx} className="relative group w-16 h-16 border border-film-border bg-film-warm flex items-center justify-center overflow-hidden">
+                    {f.type.startsWith('image/')
+                      ? <img src={URL.createObjectURL(f)} alt={f.name} className="w-full h-full object-cover" />
+                      : <div className="flex flex-col items-center gap-1 p-1">
+                          <ImageIcon className="w-4 h-4 text-film-gray" />
+                          <span className="text-[9px] text-film-gray font-mono truncate w-full text-center">{f.name.slice(0, 8)}</span>
+                        </div>
+                    }
+                    <button
+                      onClick={() => removeResource(idx)}
+                      className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-900/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-2.5 h-2.5 text-white" />
+                    </button>
+                  </div>
+                ))}
+                {resources.length < 8 && (
+                  <button
+                    onClick={() => resRef.current?.click()}
+                    className="w-16 h-16 border border-dashed border-film-border bg-film-warm flex items-center justify-center text-film-gray hover:border-film-amber/40 hover:text-film-amber/70 transition-colors"
+                  >
+                    <Upload className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+            )}
+
+            {resources.length === 0 && (
+              <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-film-border hover:border-film-amber/40 cursor-pointer transition-colors bg-film-warm">
+                <ImageIcon className="w-6 h-6 text-film-gray mb-1.5" />
+                <span className="text-xs text-film-gray font-sans">Click to add images or videos</span>
+                <input ref={resRef} type="file" className="hidden" multiple accept="image/*,video/*" onChange={e => addResources(e.target.files)} />
+              </label>
+            )}
+            <input ref={resRef} type="file" className="hidden" multiple accept="image/*,video/*" onChange={e => addResources(e.target.files)} />
+          </div>
+
           <div className="flex gap-3 pt-2">
-            <button
-              onClick={() => setStep(1)}
-              className="btn-ghost"
-            >
+            <button onClick={() => setStep(1)} className="btn-ghost">
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
-            <button
-              onClick={() => setStep(3)}
-              className="btn-amber"
-            >
+            <button onClick={() => setStep(3)} className="btn-amber">
               Review <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -287,6 +343,7 @@ export default function NewVideoPage() {
               { label: 'Input Type',    value: inputTypes.find(t => t.id === inputType)?.label },
               { label: 'Aspect Ratio',  value: aspectRatioOptions.find(o => o.id === aspectRatio)?.sub + ' (' + aspectRatio + ')' },
               { label: 'Content',       value: url || file?.name || (prompt?.slice(0, 80) + (prompt?.length > 80 ? '…' : '')) || '—' },
+              { label: 'Your Assets',   value: resources.length ? `${resources.length} file${resources.length > 1 ? 's' : ''} attached` : 'AI-generated' },
               { label: 'Title',         value: title || 'Auto-generated' },
               { label: 'Credit Cost',   value: '1 credit' },
             ].map(({ label, value }, idx, arr) => (

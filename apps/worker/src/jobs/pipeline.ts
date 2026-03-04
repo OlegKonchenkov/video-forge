@@ -7,6 +7,8 @@ import { generateVoiceovers } from './tts';
 import { generateImages } from './images';
 import { renderVideo } from './render';
 import { uploadVideo } from './upload';
+import fs from 'fs';
+import path from 'path';
 
 async function updateStatus(videoId: string, status: string, progress: number, currentStep: string) {
   await supabase.from('videos').update({
@@ -14,9 +16,40 @@ async function updateStatus(videoId: string, status: string, progress: number, c
   }).eq('id', videoId);
 }
 
+/** Download user-uploaded resources from Supabase Storage and return local URLs */
+async function downloadResources(resourcePaths: string[], workDir: string): Promise<string[]> {
+  if (!resourcePaths?.length) return [];
+  const resDir = path.join(workDir, 'resources');
+  fs.mkdirSync(resDir, { recursive: true });
+
+  const localPaths: string[] = [];
+  for (const storagePath of resourcePaths) {
+    try {
+      const { data, error } = await supabase.storage.from('uploads').download(storagePath);
+      if (error || !data) {
+        console.warn(`[pipeline] resource download failed: ${storagePath} — ${error?.message}`);
+        continue;
+      }
+      const ext      = path.extname(storagePath) || '.png';
+      const filename = `resource_${localPaths.length}${ext}`;
+      const localPath = path.join(resDir, filename);
+      const buffer   = Buffer.from(await data.arrayBuffer());
+      fs.writeFileSync(localPath, buffer);
+      // Use file:// prefix so downloadImage in images.ts can skip these (they're already local)
+      // Instead, just keep local paths — we'll return them and images.ts will copy them directly
+      localPaths.push(localPath);
+      console.log(`[pipeline] downloaded resource: ${filename}`);
+    } catch (e) {
+      console.warn(`[pipeline] resource error: ${storagePath}`, e);
+    }
+  }
+  return localPaths;
+}
+
 export async function runVideoPipeline(job: any) {
   const { videoId, inputType, inputData } = job.data;
-  const aspectRatio: '16:9' | '9:16' = job.data.aspectRatio ?? '16:9';
+  const aspectRatio:   '16:9' | '9:16' = job.data.aspectRatio   ?? '16:9';
+  const resourcePaths: string[]         = job.data.resourcePaths ?? [];
   const workDir = `/tmp/videoforge/${videoId}`;
 
   try {
@@ -28,14 +61,16 @@ export async function runVideoPipeline(job: any) {
     let accentColor:   string | null = null;
     let language                     = 'en';
     let businessType                 = 'mixed';
+    let scrapedImageUrls:  string[]  = [];
 
     if (inputType === 'url') {
-      const result  = await scrapeUrl(inputData.url);
-      sourceText    = result.text;
-      brandImageUrl = result.brandImageUrl;
-      accentColor   = result.accentColor;
-      language      = result.language;
-      businessType  = result.businessType;
+      const result     = await scrapeUrl(inputData.url);
+      sourceText       = result.text;
+      brandImageUrl    = result.brandImageUrl;
+      accentColor      = result.accentColor;
+      language         = result.language;
+      businessType     = result.businessType;
+      scrapedImageUrls = result.imageUrls;
     } else if (inputType === 'pdf') {
       sourceText = await parsePdf(inputData.fileName);
     } else if (inputType === 'ppt') {
@@ -46,33 +81,42 @@ export async function runVideoPipeline(job: any) {
 
     await updateStatus(videoId, 'processing', 15, 'Writing script...');
 
-    // 2. Generate structured script via GPT-5.2 (pass language + businessType + accent hint)
+    // 2. Generate structured script via GPT-5.2
     const script = await generateScript(sourceText, inputType, language, businessType, accentColor);
 
-    await updateStatus(videoId, 'processing', 25, 'Recording voiceover...');
+    await updateStatus(videoId, 'processing', 22, 'Preparing assets...');
 
-    // 3. ElevenLabs TTS — pass only the voiceover strings
+    // 3. Download user-uploaded resource images (highest priority for scene backgrounds)
+    const resourceLocalPaths = await downloadResources(resourcePaths, workDir);
+
+    // Build final imageUrls: user uploads first, then scraped images
+    // images.ts copies local-path files directly; URLs are downloaded via axios
+    const imageUrls: string[] = [...resourceLocalPaths, ...scrapedImageUrls];
+
+    await updateStatus(videoId, 'processing', 28, 'Recording voiceover...');
+
+    // 4. ElevenLabs TTS — pass only the voiceover strings
     const voiceovers = script.scenes.map((s) => s.props.voiceover);
     const audioPaths = await generateVoiceovers(voiceovers, workDir);
 
-    await updateStatus(videoId, 'processing', 45, 'Generating visuals...');
+    await updateStatus(videoId, 'processing', 48, 'Generating visuals...');
 
-    // 4. Gemini images — pass accentColor for gradient placeholder fallback
+    // 5. Gemini images — pass imageUrls (user uploads + scraped) for priority use
     const imagePaths = await generateImages(
-      script.scenes, workDir, script.brandName, brandImageUrl, script.accentColor,
+      script.scenes, workDir, script.brandName, brandImageUrl, script.accentColor, imageUrls,
     );
 
-    await updateStatus(videoId, 'processing', 60, 'Rendering video...');
+    await updateStatus(videoId, 'processing', 63, 'Rendering video...');
 
-    // 5. Remotion render — pass aspectRatio
+    // 6. Remotion render — pass aspectRatio
     const mp4Path = await renderVideo({ videoId, script, audioPaths, imagePaths, workDir, aspectRatio });
 
     await updateStatus(videoId, 'processing', 85, 'Uploading...');
 
-    // 6. Upload to Supabase Storage
+    // 7. Upload to Supabase Storage
     const outputUrl = await uploadVideo(mp4Path, videoId);
 
-    // 7. Mark complete
+    // 8. Mark complete
     await supabase.from('videos').update({
       status: 'complete', progress: 100, output_url: outputUrl,
       current_step: 'Done', updated_at: new Date().toISOString(),

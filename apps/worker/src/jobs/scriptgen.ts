@@ -140,7 +140,7 @@ export async function generateScript(
       { role: 'system', content: SYSTEM },
       { role: 'user',   content: buildPrompt(sourceText, inputType, language, businessType, knownAccentColor) },
     ],
-    max_tokens: 4000,
+    max_completion_tokens: 4000,
     temperature: 0.7,
   });
 
