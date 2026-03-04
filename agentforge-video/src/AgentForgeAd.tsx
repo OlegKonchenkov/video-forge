@@ -20,6 +20,8 @@ export const AgentForgeAd: React.FC<AgentForgeAdProps> = ({
   ctaText,
   ctaUrl,
   accentColor,
+  bgColor,
+  surfaceColor,
   hasVoiceover,
 }) => {
   // Must be inside component so useVideoConfig() receives live width/height from calculateMetadata
@@ -61,13 +63,16 @@ export const AgentForgeAd: React.FC<AgentForgeAdProps> = ({
 
           const shared: SharedSceneProps = {
             accentColor,
+            bgColor:      bgColor      ?? '#050d1a',
+            surfaceColor: surfaceColor ?? '#0a1628',
+            showImage:    scene.showImage ?? true,
             brandName,
             tagline,
             ctaText,
             ctaUrl,
-            audioPath:  hasVoiceover ? `audio/voiceover/scene_${i}.mp3` : '',
-            sceneIndex: i,
-            sceneTotal: scenes.length,
+            audioPath:    hasVoiceover ? `audio/voiceover/scene_${i}.mp3` : '',
+            sceneIndex:   i,
+            sceneTotal:   scenes.length,
           };
 
           return (

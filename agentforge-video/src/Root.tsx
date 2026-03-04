@@ -7,7 +7,9 @@ import type { AgentForgeAdProps } from './types';
 const DEFAULT_PROPS: AgentForgeAdProps = {
   // Placeholder durations (overwritten by calculateMetadata from audio files)
   sceneDurations: [180, 180, 150, 120, 210],
-  accentColor: '#3b82f6',
+  accentColor:  '#3b82f6',
+  bgColor:      '#050d1a',
+  surfaceColor: '#0a1628',
   brandName: 'AgentForge',
   tagline: 'AI Automation for Growing Businesses',
   ctaText: 'Book a Free Call',
@@ -17,6 +19,7 @@ const DEFAULT_PROPS: AgentForgeAdProps = {
   scenes: [
     {
       type: 'pain_hook',
+      showImage: true,
       props: {
         voiceover: '',
         headline: 'Your team is drowning in busywork.',
@@ -26,6 +29,7 @@ const DEFAULT_PROPS: AgentForgeAdProps = {
     },
     {
       type: 'feature_list',
+      showImage: false,
       props: {
         voiceover: '',
         headlineLines: ['We build', 'custom AI tools', 'that handle it all.', 'Automatically.'],
@@ -39,6 +43,7 @@ const DEFAULT_PROPS: AgentForgeAdProps = {
     },
     {
       type: 'stats_grid',
+      showImage: false,
       props: {
         voiceover: '',
         title: 'Average results after 30 days',
@@ -52,10 +57,12 @@ const DEFAULT_PROPS: AgentForgeAdProps = {
     },
     {
       type: 'brand_reveal',
+      showImage: true,
       props: { voiceover: '' },
     },
     {
       type: 'cta',
+      showImage: true,
       props: {
         voiceover: '',
         headline: 'Stop paying people to do',
