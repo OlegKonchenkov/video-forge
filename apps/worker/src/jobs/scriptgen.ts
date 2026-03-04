@@ -1,6 +1,7 @@
 // apps/worker/src/jobs/scriptgen.ts
 import OpenAI from 'openai';
 import type { VideoScript } from '../types/script';
+import type { BrandPalette } from './scraper';
 
 const client = new OpenAI(); // reads OPENAI_API_KEY from env
 
@@ -57,16 +58,41 @@ AVAILABLE SCENE TYPES (pick 5-7 that best tell this business's story):
 15. "comparison" — Side-by-side vs competitor table
     props: { voiceover, competitorLabel, brandLabel, features: [{label, competitor:bool, brand:bool}]×4-6 }
 
+16. "big_stat" — One enormous animated number, full screen impact
+    props: { voiceover, value: str (e.g. "847" or "1,247+"), unit: str (e.g. "MW"), label: str, sub: str }
+    USE FOR: established companies with impressive numbers (years, clients, MW, revenue, units)
+    showImage: true by default
+
+17. "mission_statement" — Brand values manifesto, words reveal one by one
+    props: { voiceover, statement: str (one powerful sentence, max 12 words), values: [str, str, str] }
+    USE FOR: brands with a clear sustainability/innovation/quality mission
+    showImage: true by default
+
+18. "social_proof" — Trust wall: credentials, awards, certifications
+    props: { voiceover, title: str, badges: [{label: str, value: str}]×3-4 }
+    USE FOR: companies where trust signals differentiate (ISO, years in business, client count, awards)
+    showImage: false by default
+
+19. "timeline" — Company milestones, animated top-to-bottom
+    props: { voiceover, title: str, events: [{year: str, label: str}]×3-4 }
+    USE FOR: established companies (10+ years) with a history worth showing
+    showImage: false by default
+`;
+
+const SELECTION_RULES = `
 SELECTION RULES:
 - Always end with "cta" as the last scene
-- Always include "brand_reveal" for strong brand identity
-- Choose scenes that tell a compelling story arc: problem → solution → proof → CTA
-- For local businesses: prefer "map_location" + "team_intro"
-- For SaaS/tech: prefer "comparison" + "how_it_works"
-- For e-commerce: prefer "product_showcase" + "offer_countdown"
-- For service businesses: prefer "testimonial" + "before_after"
-- For B2B: prefer "how_it_works" + "stats_grid" + "comparison"; avoid "offer_countdown"
-- For B2C: prefer "product_showcase" + "offer_countdown" + "testimonial"
+- Choose scenes that tell the most compelling story ARC for THIS specific business: problem → solution → proof → CTA
+- VARY your selection: the same business type should produce different scene combinations each run (use the variation seed above)
+- These are SUGGESTIONS not requirements — pick what best tells THIS brand's story:
+  - Local businesses: map_location, team_intro are strong choices
+  - SaaS/tech: comparison, how_it_works are strong choices
+  - E-commerce: product_showcase, offer_countdown are strong choices
+  - Service businesses: testimonial, before_after are strong choices
+  - B2B companies: how_it_works, stats_grid, big_stat, social_proof are strong choices; avoid offer_countdown
+  - B2C brands: product_showcase, offer_countdown, testimonial are strong choices
+  - Established companies (10+ years): timeline, big_stat, mission_statement are strong choices
+- brand_reveal is optional: include it when brand recognition is important, skip it for unknown startups needing more content scenes
 `;
 
 function buildPrompt(
@@ -75,11 +101,9 @@ function buildPrompt(
   language:         string,
   businessType:     string,
   knownAccentColor: string | null,
+  brandPalette:     BrandPalette | null,
+  seed:             string,
 ): string {
-  const colorHint = knownAccentColor
-    ? `Use this exact hex color as accentColor: "${knownAccentColor}"`
-    : `Pick a strong brand accent color (hex) that matches the brand personality — NOT generic blue #3b82f6 unless it genuinely fits`;
-
   const langInstruction = language !== 'en'
     ? `CRITICAL LANGUAGE RULE: Write ALL copy (voiceovers, headlines, taglines, labels, CTAs) in "${language}" — the language of the source website. Never mix in English words unless they are brand names or technical terms universally understood.`
     : `Write all copy in English.`;
@@ -90,16 +114,34 @@ function buildPrompt(
     ? `BUSINESS TYPE: B2C — focus on lifestyle, desire, personal value, convenience. Use emotional and aspirational language.`
     : `BUSINESS TYPE: Mixed — balance professional credibility with approachable consumer appeal.`;
 
-  return `Analyse this ${inputType} content and create a 5-7 scene video ad script.
+  const paletteHint = brandPalette
+    ? `BRAND PALETTE (extracted from website CSS):
+- Background: ${brandPalette.bg} (${brandPalette.isDark ? 'dark' : 'light'} theme)
+- Surface: ${brandPalette.surface}
+- Accent: ${brandPalette.accent}
+Use bgColor close to "${brandPalette.bg}" (can darken/lighten slightly for cinematic feel).
+Use surfaceColor close to "${brandPalette.surface}".
+Use accentColor matching or complementing "${brandPalette.accent}".`
+    : knownAccentColor
+      ? `Use this exact hex color as accentColor: "${knownAccentColor}". For bgColor pick a deep dark that complements this accent. For surfaceColor pick a slightly lighter variant of bgColor.`
+      : `Pick a strong brand accent color (hex) that matches the brand personality. For bgColor pick a deep dark version of it. For surfaceColor pick a slightly lighter variant of bgColor.`;
+
+  return `VARIATION SEED: ${seed} — use this to vary your scene selection even for the same URL.
+
+Analyse this ${inputType} content and create a 5-7 scene video ad script.
 
 SOURCE CONTENT:
 ${sourceText.slice(0, 7000)}
 
 ${SCENE_CATALOGUE}
 
+${SELECTION_RULES}
+
 ${b2bHint}
 
 ${langInstruction}
+
+${paletteHint}
 
 Return a JSON object with this EXACT structure:
 {
@@ -107,10 +149,12 @@ Return a JSON object with this EXACT structure:
   "tagline": "Compelling one-line tagline (max 6 words)",
   "ctaText": "CTA button text matching the business type",
   "ctaUrl": "Website URL from content or infer from brand",
-  "accentColor": "#hex — ${colorHint}",
+  "accentColor": "#hex — brand accent color",
+  "bgColor": "#hex — scene background, deep/dark version matching brand palette",
+  "surfaceColor": "#hex — card/panel background, slightly lighter than bgColor",
   "language": "${language}",
   "scenes": [
-    { "type": "<scene_type>", "props": { /* matching schema above */ } },
+    { "type": "<scene_type>", "showImage": true/false, "props": { /* matching schema above */ } },
     ...
   ]
 }
@@ -123,7 +167,8 @@ COPY RULES:
 - headlineLines[3] in feature_list must be one punchy word + period ("Automaticamente." / "Instantly." / "Effortlessly.")
 - punchWords in inbox_chaos: short (1-3 words each), punchy, end with period
 - comparison: brandLabel should be the actual brand name; show clear advantage
-- ctaText: match the action ("Prenota una Demo" for SaaS, "Richiedi un Preventivo" for services, "Acquista Ora" for retail)`;
+- ctaText: match the action ("Prenota una Demo" for SaaS, "Richiedi un Preventivo" for services, "Acquista Ora" for retail)
+- showImage: set true for atmospheric/visual scenes (brand_reveal, pain_hook, product_showcase, big_stat, mission_statement, testimonial); set false for data-heavy scenes (comparison, stats_grid, cost_counter, social_proof, timeline, how_it_works)`;
 }
 
 export async function generateScript(
@@ -132,21 +177,33 @@ export async function generateScript(
   language:         string = 'en',
   businessType:     string = 'mixed',
   knownAccentColor: string | null = null,
+  brandPalette:     BrandPalette | null = null,
 ): Promise<VideoScript> {
+  const seed = Math.random().toString(36).slice(2, 8);
+
   const response = await client.chat.completions.create({
     model: 'gpt-5.2',
     response_format: { type: 'json_object' },
     messages: [
       { role: 'system', content: SYSTEM },
-      { role: 'user',   content: buildPrompt(sourceText, inputType, language, businessType, knownAccentColor) },
+      { role: 'user',   content: buildPrompt(sourceText, inputType, language, businessType, knownAccentColor, brandPalette, seed) },
     ],
-    max_completion_tokens: 4000,
-    temperature: 0.7,
+    max_completion_tokens: 4500,
+    temperature: 0.9,
   });
 
   const text = response.choices[0].message.content!;
   try {
-    return JSON.parse(text) as VideoScript;
+    const script = JSON.parse(text) as VideoScript;
+    // Defensive defaults if GPT omitted new fields
+    if (!script.bgColor)      script.bgColor      = '#050d1a';
+    if (!script.surfaceColor) script.surfaceColor = '#0a1628';
+    for (const scene of script.scenes) {
+      if (typeof (scene as Record<string, unknown>).showImage === 'undefined') {
+        (scene as Record<string, unknown>).showImage = true;
+      }
+    }
+    return script;
   } catch {
     throw new Error(`GPT returned invalid JSON: ${text.slice(0, 200)}`);
   }
