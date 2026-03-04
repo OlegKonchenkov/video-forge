@@ -106,33 +106,65 @@ export interface SceneComparisonProps {
   features:        Array<{ label: string; competitor: boolean; brand: boolean }>
 }
 
+export interface SceneBigStatProps {
+  voiceover: string
+  value:     string   // e.g. "847" or "1,247" or "98%"
+  unit:      string   // e.g. "MW" or "clients"
+  label:     string   // e.g. "installed capacity"
+  sub:       string   // e.g. "powering 400,000 homes"
+}
+
+export interface SceneMissionStatementProps {
+  voiceover: string
+  statement: string                   // full brand statement
+  values:    [string, string, string] // 3 core values
+}
+
+export interface SceneSocialProofProps {
+  voiceover: string
+  title:     string
+  badges:    Array<{ label: string; value: string }>  // 3-4 items
+}
+
+export interface SceneTimelineProps {
+  voiceover: string
+  title:     string
+  events:    Array<{ year: string; label: string }>   // 3-4 items
+}
+
 // ─── Discriminated union ──────────────────────────────────────────────────────
 
 export type SceneConfig =
-  | { type: 'pain_hook';        props: ScenePainHookProps }
-  | { type: 'inbox_chaos';      props: SceneInboxChaosProps }
-  | { type: 'cost_counter';     props: SceneCostCounterProps }
-  | { type: 'brand_reveal';     props: SceneBrandRevealProps }
-  | { type: 'feature_list';     props: SceneFeatureListProps }
-  | { type: 'stats_grid';       props: SceneStatsGridProps }
-  | { type: 'cta';              props: SceneCTAProps }
-  | { type: 'testimonial';      props: SceneTestimonialProps }
-  | { type: 'before_after';     props: SceneBeforeAfterProps }
-  | { type: 'how_it_works';     props: SceneHowItWorksProps }
-  | { type: 'product_showcase'; props: SceneProductShowcaseProps }
-  | { type: 'offer_countdown';  props: SceneOfferCountdownProps }
-  | { type: 'map_location';     props: SceneMapLocationProps }
-  | { type: 'team_intro';       props: SceneTeamIntroProps }
-  | { type: 'comparison';       props: SceneComparisonProps }
+  | { type: 'pain_hook';         showImage: boolean; props: ScenePainHookProps }
+  | { type: 'inbox_chaos';       showImage: boolean; props: SceneInboxChaosProps }
+  | { type: 'cost_counter';      showImage: boolean; props: SceneCostCounterProps }
+  | { type: 'brand_reveal';      showImage: boolean; props: SceneBrandRevealProps }
+  | { type: 'feature_list';      showImage: boolean; props: SceneFeatureListProps }
+  | { type: 'stats_grid';        showImage: boolean; props: SceneStatsGridProps }
+  | { type: 'cta';               showImage: boolean; props: SceneCTAProps }
+  | { type: 'testimonial';       showImage: boolean; props: SceneTestimonialProps }
+  | { type: 'before_after';      showImage: boolean; props: SceneBeforeAfterProps }
+  | { type: 'how_it_works';      showImage: boolean; props: SceneHowItWorksProps }
+  | { type: 'product_showcase';  showImage: boolean; props: SceneProductShowcaseProps }
+  | { type: 'offer_countdown';   showImage: boolean; props: SceneOfferCountdownProps }
+  | { type: 'map_location';      showImage: boolean; props: SceneMapLocationProps }
+  | { type: 'team_intro';        showImage: boolean; props: SceneTeamIntroProps }
+  | { type: 'comparison';        showImage: boolean; props: SceneComparisonProps }
+  | { type: 'big_stat';          showImage: boolean; props: SceneBigStatProps }
+  | { type: 'mission_statement'; showImage: boolean; props: SceneMissionStatementProps }
+  | { type: 'social_proof';      showImage: boolean; props: SceneSocialProofProps }
+  | { type: 'timeline';          showImage: boolean; props: SceneTimelineProps }
 
 // ─── Root video script ────────────────────────────────────────────────────────
 
 export interface VideoScript {
-  brandName:   string
-  tagline:     string
-  ctaText:     string
-  ctaUrl:      string
-  accentColor: string   // hex e.g. "#3b82f6"
-  language:    string   // 'it', 'en', 'de', etc.
-  scenes:      SceneConfig[]
+  brandName:    string
+  tagline:      string
+  ctaText:      string
+  ctaUrl:       string
+  accentColor:  string   // hex e.g. "#3b82f6"
+  bgColor:      string   // hex e.g. "#050d1a"
+  surfaceColor: string   // hex e.g. "#0a1628"
+  language:     string   // 'it', 'en', 'de', etc.
+  scenes:       SceneConfig[]
 }
