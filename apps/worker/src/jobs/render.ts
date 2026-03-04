@@ -77,6 +77,8 @@ export async function renderVideo({ videoId, script, audioPaths, imagePaths, wor
     ctaText:        script.ctaText,
     ctaUrl:         script.ctaUrl,
     accentColor:    script.accentColor,
+    bgColor:        script.bgColor      ?? '#050d1a',
+    surfaceColor:   script.surfaceColor ?? '#0a1628',
     aspectRatio,
     hasVoiceover,
     // Placeholder durations — calculateMetadata overwrites them from audio files (or uses fallback)

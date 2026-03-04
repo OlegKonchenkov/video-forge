@@ -1,6 +1,6 @@
 // apps/worker/src/jobs/pipeline.ts
 import { supabase } from '../lib/supabase';
-import { scrapeUrl } from './scraper';
+import { scrapeUrl, type BrandPalette } from './scraper';
 import { parsePdf, parsePpt } from './parser';
 import { generateScript } from './scriptgen';
 import { generateVoiceovers } from './tts';
@@ -58,18 +58,20 @@ export async function runVideoPipeline(job: any) {
     await updateStatus(videoId, 'processing', 5, 'Extracting content...');
 
     // 1. Extract text (and brand image URL + accent color for website input)
-    let sourceText                   = '';
-    let brandImageUrl: string | null = null;
-    let accentColor:   string | null = null;
-    let language                     = 'en';
-    let businessType                 = 'mixed';
-    let scrapedImageUrls:  string[]  = [];
+    let sourceText                     = '';
+    let brandImageUrl:  string | null  = null;
+    let accentColor:    string | null  = null;
+    let brandPalette:   BrandPalette | null = null;
+    let language                       = 'en';
+    let businessType                   = 'mixed';
+    let scrapedImageUrls:  string[]    = [];
 
     if (inputType === 'url') {
       const result     = await scrapeUrl(inputData.url);
       sourceText       = result.text;
       brandImageUrl    = result.brandImageUrl;
       accentColor      = result.accentColor;
+      brandPalette     = result.palette;
       language         = result.language;
       businessType     = result.businessType;
       scrapedImageUrls = result.imageUrls;
@@ -84,7 +86,7 @@ export async function runVideoPipeline(job: any) {
     await updateStatus(videoId, 'processing', 15, 'Writing script...');
 
     // 2. Generate structured script via GPT-5.2
-    const script = await generateScript(sourceText, inputType, language, businessType, accentColor);
+    const script = await generateScript(sourceText, inputType, language, businessType, accentColor, brandPalette);
 
     await updateStatus(videoId, 'processing', 22, 'Preparing assets...');
 
@@ -104,9 +106,10 @@ export async function runVideoPipeline(job: any) {
 
     await updateStatus(videoId, 'processing', 48, 'Generating visuals...');
 
-    // 5. Gemini images — pass imageUrls (user uploads + scraped) for priority use
+    // 5. Gemini images — pass imageUrls (user uploads + scraped) and showImageFlags for cost saving
+    const showImageFlags = script.scenes.map(s => s.showImage !== false);
     const imagePaths = await generateImages(
-      script.scenes, workDir, script.brandName, brandImageUrl, script.accentColor, imageUrls,
+      script.scenes, workDir, script.brandName, brandImageUrl, script.accentColor, imageUrls, showImageFlags,
     );
 
     await updateStatus(videoId, 'processing', 63, 'Rendering video...');
