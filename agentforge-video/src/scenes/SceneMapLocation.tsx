@@ -46,6 +46,10 @@ export const SceneMapLocation: React.FC<SceneMapLocationProps & SharedSceneProps
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#050d1a', overflow: 'hidden' }}>
+      {/* Scene background image */}
+      <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+      {/* Dark overlay */}
+      <AbsoluteFill style={{ backgroundColor: 'rgba(5,13,26,0.75)' }} />
       {/* Dot grid map */}
       <AbsoluteFill>
         <DotGrid color="rgba(148,163,184,0.08)" />
@@ -143,7 +147,7 @@ export const SceneMapLocation: React.FC<SceneMapLocationProps & SharedSceneProps
       </AbsoluteFill>
 
       <SceneCounter current={sceneIndex + 1} total={sceneTotal} />
-      <Audio src={staticFile(audioPath)} />
+      {audioPath && <Audio src={staticFile(audioPath)} />}
     </AbsoluteFill>
   );
 };

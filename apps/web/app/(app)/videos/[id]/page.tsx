@@ -1,9 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Download, CheckCircle, Loader2, AlertCircle, Clock } from 'lucide-react';
 
 export default function VideoPage({ params }: { params: { id: string } }) {
+  const router = useRouter();
   const [video, setVideo] = useState<any>(null);
 
   useEffect(() => {
@@ -17,7 +19,12 @@ export default function VideoPage({ params }: { params: { id: string } }) {
     const channel = supabase.channel('video-' + params.id)
       .on('postgres_changes', {
         event: 'UPDATE', schema: 'public', table: 'videos', filter: `id=eq.${params.id}`,
-      }, ({ new: updated }: { new: any }) => setVideo(updated))
+      }, ({ new: updated }: { new: any }) => {
+        setVideo(updated);
+        if (updated.status === 'complete' || updated.status === 'failed') {
+          router.refresh();
+        }
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };

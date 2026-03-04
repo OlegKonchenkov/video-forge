@@ -61,6 +61,10 @@ export const SceneStatsGrid: React.FC<SceneStatsGridProps & SharedSceneProps> = 
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#050d1a', overflow: 'hidden' }}>
+      {/* Scene background image */}
+      <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+      {/* Dark overlay */}
+      <AbsoluteFill style={{ backgroundColor: 'rgba(5,13,26,0.75)' }} />
       <AbsoluteFill style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(10,22,40,0.8) 0%, #050d1a 60%)' }} />
       <NoiseOverlay />
 
@@ -85,7 +89,7 @@ export const SceneStatsGrid: React.FC<SceneStatsGridProps & SharedSceneProps> = 
       </AbsoluteFill>
 
       <SceneCounter current={sceneIndex + 1} total={sceneTotal} />
-      <Audio src={staticFile(audioPath)} />
+      {audioPath && <Audio src={staticFile(audioPath)} />}
     </AbsoluteFill>
   );
 };

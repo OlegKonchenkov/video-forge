@@ -32,6 +32,10 @@ export const SceneTeamIntro: React.FC<SceneTeamIntroProps & SharedSceneProps> = 
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#050d1a', overflow: 'hidden' }}>
+      {/* Scene background image */}
+      <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+      {/* Dark overlay */}
+      <AbsoluteFill style={{ backgroundColor: 'rgba(5,13,26,0.75)' }} />
       {/* Warm tint radial */}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 40%, rgba(251,191,36,0.04) 0%, transparent 65%)`, opacity: warmOp }} />
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 0%, ${av.bg} 0%, transparent 55%)` }} />
@@ -88,7 +92,7 @@ export const SceneTeamIntro: React.FC<SceneTeamIntroProps & SharedSceneProps> = 
       </AbsoluteFill>
 
       <SceneCounter current={sceneIndex + 1} total={sceneTotal} />
-      <Audio src={staticFile(audioPath)} />
+      {audioPath && <Audio src={staticFile(audioPath)} />}
     </AbsoluteFill>
   );
 };

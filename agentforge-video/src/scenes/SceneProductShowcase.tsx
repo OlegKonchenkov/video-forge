@@ -88,7 +88,7 @@ export const SceneProductShowcase: React.FC<SceneProductShowcaseProps & SharedSc
       </AbsoluteFill>
 
       <SceneCounter current={sceneIndex + 1} total={sceneTotal} />
-      <Audio src={staticFile(audioPath)} />
+      {audioPath && <Audio src={staticFile(audioPath)} />}
     </AbsoluteFill>
   );
 };

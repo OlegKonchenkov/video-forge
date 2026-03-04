@@ -23,6 +23,10 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#050d1a', overflow: 'hidden' }}>
+      {/* Scene background image */}
+      <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+      {/* Dark overlay */}
+      <AbsoluteFill style={{ backgroundColor: 'rgba(5,13,26,0.75)' }} />
       {/* Subtle grid */}
       <AbsoluteFill style={{
         backgroundImage: 'linear-gradient(rgba(148,163,184,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.04) 1px, transparent 1px)',
@@ -113,7 +117,7 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
       </AbsoluteFill>
 
       <SceneCounter current={sceneIndex + 1} total={sceneTotal} />
-      <Audio src={staticFile(audioPath)} />
+      {audioPath && <Audio src={staticFile(audioPath)} />}
     </AbsoluteFill>
   );
 };

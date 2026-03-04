@@ -31,6 +31,10 @@ export const SceneComparison: React.FC<SceneComparisonProps & SharedSceneProps> 
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#050d1a', overflow: 'hidden' }}>
+      {/* Scene background image */}
+      <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+      {/* Dark overlay */}
+      <AbsoluteFill style={{ backgroundColor: 'rgba(5,13,26,0.75)' }} />
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 75% 50%, ${av.bg} 0%, transparent 55%)` }} />
       <NoiseOverlay />
 
@@ -123,7 +127,7 @@ export const SceneComparison: React.FC<SceneComparisonProps & SharedSceneProps> 
       </AbsoluteFill>
 
       <SceneCounter current={sceneIndex + 1} total={sceneTotal} />
-      <Audio src={staticFile(audioPath)} />
+      {audioPath && <Audio src={staticFile(audioPath)} />}
     </AbsoluteFill>
   );
 };

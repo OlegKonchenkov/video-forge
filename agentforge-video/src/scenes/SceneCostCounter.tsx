@@ -65,6 +65,10 @@ export const SceneCostCounter: React.FC<SceneCostCounterProps & SharedSceneProps
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#050d1a', overflow: 'hidden' }}>
+      {/* Scene background image */}
+      <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+      {/* Dark overlay */}
+      <AbsoluteFill style={{ backgroundColor: 'rgba(5,13,26,0.75)' }} />
       <AbsoluteFill style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(5,13,26,0) 20%, #050d1a 65%)' }} />
       <NoiseOverlay />
 
@@ -92,7 +96,7 @@ export const SceneCostCounter: React.FC<SceneCostCounterProps & SharedSceneProps
       </AbsoluteFill>
 
       <SceneCounter current={sceneIndex + 1} total={sceneTotal} />
-      <Audio src={staticFile(audioPath)} />
+      {audioPath && <Audio src={staticFile(audioPath)} />}
     </AbsoluteFill>
   );
 };

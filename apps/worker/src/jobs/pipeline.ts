@@ -130,6 +130,10 @@ export async function runVideoPipeline(job: any) {
     await supabase.from('videos').update({
       status: 'failed', error_msg: error.message, updated_at: new Date().toISOString(),
     }).eq('id', videoId);
+    // Refund credit on failure (Supabase rpc returns {data,error}, never throws)
+    if (job.data.userId) {
+      await supabase.rpc('refund_credit', { p_user_id: job.data.userId, p_video_id: videoId });
+    }
     throw err;
   }
 }
