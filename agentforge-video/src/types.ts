@@ -144,5 +144,6 @@ export type AgentForgeAdProps = {
   ctaUrl:         string;
   accentColor:    string;
   aspectRatio:    '16:9' | '9:16';
+  hasVoiceover:   boolean;   // false → skip per-scene Audio tags; calculateMetadata uses fallback duration
   scenes:         SceneConfig[];
 };

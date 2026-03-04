@@ -20,6 +20,7 @@ export const AgentForgeAd: React.FC<AgentForgeAdProps> = ({
   ctaText,
   ctaUrl,
   accentColor,
+  hasVoiceover,
 }) => {
   // Must be inside component so useVideoConfig() receives live width/height from calculateMetadata
   const { width, height } = useVideoConfig();
@@ -39,6 +40,7 @@ export const AgentForgeAd: React.FC<AgentForgeAdProps> = ({
 
   return (
     <AbsoluteFill>
+      {/* Background music — always present */}
       <Audio
         src={staticFile('audio/music/background.mp3')}
         volume={(f) => {
@@ -63,7 +65,7 @@ export const AgentForgeAd: React.FC<AgentForgeAdProps> = ({
             tagline,
             ctaText,
             ctaUrl,
-            audioPath:  `audio/voiceover/scene_${i}.mp3`,
+            audioPath:  hasVoiceover ? `audio/voiceover/scene_${i}.mp3` : '',
             sceneIndex: i,
             sceneTotal: scenes.length,
           };

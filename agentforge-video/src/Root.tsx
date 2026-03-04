@@ -12,7 +12,8 @@ const DEFAULT_PROPS: AgentForgeAdProps = {
   tagline: 'AI Automation for Growing Businesses',
   ctaText: 'Book a Free Call',
   ctaUrl: 'agentforge.ai/start',
-  aspectRatio: '16:9',
+  aspectRatio:  '16:9',
+  hasVoiceover: true,
   scenes: [
     {
       type: 'pain_hook',
