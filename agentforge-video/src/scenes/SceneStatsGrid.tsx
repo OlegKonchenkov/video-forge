@@ -1,24 +1,28 @@
 // agentforge-video/src/scenes/SceneStatsGrid.tsx
+// DATA DASHBOARD — particle field + scramble numbers + glowing metric cards
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate, spring, AbsoluteFill, staticFile } from 'remotion';
 import { Audio } from '@remotion/media';
-import { FONT, DISPLAY_FONT, MONO_FONT } from '../font';
+import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
 import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
+import { ParticleField } from '../shared/ParticleField';
 import type { SceneStatsGridProps, SharedSceneProps } from '../types';
 
-const CHARS = '0123456789ABCDEFX#%';
+const CHARS = '0123456789ABCDEFX';
 
 function scramble(target: string, frame: number, cue: number): string {
   const elapsed = frame - cue;
-  if (elapsed < 0) return target.replace(/./g, CHARS[0]);
-  if (elapsed >= 30) return target;
+  if (elapsed < 0) return target.replace(/[0-9]/g, '0');
+  if (elapsed >= 32) return target;
   return target.split('').map((ch) => {
-    if (/[^0-9]/.test(ch)) return ch;
-    const settled = elapsed > 20 + Math.random() * 10;
-    return settled ? ch : CHARS[Math.floor((frame * 7 + Math.random() * 5) % CHARS.length)];
+    if (!/[0-9]/.test(ch)) return ch;
+    // Deterministic scramble using frame as seed
+    const progress = elapsed / 32;
+    const settled = (frame * 7 + target.charCodeAt(0)) % (32 - elapsed) === 0 || progress > 0.85;
+    return settled ? ch : CHARS[(frame * 13 + target.charCodeAt(0)) % CHARS.length];
   }).join('');
 }
 
@@ -30,19 +34,22 @@ const StatCard: React.FC<{
 }> = ({ value, label, sub, cue, frame, fps, accentColor, displaySize, bodySize, labelSize, isPortrait }) => {
   const av  = accentVariants(accentColor);
   const p   = spring({ frame: frame - cue, fps, config: { damping: 200 } });
-  const y   = interpolate(p, [0, 1], [60, 0]);
+  const y   = interpolate(p, [0, 1], [70, 0]);
   const op  = interpolate(frame - cue, [0, 18], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const display = scramble(value, frame, cue);
 
   return (
     <div style={{
       opacity: op, transform: `translateY(${y}px)`,
-      flex: 1, background: av.bg, borderRadius: 20,
-      border: `1px solid ${av.border}`, borderTop: `2px solid ${av.strong}`,
+      flex: 1, borderRadius: 18,
+      background: av.bg,
+      border: `1px solid ${av.border}`,
+      borderTop: `3px solid ${accentColor}`,
       padding: isPortrait ? '24px 20px' : '36px 32px',
-      display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center',
+      display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center',
+      boxShadow: `0 0 30px ${av.glow}`,
     }}>
-      <div style={{ fontSize: displaySize, color: accentColor, fontFamily: DISPLAY_FONT, lineHeight: 1, letterSpacing: '1px' }}>
+      <div style={{ fontSize: displaySize, color: accentColor, fontFamily: FONT, fontWeight: '900', lineHeight: 1, letterSpacing: '-2px', textShadow: `0 0 40px ${av.glow}, 0 2px 16px rgba(0,0,0,0.8)` }}>
         {display}
       </div>
       <div style={{ fontSize: bodySize - 4, color: '#f1f5f9', fontFamily: FONT, fontWeight: '700', textAlign: 'center' as const, textShadow: '0 2px 12px rgba(0,0,0,0.6)' }}>{label}</div>
@@ -59,30 +66,42 @@ export const SceneStatsGrid: React.FC<SceneStatsGridProps & SharedSceneProps> = 
   const { fps, durationInFrames: dur } = useVideoConfig();
   const layout = useSceneLayout();
 
+  const titleP  = spring({ frame, fps, config: { damping: 200 } });
   const titleOp = interpolate(frame, [0, 20], [0, 1], { extrapolateRight: 'clamp' });
-  const titleY  = interpolate(spring({ frame, fps, config: { damping: 200 } }), [0, 1], [20, 0]);
+  const titleY  = interpolate(titleP, [0, 1], [24, 0]);
   const cardCues = [dur * 0.22, dur * 0.36, dur * 0.50];
+
+  const exitOp = interpolate(frame, [dur * 0.88, dur * 0.88 + 12], [1, 0.3], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
       {showImage && (
         <>
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.75)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.80)' }} />
         </>
       )}
-      <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 0%, rgba(10,22,40,0.8) 0%, ${bgColor} 60%)` }} />
+
+      {/* Particle field — data points drifting */}
+      <ParticleField color={accentColor} count={50} opacity={0.12} speed={0.4} maxRadius={2} />
+      {/* Center glow */}
+      <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 30%, ${accentVariants(accentColor).glow} 0%, transparent 60%)` }} />
       <NoiseOverlay />
 
       <AbsoluteFill style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         padding: `0 ${layout.outerPadding}px`,
         gap: layout.innerGap,
+        opacity: exitOp,
       }}>
         {/* Title */}
         <div style={{ opacity: titleOp, transform: `translateY(${titleY}px)`, textAlign: 'center' as const }}>
-          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px', textShadow: '0 2px 16px rgba(0,0,0,0.7)' }}>{title}</div>
-          <div style={{ fontSize: layout.bodySize - 6, color: 'rgba(148,163,184,0.75)', fontFamily: FONT, marginTop: 8, textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>{sub}</div>
+          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px', textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}>
+            {title}
+          </div>
+          <div style={{ fontSize: layout.bodySize - 4, color: 'rgba(148,163,184,0.75)', fontFamily: FONT, marginTop: 8, textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>
+            {sub}
+          </div>
         </div>
 
         {/* Stat cards */}
