@@ -51,7 +51,7 @@ export const SceneMapLocation: React.FC<SceneMapLocationProps & SharedSceneProps
           {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
           {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.75)' }} />
         </>
       )}
       {/* Dot grid map */}

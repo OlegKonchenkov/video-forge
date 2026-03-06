@@ -38,7 +38,7 @@ export const SceneTeamIntro: React.FC<SceneTeamIntroProps & SharedSceneProps> = 
           {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
           {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.75)' }} />
         </>
       )}
       {/* Warm tint radial */}

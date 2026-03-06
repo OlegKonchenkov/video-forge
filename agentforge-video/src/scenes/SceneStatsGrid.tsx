@@ -68,7 +68,7 @@ export const SceneStatsGrid: React.FC<SceneStatsGridProps & SharedSceneProps> = 
       {showImage && (
         <>
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.75)' }} />
         </>
       )}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 0%, rgba(10,22,40,0.8) 0%, ${bgColor} 60%)` }} />
@@ -82,7 +82,7 @@ export const SceneStatsGrid: React.FC<SceneStatsGridProps & SharedSceneProps> = 
         {/* Title */}
         <div style={{ opacity: titleOp, transform: `translateY(${titleY}px)`, textAlign: 'center' as const }}>
           <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px', textShadow: '0 2px 16px rgba(0,0,0,0.7)' }}>{title}</div>
-          <div style={{ fontSize: layout.bodySize - 6, color: 'rgba(148,163,184,0.75)', fontFamily: FONT, marginTop: 8 }}>{sub}</div>
+          <div style={{ fontSize: layout.bodySize - 6, color: 'rgba(148,163,184,0.75)', fontFamily: FONT, marginTop: 8, textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>{sub}</div>
         </div>
 
         {/* Stat cards */}

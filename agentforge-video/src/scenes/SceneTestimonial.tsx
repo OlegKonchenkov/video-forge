@@ -39,7 +39,7 @@ export const SceneTestimonial: React.FC<SceneTestimonialProps & SharedSceneProps
           {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
           {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.75)' }} />
         </>
       )}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 30% 50%, ${av.bg} 0%, transparent 60%)` }} />
@@ -85,10 +85,10 @@ export const SceneTestimonial: React.FC<SceneTestimonialProps & SharedSceneProps
         <div style={{ opacity: authorOp, transform: `translateY(${authorY}px)`, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
           {/* Divider line */}
           <div style={{ width: 48, height: 2, background: accentColor, borderRadius: 1 }} />
-          <div style={{ fontSize: layout.bodySize, color: accentColor, fontFamily: FONT, fontWeight: '700', letterSpacing: '0.3px' }}>
+          <div style={{ fontSize: layout.bodySize, color: accentColor, fontFamily: FONT, fontWeight: '700', letterSpacing: '0.3px', textShadow: '0 1px 12px rgba(0,0,0,0.85)' }}>
             {name}
           </div>
-          <div style={{ fontSize: layout.labelSize + 2, color: 'rgba(148,163,184,0.80)', fontFamily: MONO_FONT, letterSpacing: '1.5px', textTransform: 'uppercase' as const }}>
+          <div style={{ fontSize: layout.labelSize + 2, color: 'rgba(148,163,184,0.80)', fontFamily: MONO_FONT, letterSpacing: '1.5px', textTransform: 'uppercase' as const, textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>
             {role}{displayCompany}
           </div>
         </div>

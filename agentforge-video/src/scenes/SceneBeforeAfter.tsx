@@ -84,7 +84,7 @@ export const SceneBeforeAfter: React.FC<SceneBeforeAfterProps & SharedSceneProps
           {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
           {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.75)' }} />
         </>
       )}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 75% 50%, ${av.bg} 0%, transparent 55%)` }} />

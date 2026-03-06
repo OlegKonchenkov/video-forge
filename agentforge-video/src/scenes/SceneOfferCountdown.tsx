@@ -47,7 +47,7 @@ export const SceneOfferCountdown: React.FC<SceneOfferCountdownProps & SharedScen
           {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
           {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.75)' }} />
         </>
       )}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 40%, ${av.bg} 0%, transparent 65%)` }} />

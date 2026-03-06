@@ -36,7 +36,7 @@ export const SceneFeatureList: React.FC<SceneFeatureListProps & SharedSceneProps
       {showImage && (
         <>
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.75)' }} />
         </>
       )}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 75% 30%, ${av.bg} 0%, transparent 55%)`, opacity: bgOp }} />
@@ -76,7 +76,7 @@ export const SceneFeatureList: React.FC<SceneFeatureListProps & SharedSceneProps
             );
           })}
           <div style={{ opacity: subOp, marginTop: 12 }}>
-            <div style={{ fontSize: layout.bodySize, color: 'rgba(148,163,184,0.85)', fontFamily: FONT, lineHeight: 1.65, maxWidth: 440 }}>
+            <div style={{ fontSize: layout.bodySize, color: 'rgba(148,163,184,0.85)', fontFamily: FONT, lineHeight: 1.65, maxWidth: 440, textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>
               {sub}
             </div>
           </div>

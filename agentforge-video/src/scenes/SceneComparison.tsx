@@ -36,7 +36,7 @@ export const SceneComparison: React.FC<SceneComparisonProps & SharedSceneProps> 
           {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
           {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.75)' }} />
         </>
       )}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 75% 50%, ${av.bg} 0%, transparent 55%)` }} />
@@ -87,7 +87,7 @@ export const SceneComparison: React.FC<SceneComparisonProps & SharedSceneProps> 
               }}>
                 {/* Feature label */}
                 <div style={{ flex: 1, padding: '14px 0', display: 'flex', alignItems: 'center' }}>
-                  <span style={{ fontSize: layout.bodySize - 4, color: 'rgba(241,245,249,0.85)', fontFamily: FONT, fontWeight: '500' }}>{feat.label}</span>
+                  <span style={{ fontSize: layout.bodySize - 4, color: 'rgba(241,245,249,0.85)', fontFamily: FONT, fontWeight: '500', textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>{feat.label}</span>
                 </div>
 
                 {/* Competitor cell */}

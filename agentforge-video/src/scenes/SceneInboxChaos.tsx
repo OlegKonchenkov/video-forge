@@ -32,7 +32,7 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
       {showImage && (
         <>
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.75)' }} />
         </>
       )}
       {/* Subtle grid */}

@@ -55,7 +55,7 @@ export const SceneBigStat: React.FC<SceneBigStatProps & SharedSceneProps> = ({
       {showImage && (
         <>
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.75)' }} />
         </>
       )}
       {/* Radial glow that blooms with the stat */}
@@ -87,7 +87,7 @@ export const SceneBigStat: React.FC<SceneBigStatProps & SharedSceneProps> = ({
             color: accentColor,
             lineHeight: 1,
             letterSpacing: '-4px',
-            textShadow: `0 0 60px ${av.glow}`,
+            textShadow: `0 2px 16px rgba(0,0,0,0.9), 0 0 60px ${av.glow}`,
           }}>
             {displayValue}
           </div>
@@ -103,6 +103,7 @@ export const SceneBigStat: React.FC<SceneBigStatProps & SharedSceneProps> = ({
             textAlign: 'center' as const,
             letterSpacing: '2px',
             textTransform: 'uppercase' as const,
+            textShadow: '0 2px 16px rgba(0,0,0,0.9)',
           }}>
             {unit}
           </div>
@@ -113,14 +114,14 @@ export const SceneBigStat: React.FC<SceneBigStatProps & SharedSceneProps> = ({
 
         {/* Label */}
         <div style={{ opacity: labelOp, textAlign: 'center' as const }}>
-          <div style={{ fontSize: layout.bodySize + 4, color: 'rgba(241,245,249,0.8)', fontFamily: FONT, fontWeight: '500', letterSpacing: '0.3px' }}>
+          <div style={{ fontSize: layout.bodySize + 4, color: 'rgba(241,245,249,0.8)', fontFamily: FONT, fontWeight: '500', letterSpacing: '0.3px', textShadow: '0 1px 12px rgba(0,0,0,0.85)' }}>
             {label}
           </div>
         </div>
 
         {/* Sub */}
         <div style={{ opacity: subOp, textAlign: 'center' as const }}>
-          <div style={{ fontSize: layout.bodySize - 2, color: 'rgba(148,163,184,0.80)', fontFamily: FONT, fontWeight: '400', maxWidth: layout.maxContentWidth }}>
+          <div style={{ fontSize: layout.bodySize - 2, color: 'rgba(148,163,184,0.80)', fontFamily: FONT, fontWeight: '400', maxWidth: layout.maxContentWidth, textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>
             {sub}
           </div>
         </div>

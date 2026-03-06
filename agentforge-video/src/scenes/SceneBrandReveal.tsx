@@ -42,7 +42,7 @@ export const SceneBrandReveal: React.FC<SceneBrandRevealProps & SharedSceneProps
           {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
           {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.75)' }} />
         </>
       )}
       {/* Radial glow */}
@@ -59,6 +59,7 @@ export const SceneBrandReveal: React.FC<SceneBrandRevealProps & SharedSceneProps
             color: '#f1f5f9',
             letterSpacing: '6px',
             textTransform: 'uppercase' as const,
+            textShadow: '0 2px 20px rgba(0,0,0,0.9)',
             clipPath: `inset(0 ${100 - clipW}% 0 0)`,
           }}>
             {brandName}
@@ -70,7 +71,7 @@ export const SceneBrandReveal: React.FC<SceneBrandRevealProps & SharedSceneProps
 
         {/* Tagline typewriter */}
         {frame >= CUE_TAGLINE && (
-          <div style={{ fontSize: layout.bodySize, color: 'rgba(148,163,184,0.85)', fontFamily: MONO_FONT, letterSpacing: '4px', textTransform: 'uppercase' as const }}>
+          <div style={{ fontSize: layout.bodySize, color: 'rgba(148,163,184,0.85)', fontFamily: MONO_FONT, letterSpacing: '4px', textTransform: 'uppercase' as const, textShadow: '0 1px 12px rgba(0,0,0,0.85)' }}>
             {tagline.slice(0, charCount)}
             <span style={{ opacity: Math.sin(frame * 0.3) > 0 ? 0.7 : 0 }}>|</span>
           </div>

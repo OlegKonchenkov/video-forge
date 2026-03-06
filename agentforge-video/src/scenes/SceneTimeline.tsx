@@ -42,7 +42,7 @@ export const SceneTimeline: React.FC<SceneTimelineProps & SharedSceneProps> = ({
           {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
           {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.75)' }} />
         </>
       )}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 60%, ${av.bg} 0%, transparent 65%)` }} />
@@ -147,6 +147,7 @@ export const SceneTimeline: React.FC<SceneTimelineProps & SharedSceneProps> = ({
                     fontFamily: MONO_FONT,
                     letterSpacing: '1px',
                     marginBottom: 4,
+                    textShadow: '0 1px 12px rgba(0,0,0,0.85)',
                   }}>
                     {event.year}
                   </div>
@@ -157,6 +158,7 @@ export const SceneTimeline: React.FC<SceneTimelineProps & SharedSceneProps> = ({
                     fontWeight: '600',
                     lineHeight: 1.3,
                     maxWidth: layout.isPortrait ? undefined : 120,
+                    textShadow: '0 1px 8px rgba(0,0,0,0.8)',
                   }}>
                     {event.label}
                   </div>

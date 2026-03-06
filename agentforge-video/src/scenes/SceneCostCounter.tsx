@@ -36,11 +36,11 @@ const Stat: React.FC<{
         pointerEvents: 'none',
       }} />
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, justifyContent: 'center' }}>
-        <span style={{ fontSize: Math.round(displaySize * 1.5), color: accentColor, fontFamily: DISPLAY_FONT, lineHeight: 1, letterSpacing: '-2px' }}>
+        <span style={{ fontSize: Math.round(displaySize * 1.5), color: accentColor, fontFamily: DISPLAY_FONT, lineHeight: 1, letterSpacing: '-2px', textShadow: '0 2px 16px rgba(0,0,0,0.9)' }}>
           {unit.startsWith('€') || unit.startsWith('$') ? unit : ''}{formatted}{unit.startsWith('€') || unit.startsWith('$') ? '' : unit}
         </span>
       </div>
-      <div style={{ fontSize: bodySize, color: 'rgba(148,163,184,0.8)', fontFamily: FONT, fontWeight: '500', marginTop: -8, letterSpacing: '0.5px' }}>
+      <div style={{ fontSize: bodySize, color: 'rgba(148,163,184,0.8)', fontFamily: FONT, fontWeight: '500', marginTop: -8, letterSpacing: '0.5px', textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>
         {label}
       </div>
       <div style={{ width: '80%', height: 1, background: `linear-gradient(90deg, transparent, ${av.border}, transparent)`, margin: '14px auto 0' }} />
@@ -70,7 +70,7 @@ export const SceneCostCounter: React.FC<SceneCostCounterProps & SharedSceneProps
           {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
           {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.75)' }} />
         </>
       )}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 40%, rgba(5,13,26,0) 20%, ${bgColor} 65%)` }} />
@@ -83,7 +83,7 @@ export const SceneCostCounter: React.FC<SceneCostCounterProps & SharedSceneProps
       }}>
         {/* Intro text */}
         <div style={{ opacity: introOp, transform: `translateY(${introY}px)`, textAlign: 'center' as const }}>
-          <div style={{ fontSize: layout.bodySize + 4, color: 'rgba(148,163,184,0.88)', fontFamily: FONT, fontWeight: '400', maxWidth: 800, lineHeight: 1.5 }}>
+          <div style={{ fontSize: layout.bodySize + 4, color: 'rgba(148,163,184,0.88)', fontFamily: FONT, fontWeight: '400', maxWidth: 800, lineHeight: 1.5, textShadow: '0 1px 12px rgba(0,0,0,0.85)' }}>
             {intro}
           </div>
         </div>
