@@ -74,7 +74,7 @@ export const SceneHowItWorks: React.FC<SceneHowItWorksProps & SharedSceneProps> 
                 <div style={{
                   opacity: op, transform: `translateY(${y}px)`,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
-                  width: layout.isPortrait ? '100%' : 240,
+                  width: layout.isPortrait ? '100%' : undefined, flex: layout.isPortrait ? undefined : 1,
                 }}>
                   {/* Step number circle */}
                   <div style={{
@@ -110,7 +110,7 @@ export const SceneHowItWorks: React.FC<SceneHowItWorksProps & SharedSceneProps> 
                     ) : (
                       /* Landscape: horizontal connector */
                       <div style={{
-                        flex: 1, height: 2, marginTop: 39,
+                        width: 48, height: 2, marginTop: 39, flexShrink: 0,
                         background: `linear-gradient(90deg, ${av.strong}, ${av.border})`,
                         transform: `scaleX(${connectors[i]})`,
                         transformOrigin: 'left',

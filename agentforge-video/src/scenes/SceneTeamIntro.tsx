@@ -27,7 +27,8 @@ export const SceneTeamIntro: React.FC<SceneTeamIntroProps & SharedSceneProps> = 
   // Warm tint overlay
   const warmOp = interpolate(frame, [0, 40], [0, 1], { extrapolateRight: 'clamp' });
 
-  const cardWidth = layout.isPortrait ? 160 : 200;
+  const numCards = layout.isPortrait ? 3 : 4;
+  const cardWidth = Math.floor((layout.width - layout.outerPadding * 2 - (numCards - 1) * layout.cardGap) / numCards);
   const avatarSize = layout.isPortrait ? 60 : 80;
 
   return (
