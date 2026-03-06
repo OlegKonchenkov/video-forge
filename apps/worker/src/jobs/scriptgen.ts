@@ -180,9 +180,10 @@ export async function generateScript(
   brandPalette:     BrandPalette | null = null,
 ): Promise<VideoScript> {
   const seed = Math.random().toString(36).slice(2, 8);
+  const model = process.env.OPENAI_MODEL || 'gpt-4.1-mini';
 
   const response = await client.chat.completions.create({
-    model: 'gpt-5.2',
+    model,
     response_format: { type: 'json_object' },
     messages: [
       { role: 'system', content: SYSTEM },
