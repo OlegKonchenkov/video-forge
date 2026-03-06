@@ -21,14 +21,18 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
   const ITEM_SPACING = dur * 0.14;
   const PUNCH_CUE    = dur * 0.72;
 
+  // Reserve bottom space for punch words so email cards don't overlap
+  const punchReserve = layout.isPortrait ? 200 : 130;
+
+  // Limit items per orientation
+  const displayItems = items.slice(0, layout.isPortrait ? 3 : 4);
+
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
       {showImage && (
         <>
-          {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
         </>
       )}
       {/* Subtle grid */}
@@ -39,13 +43,14 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 50%, rgba(5,13,26,0) 30%, ${bgColor} 75%)` }} />
       <NoiseOverlay />
 
-      {/* Email cards */}
+      {/* Email cards — padded at bottom to leave room for punch words */}
       <AbsoluteFill style={{
         display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
         gap: layout.cardGap,
         padding: `0 ${layout.outerPadding + 40}px`,
+        paddingBottom: punchReserve,
       }}>
-        {items.map((item, i) => {
+        {displayItems.map((item, i) => {
           const cue = i * ITEM_SPACING;
           const p   = spring({ frame: frame - cue, fps, config: { damping: 200 } });
           const x   = interpolate(p, [0, 1], [200, 0]);
@@ -78,18 +83,18 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
               </div>
 
               {/* Subject + from */}
-              <div style={{ flex: 1, overflow: 'hidden' }}>
+              <div style={{ flex: 1, overflow: 'hidden', minWidth: 0 }}>
                 <div style={{ fontSize: layout.bodySize, color: item.urgent ? '#fca5a5' : '#e2e8f0', fontFamily: FONT, fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {item.subject}
                 </div>
-                <div style={{ fontSize: layout.labelSize + 4, color: 'rgba(148,163,184,0.7)', fontFamily: MONO_FONT, marginTop: 3 }}>
+                <div style={{ fontSize: layout.labelSize + 4, color: 'rgba(148,163,184,0.75)', fontFamily: MONO_FONT, marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {item.from}
                 </div>
               </div>
 
               {/* Time + urgent badge */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
-                <span style={{ fontSize: layout.labelSize + 4, color: 'rgba(148,163,184,0.6)', fontFamily: MONO_FONT }}>{item.time}</span>
+                <span style={{ fontSize: layout.labelSize + 4, color: 'rgba(148,163,184,0.65)', fontFamily: MONO_FONT }}>{item.time}</span>
                 {item.urgent && (
                   <div style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 6, padding: '3px 10px' }}>
                     <span style={{ fontSize: layout.labelSize, color: '#ef4444', fontFamily: MONO_FONT, fontWeight: '600', letterSpacing: '1.5px' }}>URGENT</span>
@@ -101,8 +106,8 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
         })}
       </AbsoluteFill>
 
-      {/* Punch words */}
-      <AbsoluteFill style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: 90 }}>
+      {/* Punch words — anchored to bottom, always above email cards */}
+      <AbsoluteFill style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: layout.isPortrait ? 80 : 72 }}>
         <div style={{ display: 'flex', gap: layout.isPortrait ? 24 : 48 }}>
           {punchWords.map((word, i) => {
             const cue = PUNCH_CUE + i * (dur * 0.07);
@@ -111,7 +116,11 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
             const op  = interpolate(frame - cue, [0, 8], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
             return (
               <div key={i} style={{ opacity: op, transform: `scale(${scale})` }}>
-                <span style={{ fontSize: layout.displaySize - 4, fontWeight: '800', color: i === 1 ? accentColor : '#f1f5f9', fontFamily: DISPLAY_FONT, letterSpacing: '2px' }}>
+                <span style={{
+                  fontSize: layout.isPortrait ? layout.headingSize + 4 : layout.displaySize - 4,
+                  fontWeight: '800', color: i === 1 ? accentColor : '#f1f5f9', fontFamily: DISPLAY_FONT, letterSpacing: '2px',
+                  textShadow: '0 3px 20px rgba(0,0,0,0.8)',
+                }}>
                   {word}
                 </span>
               </div>

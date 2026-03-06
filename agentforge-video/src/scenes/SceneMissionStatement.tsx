@@ -42,7 +42,7 @@ export const SceneMissionStatement: React.FC<SceneMissionStatementProps & Shared
           {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
           {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
         </>
       )}
       {/* Gradient sweep */}
@@ -88,6 +88,7 @@ export const SceneMissionStatement: React.FC<SceneMissionStatementProps & Shared
               fontFamily: FONT,
               lineHeight: 1.45,
               letterSpacing: '-0.5px',
+              textShadow: '0 2px 20px rgba(0,0,0,0.7)',
             }}
           />
         </div>
@@ -103,7 +104,8 @@ export const SceneMissionStatement: React.FC<SceneMissionStatementProps & Shared
         {/* 3 core values */}
         <div style={{
           display: 'flex',
-          flexDirection: layout.isPortrait ? 'column' : 'row',
+          flexDirection: 'row' as const,
+          flexWrap: 'wrap' as const,
           gap: layout.cardGap,
           justifyContent: 'center',
           alignItems: 'center',

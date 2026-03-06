@@ -45,7 +45,7 @@ export const SceneSocialProof: React.FC<SceneSocialProofProps & SharedSceneProps
           {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
           {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
         </>
       )}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 30%, ${av.bg} 0%, transparent 65%)` }} />
@@ -58,7 +58,7 @@ export const SceneSocialProof: React.FC<SceneSocialProofProps & SharedSceneProps
       }}>
         {/* Title */}
         <div style={{ opacity: titleOp, transform: `translateY(${titleY}px)`, textAlign: 'center' as const }}>
-          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px', lineHeight: 1.1 }}>
+          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px', lineHeight: 1.1, textShadow: '0 2px 16px rgba(0,0,0,0.7)' }}>
             {title}
           </div>
         </div>

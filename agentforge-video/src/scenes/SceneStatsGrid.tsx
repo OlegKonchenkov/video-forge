@@ -22,9 +22,12 @@ function scramble(target: string, frame: number, cue: number): string {
   }).join('');
 }
 
-const StatCard: React.FC<{ value: string; label: string; sub: string; cue: number; frame: number; fps: number; accentColor: string; displaySize: number; bodySize: number; labelSize: number }> = ({
-  value, label, sub, cue, frame, fps, accentColor, displaySize, bodySize, labelSize,
-}) => {
+const StatCard: React.FC<{
+  value: string; label: string; sub: string;
+  cue: number; frame: number; fps: number;
+  accentColor: string; displaySize: number; bodySize: number; labelSize: number;
+  isPortrait: boolean;
+}> = ({ value, label, sub, cue, frame, fps, accentColor, displaySize, bodySize, labelSize, isPortrait }) => {
   const av  = accentVariants(accentColor);
   const p   = spring({ frame: frame - cue, fps, config: { damping: 200 } });
   const y   = interpolate(p, [0, 1], [60, 0]);
@@ -36,13 +39,14 @@ const StatCard: React.FC<{ value: string; label: string; sub: string; cue: numbe
       opacity: op, transform: `translateY(${y}px)`,
       flex: 1, background: av.bg, borderRadius: 20,
       border: `1px solid ${av.border}`, borderTop: `2px solid ${av.strong}`,
-      padding: '36px 32px', display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center',
+      padding: isPortrait ? '24px 20px' : '36px 32px',
+      display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center',
     }}>
       <div style={{ fontSize: displaySize, color: accentColor, fontFamily: DISPLAY_FONT, lineHeight: 1, letterSpacing: '1px' }}>
         {display}
       </div>
-      <div style={{ fontSize: bodySize - 4, color: '#f1f5f9', fontFamily: FONT, fontWeight: '700', textAlign: 'center' as const }}>{label}</div>
-      <div style={{ fontSize: labelSize + 2, color: 'rgba(148,163,184,0.6)', fontFamily: MONO_FONT, textAlign: 'center' as const }}>{sub}</div>
+      <div style={{ fontSize: bodySize - 4, color: '#f1f5f9', fontFamily: FONT, fontWeight: '700', textAlign: 'center' as const, textShadow: '0 2px 12px rgba(0,0,0,0.6)' }}>{label}</div>
+      <div style={{ fontSize: labelSize + 2, color: 'rgba(148,163,184,0.75)', fontFamily: MONO_FONT, textAlign: 'center' as const }}>{sub}</div>
     </div>
   );
 };
@@ -63,10 +67,8 @@ export const SceneStatsGrid: React.FC<SceneStatsGridProps & SharedSceneProps> = 
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
       {showImage && (
         <>
-          {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
         </>
       )}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 0%, rgba(10,22,40,0.8) 0%, ${bgColor} 60%)` }} />
@@ -79,15 +81,16 @@ export const SceneStatsGrid: React.FC<SceneStatsGridProps & SharedSceneProps> = 
       }}>
         {/* Title */}
         <div style={{ opacity: titleOp, transform: `translateY(${titleY}px)`, textAlign: 'center' as const }}>
-          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px' }}>{title}</div>
-          <div style={{ fontSize: layout.bodySize - 6, color: 'rgba(148,163,184,0.7)', fontFamily: FONT, marginTop: 8 }}>{sub}</div>
+          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px', textShadow: '0 2px 16px rgba(0,0,0,0.7)' }}>{title}</div>
+          <div style={{ fontSize: layout.bodySize - 6, color: 'rgba(148,163,184,0.75)', fontFamily: FONT, marginTop: 8 }}>{sub}</div>
         </div>
 
         {/* Stat cards */}
         <div style={{ display: 'flex', flexDirection: layout.direction, gap: layout.cardGap, width: '100%' }}>
           {stats.slice(0, layout.maxListItems).map((s, i) => (
             <StatCard key={i} {...s} cue={cardCues[i]} frame={frame} fps={fps} accentColor={accentColor}
-              displaySize={layout.displaySize} bodySize={layout.bodySize} labelSize={layout.labelSize} />
+              displaySize={layout.displaySize} bodySize={layout.bodySize} labelSize={layout.labelSize}
+              isPortrait={layout.isPortrait} />
           ))}
         </div>
       </AbsoluteFill>

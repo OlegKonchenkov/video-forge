@@ -24,7 +24,7 @@ export const SceneComparison: React.FC<SceneComparisonProps & SharedSceneProps> 
   const headerOp = interpolate(frame, [CUE_HEADER, CUE_HEADER + 20], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const headerY  = interpolate(spring({ frame, fps, config: { damping: 200 } }), [0, 1], [20, 0]);
 
-  const displayFeatures = features.slice(0, 6);
+  const displayFeatures = features.slice(0, layout.isPortrait ? 4 : 6);
 
   const compColW  = layout.isPortrait ? 130 : 180;
   const brandColW = layout.isPortrait ? 150 : 200;
@@ -36,7 +36,7 @@ export const SceneComparison: React.FC<SceneComparisonProps & SharedSceneProps> 
           {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
           {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
         </>
       )}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 75% 50%, ${av.bg} 0%, transparent 55%)` }} />

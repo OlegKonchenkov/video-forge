@@ -42,7 +42,7 @@ export const SceneTimeline: React.FC<SceneTimelineProps & SharedSceneProps> = ({
           {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
           {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
         </>
       )}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 60%, ${av.bg} 0%, transparent 65%)` }} />
@@ -50,12 +50,12 @@ export const SceneTimeline: React.FC<SceneTimelineProps & SharedSceneProps> = ({
 
       <AbsoluteFill style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        padding: `${layout.isPortrait ? layout.outerPadding : 0}px ${layout.outerPadding}px`,
+        padding: `${layout.isPortrait ? layout.outerPadding * 0.6 : 0}px ${layout.outerPadding}px`,
         gap: layout.innerGap,
       }}>
         {/* Title */}
         <div style={{ opacity: titleOp, transform: `translateY(${titleY}px)`, textAlign: 'center' as const }}>
-          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px' }}>
+          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px', textShadow: '0 2px 16px rgba(0,0,0,0.7)' }}>
             {title}
           </div>
         </div>

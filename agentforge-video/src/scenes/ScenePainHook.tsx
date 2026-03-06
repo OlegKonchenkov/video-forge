@@ -8,6 +8,7 @@ import { SceneCounter } from '../shared/SceneCounter';
 import { WordByWord } from '../shared/WordByWord';
 import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
+import { GridDots } from '../shared/svg/GridDots';
 import type { ScenePainHookProps, SharedSceneProps } from '../types';
 
 export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
@@ -19,15 +20,15 @@ export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
   const av = accentVariants(accentColor);
   const layout = useSceneLayout();
 
-  const CUE_TAG = 0;
+  const CUE_TAG  = 0;
   const CUE_HEAD = dur * 0.08;
   const CUE_SUB  = dur * 0.35;
   const CUE_C1   = dur * 0.45;
   const CUE_C2   = dur * 0.57;
   const CUE_C3   = dur * 0.69;
 
-  const bgX   = interpolate(frame, [0, dur], [0, -24], { extrapolateRight: 'clamp' });
-  const tagOp = interpolate(frame, [CUE_TAG, CUE_TAG + 14], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const bgX    = interpolate(frame, [0, dur], [0, -24], { extrapolateRight: 'clamp' });
+  const tagOp  = interpolate(frame, [CUE_TAG, CUE_TAG + 14], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const exitOp = interpolate(frame, [dur * 0.88, dur * 0.88 + 12], [1, 0.3], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   const cardCues = [CUE_C1, CUE_C2, CUE_C3];
@@ -36,19 +37,12 @@ export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
       {showImage && (
         <>
-          {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
         </>
       )}
-      {/* Dot grid parallax */}
-      <AbsoluteFill style={{
-        backgroundImage: `radial-gradient(circle, ${av.border} 1.5px, transparent 1.5px)`,
-        backgroundSize: '64px 64px',
-        opacity: 0.5,
-        transform: `translateX(${bgX}px)`,
-      }} />
+      {/* Animated dot grid — replaces CSS radial-gradient background */}
+      <GridDots color={av.border} opacity={0.4} translateX={bgX} />
       {/* Diagonal accent gradient */}
       <AbsoluteFill style={{ background: `linear-gradient(130deg, ${av.bg} 0%, transparent 55%)` }} />
       <NoiseOverlay />
@@ -57,7 +51,8 @@ export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
         display: 'flex',
         flexDirection: layout.direction,
         alignItems: layout.isPortrait ? 'flex-start' : 'center',
-        padding: `${layout.isPortrait ? layout.outerPadding : 0}px ${layout.outerPadding}px`,
+        justifyContent: 'center',
+        padding: `${layout.isPortrait ? layout.outerPadding * 0.8 : 0}px ${layout.outerPadding}px`,
         gap: layout.isPortrait ? layout.innerGap : 0,
         overflow: 'hidden',
       }}>
@@ -83,7 +78,15 @@ export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
             text={headline}
             frame={frame} fps={fps} startFrame={CUE_HEAD} staggerFrames={3}
             style={{ flexWrap: 'wrap', gap: '0.18em', overflow: 'hidden' }}
-            wordStyle={{ fontSize: layout.displaySize, fontWeight: '700', color: '#f1f5f9', fontFamily: FONT, lineHeight: 1.05, letterSpacing: '-2.5px' }}
+            wordStyle={{
+              fontSize: layout.isPortrait ? layout.headingSize - 2 : layout.displaySize,
+              fontWeight: '700',
+              color: '#f1f5f9',
+              fontFamily: FONT,
+              lineHeight: 1.05,
+              letterSpacing: '-2.5px',
+              textShadow: '0 2px 20px rgba(0,0,0,0.7)',
+            }}
           />
 
           {/* Subtitle */}

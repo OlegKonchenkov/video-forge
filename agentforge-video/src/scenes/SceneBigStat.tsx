@@ -5,6 +5,7 @@ import { Audio } from '@remotion/media';
 import { FONT, DISPLAY_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
+import { PulseRing } from '../shared/svg/PulseRing';
 import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
 import type { SceneBigStatProps, SharedSceneProps } from '../types';
@@ -28,7 +29,7 @@ export const SceneBigStat: React.FC<SceneBigStatProps & SharedSceneProps> = ({
   accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
 }) => {
   const frame = useCurrentFrame();
-  const { fps, durationInFrames: dur } = useVideoConfig();
+  const { fps, durationInFrames: dur, height } = useVideoConfig();
   const av = accentVariants(accentColor);
   const layout = useSceneLayout();
 
@@ -37,31 +38,24 @@ export const SceneBigStat: React.FC<SceneBigStatProps & SharedSceneProps> = ({
   const CUE_LABEL = dur * 0.50;
   const CUE_SUB   = dur * 0.62;
 
-  const bgGlow = interpolate(frame - CUE_VALUE, [0, 40], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-
+  const bgGlow  = interpolate(frame - CUE_VALUE, [0, 40], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const valueP  = spring({ frame: frame - CUE_VALUE, fps, config: { damping: 200 } });
   const valueY  = interpolate(valueP, [0, 1], [60, 0]);
   const valueOp = interpolate(frame - CUE_VALUE, [0, 20], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-
   const unitOp  = interpolate(frame - CUE_UNIT, [0, 18], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const labelOp = interpolate(frame - CUE_LABEL, [0, 15], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const subOp   = interpolate(frame - CUE_SUB, [0, 15], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
-  // Pulse ring animation
-  const ring1 = interpolate(frame % 70, [0, 70], [0.7, 2.0], { extrapolateRight: 'clamp' });
-  const ringOp = interpolate(frame % 70, [0, 40, 70], [0.4, 0.1, 0]);
-
   const displayValue = scrambleNum(value, frame, CUE_VALUE);
-  const valueFontSize = Math.max(layout.headingSize, Math.round(layout.displaySize * 2.2) - value.length * 6);
+  const rawFontSize  = Math.max(layout.headingSize, Math.round(layout.displaySize * 2.2) - value.length * 6);
+  const valueFontSize = Math.min(rawFontSize, Math.round(height * 0.32));
 
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
       {showImage && (
         <>
-          {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
         </>
       )}
       {/* Radial glow that blooms with the stat */}
@@ -69,17 +63,7 @@ export const SceneBigStat: React.FC<SceneBigStatProps & SharedSceneProps> = ({
         background: `radial-gradient(ellipse at 50% 50%, ${av.glow} 0%, transparent 55%)`,
         opacity: bgGlow * 0.8,
       }} />
-      {/* Pulse rings */}
-      {[ring1, ring1 * 1.4].map((scale, i) => (
-        <AbsoluteFill key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-          <div style={{
-            width: 300, height: 300, borderRadius: '50%',
-            border: `1px solid ${av.border}`,
-            transform: `scale(${scale})`,
-            opacity: ringOp * (i === 0 ? 1 : 0.5),
-          }} />
-        </AbsoluteFill>
-      ))}
+      <PulseRing color={av.border} baseSize={300} minScale={0.7} maxScale={2.0} period={70} count={2} />
       <NoiseOverlay />
 
       <AbsoluteFill style={{
@@ -89,7 +73,6 @@ export const SceneBigStat: React.FC<SceneBigStatProps & SharedSceneProps> = ({
       }}>
         {/* Giant stat value */}
         <div style={{ opacity: valueOp, transform: `translateY(${valueY}px)`, textAlign: 'center' as const, position: 'relative' as const }}>
-          {/* Glow behind number */}
           <div style={{
             position: 'absolute' as const, top: '50%', left: '50%',
             transform: 'translate(-50%, -50%)',
@@ -137,7 +120,7 @@ export const SceneBigStat: React.FC<SceneBigStatProps & SharedSceneProps> = ({
 
         {/* Sub */}
         <div style={{ opacity: subOp, textAlign: 'center' as const }}>
-          <div style={{ fontSize: layout.bodySize - 2, color: 'rgba(148,163,184,0.65)', fontFamily: FONT, fontWeight: '400', maxWidth: layout.maxContentWidth }}>
+          <div style={{ fontSize: layout.bodySize - 2, color: 'rgba(148,163,184,0.80)', fontFamily: FONT, fontWeight: '400', maxWidth: layout.maxContentWidth }}>
             {sub}
           </div>
         </div>

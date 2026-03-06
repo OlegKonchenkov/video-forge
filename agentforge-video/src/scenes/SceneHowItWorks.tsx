@@ -38,7 +38,7 @@ export const SceneHowItWorks: React.FC<SceneHowItWorksProps & SharedSceneProps> 
           {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
           {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
         </>
       )}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 10%, rgba(10,22,40,0.8) 0%, ${bgColor} 55%)` }} />
@@ -51,7 +51,7 @@ export const SceneHowItWorks: React.FC<SceneHowItWorksProps & SharedSceneProps> 
       }}>
         {/* Title */}
         <div style={{ opacity: titleOp, transform: `translateY(${titleY}px)`, textAlign: 'center' as const }}>
-          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px' }}>{title}</div>
+          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px', textShadow: '0 2px 16px rgba(0,0,0,0.7)' }}>{title}</div>
         </div>
 
         {/* Steps — row in landscape, column in portrait */}
@@ -89,7 +89,7 @@ export const SceneHowItWorks: React.FC<SceneHowItWorksProps & SharedSceneProps> 
                     <span style={{ fontSize: layout.isPortrait ? 28 : 36, fontFamily: DISPLAY_FONT, color: accentColor }}>{step.number}</span>
                   </div>
                   {/* Icon */}
-                  <div style={{ fontSize: layout.isPortrait ? 28 : 36 }}>{step.icon}</div>
+                  <div style={{ width: layout.isPortrait ? 28 : 36, height: layout.isPortrait ? 28 : 36, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: layout.isPortrait ? 28 : 36 }}>{step.icon}</div>
                   {/* Title */}
                   <div style={{ fontSize: layout.bodySize - 4, fontWeight: '700', color: '#f1f5f9', fontFamily: FONT, textAlign: 'center' as const, lineHeight: 1.3 }}>{step.title}</div>
                   {/* Description */}

@@ -5,6 +5,7 @@ import { Audio } from '@remotion/media';
 import { FONT, DISPLAY_FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
+import { PulseRing } from '../shared/svg/PulseRing';
 import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
 import type { SceneCTAProps, SharedSceneProps } from '../types';
@@ -24,8 +25,6 @@ export const SceneCTA: React.FC<SceneCTAProps & SharedSceneProps> = ({
   const CUE_SUB    = dur * 0.48;
   const CUE_CTA    = dur * 0.58;
   const CUE_URL    = dur * 0.70;
-
-  const pulseScale = interpolate(frame % 90, [0, 45, 90], [1, 1.06, 1]);
 
   const brandOp = interpolate(frame, [CUE_BRAND, CUE_BRAND + 25], [0, 0.07], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
@@ -51,21 +50,18 @@ export const SceneCTA: React.FC<SceneCTAProps & SharedSceneProps> = ({
           {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
           {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
         </>
       )}
       {/* Full-bleed radial gradient */}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 50%, ${av.strong} 0%, transparent 60%)` }} />
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 50%, rgba(5,13,26,0) 30%, ${bgColor} 70%)` }} />
-      {/* Pulse ring */}
-      <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-        <div style={{ width: 600, height: 600, borderRadius: '50%', border: `1px solid ${av.border}`, transform: `scale(${pulseScale})` }} />
-      </AbsoluteFill>
+      <PulseRing color={av.border} baseSize={600} minScale={0.9} maxScale={1.3} period={90} count={1} />
       <NoiseOverlay />
 
       {/* Ghost brand name background */}
       <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-        <div style={{ fontSize: layout.isPortrait ? 180 : 340, color: '#f1f5f9', fontFamily: DISPLAY_FONT, opacity: brandOp, letterSpacing: '20px', textTransform: 'uppercase' as const, whiteSpace: 'nowrap' as const }}>
+        <div style={{ fontSize: layout.isPortrait ? 120 : 340, color: '#f1f5f9', fontFamily: DISPLAY_FONT, opacity: brandOp, letterSpacing: '20px', textTransform: 'uppercase' as const, whiteSpace: 'nowrap' as const }}>
           {brandName}
         </div>
       </AbsoluteFill>
@@ -91,7 +87,7 @@ export const SceneCTA: React.FC<SceneCTAProps & SharedSceneProps> = ({
 
         {/* Sub */}
         <div style={{ opacity: subOp, marginTop: 8 }}>
-          <div style={{ fontSize: layout.bodySize, color: 'rgba(148,163,184,0.8)', fontFamily: FONT, fontWeight: '400', textAlign: 'center' as const }}>
+          <div style={{ fontSize: layout.bodySize, color: 'rgba(148,163,184,0.88)', fontFamily: FONT, fontWeight: '400', textAlign: 'center' as const }}>
             {sub}
           </div>
         </div>

@@ -84,7 +84,7 @@ export const SceneBeforeAfter: React.FC<SceneBeforeAfterProps & SharedSceneProps
           {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
           {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
         </>
       )}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 75% 50%, ${av.bg} 0%, transparent 55%)` }} />
@@ -105,7 +105,7 @@ export const SceneBeforeAfter: React.FC<SceneBeforeAfterProps & SharedSceneProps
               {beforeLabel}
             </div>
           </div>
-          <PointList points={[...beforePoints]} isAfter={false} accentColor={accentColor} cue={CUE_BEFORE + 10} frame={frame} fps={fps} bodySize={layout.bodySize} />
+          <PointList points={beforePoints.slice(0, layout.maxListItems)} isAfter={false} accentColor={accentColor} cue={CUE_BEFORE + 10} frame={frame} fps={fps} bodySize={layout.bodySize} />
         </div>
 
         {/* Divider — vertical in landscape, horizontal in portrait */}
@@ -121,7 +121,7 @@ export const SceneBeforeAfter: React.FC<SceneBeforeAfterProps & SharedSceneProps
               {afterLabel}
             </div>
           </div>
-          <PointList points={[...afterPoints]} isAfter={true} accentColor={accentColor} cue={CUE_AFTER + 10} frame={frame} fps={fps} bodySize={layout.bodySize} />
+          <PointList points={afterPoints.slice(0, layout.maxListItems)} isAfter={true} accentColor={accentColor} cue={CUE_AFTER + 10} frame={frame} fps={fps} bodySize={layout.bodySize} />
         </div>
       </AbsoluteFill>
 

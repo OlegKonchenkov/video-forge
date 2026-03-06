@@ -70,7 +70,7 @@ export const SceneCostCounter: React.FC<SceneCostCounterProps & SharedSceneProps
           {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
           {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
         </>
       )}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 40%, rgba(5,13,26,0) 20%, ${bgColor} 65%)` }} />
@@ -83,7 +83,7 @@ export const SceneCostCounter: React.FC<SceneCostCounterProps & SharedSceneProps
       }}>
         {/* Intro text */}
         <div style={{ opacity: introOp, transform: `translateY(${introY}px)`, textAlign: 'center' as const }}>
-          <div style={{ fontSize: layout.bodySize + 4, color: 'rgba(148,163,184,0.75)', fontFamily: FONT, fontWeight: '400', maxWidth: 800, lineHeight: 1.5 }}>
+          <div style={{ fontSize: layout.bodySize + 4, color: 'rgba(148,163,184,0.88)', fontFamily: FONT, fontWeight: '400', maxWidth: 800, lineHeight: 1.5 }}>
             {intro}
           </div>
         </div>

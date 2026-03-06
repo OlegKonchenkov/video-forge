@@ -5,6 +5,7 @@ import { Audio } from '@remotion/media';
 import { FONT, DISPLAY_FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
+import { PulseRing } from '../shared/svg/PulseRing';
 import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
 import type { SceneBrandRevealProps, SharedSceneProps } from '../types';
@@ -25,10 +26,6 @@ export const SceneBrandReveal: React.FC<SceneBrandRevealProps & SharedSceneProps
   const revealProgress = spring({ frame: frame - CUE_NAME, fps, config: { damping: 200 }, durationInFrames: 45 });
   const clipW = interpolate(revealProgress, [0, 1], [0, 100]);
 
-  // Pulse rings
-  const ring1Scale = interpolate(frame % 80, [0, 80], [0.8, 2.2], { extrapolateRight: 'clamp' });
-  const ring1Op    = interpolate(frame % 80, [0, 50, 80], [0.5, 0.15, 0]);
-
   // Tagline typewriter
   const charCount = Math.floor(interpolate(frame - CUE_TAGLINE, [0, tagline.length * 3], [0, tagline.length], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }));
 
@@ -45,22 +42,12 @@ export const SceneBrandReveal: React.FC<SceneBrandRevealProps & SharedSceneProps
           {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
           {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
         </>
       )}
       {/* Radial glow */}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 50%, ${av.bg} 0%, transparent 65%)` }} />
-      {/* Pulse rings */}
-      {[ring1Scale, ring1Scale * 1.3].map((scale, i) => (
-        <AbsoluteFill key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-          <div style={{
-            width: 400, height: 400, borderRadius: '50%',
-            border: `1px solid ${av.border}`,
-            transform: `scale(${scale})`,
-            opacity: ring1Op * (i === 0 ? 1 : 0.5),
-          }} />
-        </AbsoluteFill>
-      ))}
+      <PulseRing color={av.border} baseSize={400} minScale={0.8} maxScale={2.2} period={80} count={2} />
       <NoiseOverlay />
 
       <AbsoluteFill style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 18 }}>
@@ -83,7 +70,7 @@ export const SceneBrandReveal: React.FC<SceneBrandRevealProps & SharedSceneProps
 
         {/* Tagline typewriter */}
         {frame >= CUE_TAGLINE && (
-          <div style={{ fontSize: layout.bodySize, color: 'rgba(148,163,184,0.75)', fontFamily: MONO_FONT, letterSpacing: '4px', textTransform: 'uppercase' as const }}>
+          <div style={{ fontSize: layout.bodySize, color: 'rgba(148,163,184,0.85)', fontFamily: MONO_FONT, letterSpacing: '4px', textTransform: 'uppercase' as const }}>
             {tagline.slice(0, charCount)}
             <span style={{ opacity: Math.sin(frame * 0.3) > 0 ? 0.7 : 0 }}>|</span>
           </div>

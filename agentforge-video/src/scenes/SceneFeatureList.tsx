@@ -8,6 +8,7 @@ import { SceneCounter } from '../shared/SceneCounter';
 import { WordByWord } from '../shared/WordByWord';
 import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
+import { GridDots } from '../shared/svg/GridDots';
 import type { SceneFeatureListProps, SharedSceneProps } from '../types';
 
 export const SceneFeatureList: React.FC<SceneFeatureListProps & SharedSceneProps> = ({
@@ -24,30 +25,31 @@ export const SceneFeatureList: React.FC<SceneFeatureListProps & SharedSceneProps
   const CUE_HEADER = dur * 0.50;
   const cardCues   = [dur * 0.54, dur * 0.64, dur * 0.74];
 
-  const bgOp = interpolate(frame, [0, 24], [0, 1], { extrapolateRight: 'clamp' });
-
-  const subOp  = interpolate(frame - CUE_SUB, [0, 18], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const bgOp  = interpolate(frame, [0, 24], [0, 1], { extrapolateRight: 'clamp' });
+  const subOp = interpolate(frame - CUE_SUB, [0, 18], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const headOp = interpolate(frame - CUE_HEADER, [0, 15], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+
+  const displayFeatures = features.slice(0, layout.isPortrait ? 3 : layout.maxListItems);
 
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
       {showImage && (
         <>
-          {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
         </>
       )}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 75% 30%, ${av.bg} 0%, transparent 55%)`, opacity: bgOp }} />
+      <GridDots color={av.border} opacity={0.28} />
       <NoiseOverlay />
 
       <AbsoluteFill style={{
         display: 'flex',
         flexDirection: layout.direction,
         alignItems: layout.isPortrait ? 'flex-start' : 'center',
-        padding: `${layout.isPortrait ? layout.outerPadding : 48}px ${layout.outerPadding}px`,
-        gap: layout.isPortrait ? layout.innerGap : 60,
+        justifyContent: 'center',
+        padding: `${layout.isPortrait ? layout.outerPadding * 0.7 : 48}px ${layout.outerPadding}px`,
+        gap: layout.isPortrait ? layout.innerGap * 0.65 : 60,
         overflow: 'hidden',
       }}>
         {/* Left / Top: headline lines */}
@@ -64,9 +66,11 @@ export const SceneFeatureList: React.FC<SceneFeatureListProps & SharedSceneProps
                 frame={frame} fps={fps} startFrame={lineCues[idx]} staggerFrames={4}
                 style={{ overflow: 'hidden' }}
                 wordStyle={{
-                  fontSize: layout.headingSize, fontWeight: '800',
+                  fontSize: layout.isPortrait ? layout.headingSize - 6 : layout.headingSize,
+                  fontWeight: '800',
                   color: isLast ? accentColor : '#f1f5f9',
                   fontFamily: FONT, lineHeight: 1.15, letterSpacing: '-1.5px',
+                  textShadow: '0 2px 20px rgba(0,0,0,0.7)',
                 }}
               />
             );
@@ -88,7 +92,7 @@ export const SceneFeatureList: React.FC<SceneFeatureListProps & SharedSceneProps
             </span>
           </div>
 
-          {features.slice(0, layout.maxListItems).map((f, i) => {
+          {displayFeatures.map((f, i) => {
             const cue = cardCues[i];
             const p   = spring({ frame: frame - cue, fps, config: { damping: 200 } });
             const x   = interpolate(p, [0, 1], [40, 0]);
@@ -102,7 +106,10 @@ export const SceneFeatureList: React.FC<SceneFeatureListProps & SharedSceneProps
                 padding: '18px 22px',
                 display: 'flex', alignItems: 'center', gap: 16,
               }}>
-                <div style={{ fontSize: 30, flexShrink: 0, width: 40, textAlign: 'center' as const }}>{f.icon}</div>
+                {/* Icon container with overflow clip to prevent text bleed */}
+                <div style={{ width: 36, height: 36, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', fontSize: 22 }}>
+                  {f.icon}
+                </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: layout.bodySize, fontWeight: '700', color: '#f1f5f9', fontFamily: FONT, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.title}</div>
                   <div style={{ fontSize: layout.labelSize + 4, color: 'rgba(148,163,184,0.75)', fontFamily: FONT, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.detail}</div>

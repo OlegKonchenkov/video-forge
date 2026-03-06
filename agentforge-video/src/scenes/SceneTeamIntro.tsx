@@ -19,7 +19,7 @@ export const SceneTeamIntro: React.FC<SceneTeamIntroProps & SharedSceneProps> = 
   const layout = useSceneLayout();
 
   const CUE_TITLE = 0;
-  const memberCues = members.slice(0, 4).map((_, i) => dur * 0.22 + i * (dur * 0.12));
+  const memberCues = members.slice(0, layout.isPortrait ? 3 : 4).map((_, i) => dur * 0.22 + i * (dur * 0.12));
 
   const titleOp = interpolate(frame, [CUE_TITLE, CUE_TITLE + 20], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const titleY  = interpolate(spring({ frame, fps, config: { damping: 200 } }), [0, 1], [20, 0]);
@@ -37,7 +37,7 @@ export const SceneTeamIntro: React.FC<SceneTeamIntroProps & SharedSceneProps> = 
           {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
           {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.62)' }} />
         </>
       )}
       {/* Warm tint radial */}
@@ -48,12 +48,12 @@ export const SceneTeamIntro: React.FC<SceneTeamIntroProps & SharedSceneProps> = 
       <AbsoluteFill style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: `0 ${layout.outerPadding}px`, gap: layout.innerGap }}>
         {/* Title */}
         <div style={{ opacity: titleOp, transform: `translateY(${titleY}px)`, textAlign: 'center' as const }}>
-          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px' }}>{title}</div>
+          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px', textShadow: '0 2px 16px rgba(0,0,0,0.7)' }}>{title}</div>
         </div>
 
         {/* Member cards */}
         <div style={{ display: 'flex', gap: layout.cardGap, flexWrap: 'wrap' as const, justifyContent: 'center' }}>
-          {members.slice(0, 4).map((member, i) => {
+          {members.slice(0, layout.isPortrait ? 3 : 4).map((member, i) => {
             const cue = memberCues[i];
             const p   = spring({ frame: frame - cue, fps, config: { damping: 200 } });
             const y   = interpolate(p, [0, 1], [50, 0]);

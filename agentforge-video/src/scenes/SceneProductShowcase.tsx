@@ -49,7 +49,7 @@ export const SceneProductShowcase: React.FC<SceneProductShowcaseProps & SharedSc
           }}
         />
         {/* Dark vignette over image */}
-        <AbsoluteFill style={{ background: `linear-gradient(to top, ${bgColor} 0%, rgba(5,13,26,0.6) 50%, rgba(5,13,26,0.2) 100%)` }} />
+        <AbsoluteFill style={{ background: `linear-gradient(to top, ${bgColor} 0%, rgba(5,13,26,0.8) 50%, rgba(5,13,26,0.3) 100%)` }} />
       </AbsoluteFill>
       )}
 
@@ -59,7 +59,7 @@ export const SceneProductShowcase: React.FC<SceneProductShowcaseProps & SharedSc
       <AbsoluteFill style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: `0 ${layout.outerPadding}px ${layout.outerPadding}px` }}>
         {/* Product name */}
         <div style={{ opacity: nameOp, transform: `scale(${nameSc})`, transformOrigin: 'left bottom' }}>
-          <div style={{ fontSize: layout.displaySize, fontWeight: '800', color: '#f1f5f9', fontFamily: DISPLAY_FONT, letterSpacing: '2px', textTransform: 'uppercase' as const, lineHeight: 1 }}>
+          <div style={{ fontSize: layout.displaySize, fontWeight: '800', color: '#f1f5f9', fontFamily: DISPLAY_FONT, letterSpacing: '2px', textTransform: 'uppercase' as const, lineHeight: 1, textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}>
             {productName}
           </div>
         </div>
