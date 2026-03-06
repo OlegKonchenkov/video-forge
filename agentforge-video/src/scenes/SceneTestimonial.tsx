@@ -12,7 +12,7 @@ import type { SceneTestimonialProps, SharedSceneProps } from '../types';
 
 export const SceneTestimonial: React.FC<SceneTestimonialProps & SharedSceneProps> = ({
   quote, name, role, company,
-  accentColor, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
@@ -33,11 +33,15 @@ export const SceneTestimonial: React.FC<SceneTestimonialProps & SharedSceneProps
   const displayCompany = company ? ` · ${company}` : '';
 
   return (
-    <AbsoluteFill style={{ backgroundColor: '#050d1a', overflow: 'hidden' }}>
-      {/* Scene background image */}
-      <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-      {/* Dark overlay */}
-      <AbsoluteFill style={{ backgroundColor: 'rgba(5,13,26,0.75)' }} />
+    <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      {showImage && (
+        <>
+          {/* Scene background image */}
+          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+          {/* Dark overlay */}
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+        </>
+      )}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 30% 50%, ${av.bg} 0%, transparent 60%)` }} />
       <NoiseOverlay />
 

@@ -12,7 +12,7 @@ import type { ScenePainHookProps, SharedSceneProps } from '../types';
 
 export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
   headline, sub, painPoints,
-  accentColor, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
@@ -33,11 +33,15 @@ export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
   const cardCues = [CUE_C1, CUE_C2, CUE_C3];
 
   return (
-    <AbsoluteFill style={{ backgroundColor: '#050d1a', overflow: 'hidden' }}>
-      {/* Scene background image */}
-      <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-      {/* Dark overlay */}
-      <AbsoluteFill style={{ backgroundColor: 'rgba(5,13,26,0.75)' }} />
+    <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      {showImage && (
+        <>
+          {/* Scene background image */}
+          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+          {/* Dark overlay */}
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+        </>
+      )}
       {/* Dot grid parallax */}
       <AbsoluteFill style={{
         backgroundImage: `radial-gradient(circle, ${av.border} 1.5px, transparent 1.5px)`,
@@ -103,7 +107,7 @@ export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
           paddingLeft: layout.isPortrait ? 0 : 64,
           opacity: exitOp,
         }}>
-          {painPoints.map((point, i) => {
+          {painPoints.slice(0, layout.maxListItems).map((point, i) => {
             const cue = cardCues[i];
             const p   = spring({ frame: frame - cue, fps, config: { damping: 200 } });
             const y   = interpolate(p, [0, 1], [60, 0]);

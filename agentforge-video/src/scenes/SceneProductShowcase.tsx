@@ -11,7 +11,7 @@ import type { SceneProductShowcaseProps, SharedSceneProps } from '../types';
 
 export const SceneProductShowcase: React.FC<SceneProductShowcaseProps & SharedSceneProps> = ({
   productName, tagline, price,
-  accentColor, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
@@ -36,8 +36,8 @@ export const SceneProductShowcase: React.FC<SceneProductShowcaseProps & SharedSc
   const priceSc = price ? interpolate(spring({ frame: frame - CUE_PRICE, fps, config: { damping: 15 } }), [0, 1], [0.7, 1]) : 1;
 
   return (
-    <AbsoluteFill style={{ backgroundColor: '#050d1a', overflow: 'hidden' }}>
-      {/* Full-bleed product image with Ken Burns */}
+    <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      {showImage && (
       <AbsoluteFill style={{ overflow: 'hidden' }}>
         <Img
           src={staticFile(`images/scene_${sceneIndex}.png`)}
@@ -49,8 +49,9 @@ export const SceneProductShowcase: React.FC<SceneProductShowcaseProps & SharedSc
           }}
         />
         {/* Dark vignette over image */}
-        <AbsoluteFill style={{ background: 'linear-gradient(to top, #050d1a 0%, rgba(5,13,26,0.6) 50%, rgba(5,13,26,0.2) 100%)' }} />
+        <AbsoluteFill style={{ background: `linear-gradient(to top, ${bgColor} 0%, rgba(5,13,26,0.6) 50%, rgba(5,13,26,0.2) 100%)` }} />
       </AbsoluteFill>
+      )}
 
       <NoiseOverlay />
 

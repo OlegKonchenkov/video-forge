@@ -23,7 +23,7 @@ const DotGrid: React.FC<{ color: string }> = ({ color }) => (
 
 export const SceneMapLocation: React.FC<SceneMapLocationProps & SharedSceneProps> = ({
   address, city, hours, phone,
-  accentColor, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
@@ -45,16 +45,20 @@ export const SceneMapLocation: React.FC<SceneMapLocationProps & SharedSceneProps
   const infoY  = interpolate(spring({ frame: frame - CUE_INFO, fps, config: { damping: 200 } }), [0, 1], [20, 0]);
 
   return (
-    <AbsoluteFill style={{ backgroundColor: '#050d1a', overflow: 'hidden' }}>
-      {/* Scene background image */}
-      <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-      {/* Dark overlay */}
-      <AbsoluteFill style={{ backgroundColor: 'rgba(5,13,26,0.75)' }} />
+    <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      {showImage && (
+        <>
+          {/* Scene background image */}
+          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+          {/* Dark overlay */}
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+        </>
+      )}
       {/* Dot grid map */}
       <AbsoluteFill>
         <DotGrid color="rgba(148,163,184,0.08)" />
       </AbsoluteFill>
-      <AbsoluteFill style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(5,13,26,0) 30%, #050d1a 75%)' }} />
+      <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 50%, rgba(5,13,26,0) 30%, ${bgColor} 75%)` }} />
       <NoiseOverlay />
 
       <AbsoluteFill style={{

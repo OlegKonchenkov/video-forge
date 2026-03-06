@@ -11,7 +11,7 @@ import type { SceneCTAProps, SharedSceneProps } from '../types';
 
 export const SceneCTA: React.FC<SceneCTAProps & SharedSceneProps> = ({
   headline, accentLine, sub,
-  accentColor, brandName, ctaText, ctaUrl, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, brandName, ctaText, ctaUrl, audioPath, sceneIndex, sceneTotal,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
@@ -45,14 +45,18 @@ export const SceneCTA: React.FC<SceneCTAProps & SharedSceneProps> = ({
   const urlLen = Math.floor(interpolate(frame - CUE_URL, [0, ctaUrl.length * 2.5], [0, ctaUrl.length], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }));
 
   return (
-    <AbsoluteFill style={{ backgroundColor: '#050d1a', overflow: 'hidden' }}>
-      {/* Scene background image */}
-      <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-      {/* Dark overlay */}
-      <AbsoluteFill style={{ backgroundColor: 'rgba(5,13,26,0.75)' }} />
+    <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      {showImage && (
+        <>
+          {/* Scene background image */}
+          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+          {/* Dark overlay */}
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+        </>
+      )}
       {/* Full-bleed radial gradient */}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 50%, ${av.strong} 0%, transparent 60%)` }} />
-      <AbsoluteFill style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(5,13,26,0) 30%, #050d1a 70%)' }} />
+      <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 50%, rgba(5,13,26,0) 30%, ${bgColor} 70%)` }} />
       {/* Pulse ring */}
       <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
         <div style={{ width: 600, height: 600, borderRadius: '50%', border: `1px solid ${av.border}`, transform: `scale(${pulseScale})` }} />

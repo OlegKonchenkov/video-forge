@@ -11,7 +11,7 @@ import type { SceneOfferCountdownProps, SharedSceneProps } from '../types';
 
 export const SceneOfferCountdown: React.FC<SceneOfferCountdownProps & SharedSceneProps> = ({
   badge, offer, benefit, urgency,
-  accentColor, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
@@ -41,11 +41,15 @@ export const SceneOfferCountdown: React.FC<SceneOfferCountdownProps & SharedScen
   const urgencyFlash = interpolate(frame % 45, [0, 22, 45], [1, 0.4, 1]);
 
   return (
-    <AbsoluteFill style={{ backgroundColor: '#050d1a', overflow: 'hidden' }}>
-      {/* Scene background image */}
-      <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-      {/* Dark overlay */}
-      <AbsoluteFill style={{ backgroundColor: 'rgba(5,13,26,0.75)' }} />
+    <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      {showImage && (
+        <>
+          {/* Scene background image */}
+          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+          {/* Dark overlay */}
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+        </>
+      )}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 40%, ${av.bg} 0%, transparent 65%)` }} />
       <NoiseOverlay />
 

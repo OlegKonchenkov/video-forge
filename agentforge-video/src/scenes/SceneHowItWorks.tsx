@@ -11,7 +11,7 @@ import type { SceneHowItWorksProps, SharedSceneProps } from '../types';
 
 export const SceneHowItWorks: React.FC<SceneHowItWorksProps & SharedSceneProps> = ({
   title, steps,
-  accentColor, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
@@ -32,12 +32,16 @@ export const SceneHowItWorks: React.FC<SceneHowItWorksProps & SharedSceneProps> 
   const displaySteps = steps.slice(0, 3);
 
   return (
-    <AbsoluteFill style={{ backgroundColor: '#050d1a', overflow: 'hidden' }}>
-      {/* Scene background image */}
-      <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-      {/* Dark overlay */}
-      <AbsoluteFill style={{ backgroundColor: 'rgba(5,13,26,0.75)' }} />
-      <AbsoluteFill style={{ background: 'radial-gradient(ellipse at 50% 10%, rgba(10,22,40,0.8) 0%, #050d1a 55%)' }} />
+    <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      {showImage && (
+        <>
+          {/* Scene background image */}
+          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+          {/* Dark overlay */}
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+        </>
+      )}
+      <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 10%, rgba(10,22,40,0.8) 0%, ${bgColor} 55%)` }} />
       <NoiseOverlay />
 
       <AbsoluteFill style={{

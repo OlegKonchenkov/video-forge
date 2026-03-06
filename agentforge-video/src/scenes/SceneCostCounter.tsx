@@ -50,7 +50,7 @@ const Stat: React.FC<{
 
 export const SceneCostCounter: React.FC<SceneCostCounterProps & SharedSceneProps> = ({
   intro, stat1, stat2,
-  accentColor, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
@@ -64,12 +64,16 @@ export const SceneCostCounter: React.FC<SceneCostCounterProps & SharedSceneProps
   const introY  = interpolate(spring({ frame, fps, config: { damping: 200 } }), [0, 1], [24, 0]);
 
   return (
-    <AbsoluteFill style={{ backgroundColor: '#050d1a', overflow: 'hidden' }}>
-      {/* Scene background image */}
-      <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-      {/* Dark overlay */}
-      <AbsoluteFill style={{ backgroundColor: 'rgba(5,13,26,0.75)' }} />
-      <AbsoluteFill style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(5,13,26,0) 20%, #050d1a 65%)' }} />
+    <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      {showImage && (
+        <>
+          {/* Scene background image */}
+          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+          {/* Dark overlay */}
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+        </>
+      )}
+      <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 40%, rgba(5,13,26,0) 20%, ${bgColor} 65%)` }} />
       <NoiseOverlay />
 
       <AbsoluteFill style={{

@@ -12,7 +12,7 @@ import type { SceneFeatureListProps, SharedSceneProps } from '../types';
 
 export const SceneFeatureList: React.FC<SceneFeatureListProps & SharedSceneProps> = ({
   headlineLines, sub, features,
-  accentColor, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
@@ -30,11 +30,15 @@ export const SceneFeatureList: React.FC<SceneFeatureListProps & SharedSceneProps
   const headOp = interpolate(frame - CUE_HEADER, [0, 15], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   return (
-    <AbsoluteFill style={{ backgroundColor: '#050d1a', overflow: 'hidden' }}>
-      {/* Scene background image */}
-      <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-      {/* Dark overlay */}
-      <AbsoluteFill style={{ backgroundColor: 'rgba(5,13,26,0.75)' }} />
+    <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      {showImage && (
+        <>
+          {/* Scene background image */}
+          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+          {/* Dark overlay */}
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+        </>
+      )}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 75% 30%, ${av.bg} 0%, transparent 55%)`, opacity: bgOp }} />
       <NoiseOverlay />
 
@@ -84,7 +88,7 @@ export const SceneFeatureList: React.FC<SceneFeatureListProps & SharedSceneProps
             </span>
           </div>
 
-          {features.slice(0, 3).map((f, i) => {
+          {features.slice(0, layout.maxListItems).map((f, i) => {
             const cue = cardCues[i];
             const p   = spring({ frame: frame - cue, fps, config: { damping: 200 } });
             const x   = interpolate(p, [0, 1], [40, 0]);

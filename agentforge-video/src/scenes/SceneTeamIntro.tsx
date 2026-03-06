@@ -11,7 +11,7 @@ import type { SceneTeamIntroProps, SharedSceneProps } from '../types';
 
 export const SceneTeamIntro: React.FC<SceneTeamIntroProps & SharedSceneProps> = ({
   title, members,
-  accentColor, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
@@ -31,11 +31,15 @@ export const SceneTeamIntro: React.FC<SceneTeamIntroProps & SharedSceneProps> = 
   const avatarSize = layout.isPortrait ? 60 : 80;
 
   return (
-    <AbsoluteFill style={{ backgroundColor: '#050d1a', overflow: 'hidden' }}>
-      {/* Scene background image */}
-      <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-      {/* Dark overlay */}
-      <AbsoluteFill style={{ backgroundColor: 'rgba(5,13,26,0.75)' }} />
+    <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      {showImage && (
+        <>
+          {/* Scene background image */}
+          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+          {/* Dark overlay */}
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.50)' }} />
+        </>
+      )}
       {/* Warm tint radial */}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 40%, rgba(251,191,36,0.04) 0%, transparent 65%)`, opacity: warmOp }} />
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 0%, ${av.bg} 0%, transparent 55%)` }} />
