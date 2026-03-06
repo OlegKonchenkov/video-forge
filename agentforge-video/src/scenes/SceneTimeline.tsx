@@ -1,10 +1,12 @@
 // agentforge-video/src/scenes/SceneTimeline.tsx
+// Visual: CHRONICLE — GradientMesh, glowing backbone line, aura dots, alternating layout
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate, spring, AbsoluteFill, staticFile } from 'remotion';
 import { Audio } from '@remotion/media';
 import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
+import { GradientMesh } from '../shared/GradientMesh';
 import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
 import type { SceneTimelineProps, SharedSceneProps } from '../types';
@@ -19,48 +21,66 @@ export const SceneTimeline: React.FC<SceneTimelineProps & SharedSceneProps> = ({
   const layout = useSceneLayout();
 
   const CUE_TITLE   = 0;
-  const CUE_LINE    = dur * 0.18;
-  const CUE_EVENT_0 = dur * 0.22;
+  const CUE_LINE    = dur * 0.16;
+  const CUE_EVENT_0 = dur * 0.20;
   const EVENT_STEP  = dur * 0.16;
 
   const titleOp = interpolate(frame, [CUE_TITLE, CUE_TITLE + 20], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-  const titleY  = interpolate(spring({ frame, fps, config: { damping: 200 } }), [0, 1], [20, 0]);
+  const titleY  = interpolate(spring({ frame, fps, config: { damping: 200 } }), [0, 1], [22, 0]);
 
-  // Animated line that grows to reveal events
+  // Growing backbone line
   const lineProgress = interpolate(
     spring({ frame: frame - CUE_LINE, fps, config: { damping: 300 } }),
     [0, 1], [0, 1],
   );
 
-  const displayEvents = events.slice(0, layout.maxListItems + 1); // 3 portrait, 4 landscape
-  const totalEvents = displayEvents.length;
+  // Pulsing line glow
+  const lineGlow = 0.6 + Math.sin(frame * 0.09) * 0.4;
+
+  const displayEvents = events.slice(0, layout.maxListItems + 1);
+  const totalEvents   = displayEvents.length;
+
+  const exitOp = interpolate(frame, [dur * 0.88, dur * 0.88 + 10], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
       {showImage && (
         <>
-          {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.75)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.78)' }} />
         </>
       )}
-      <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 60%, ${av.bg} 0%, transparent 65%)` }} />
+
+      {/* Animated gradient mesh */}
+      <GradientMesh colors={[accentColor, '#1e3a5f', '#0f172a']} speed={0.6} opacity={0.40} />
+
       <NoiseOverlay />
 
       <AbsoluteFill style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         padding: `${layout.isPortrait ? layout.outerPadding * 0.6 : 0}px ${layout.outerPadding}px`,
         gap: layout.innerGap,
+        opacity: exitOp,
       }}>
         {/* Title */}
         <div style={{ opacity: titleOp, transform: `translateY(${titleY}px)`, textAlign: 'center' as const }}>
-          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px', textShadow: '0 2px 16px rgba(0,0,0,0.7)' }}>
+          <div style={{
+            fontSize: layout.labelSize, color: accentColor, fontFamily: MONO_FONT,
+            letterSpacing: '3px', textTransform: 'uppercase' as const, marginBottom: 8,
+            textShadow: `0 0 16px ${av.glow}`,
+          }}>
+            ◈ TIMELINE
+          </div>
+          <div style={{
+            fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9',
+            fontFamily: FONT, letterSpacing: '-1.5px',
+            textShadow: '0 2px 20px rgba(0,0,0,0.7)',
+          }}>
             {title}
           </div>
         </div>
 
-        {/* Timeline — horizontal in landscape, vertical in portrait */}
+        {/* Timeline */}
         <div style={{
           width: '100%',
           maxWidth: layout.maxContentWidth,
@@ -70,9 +90,8 @@ export const SceneTimeline: React.FC<SceneTimelineProps & SharedSceneProps> = ({
           alignItems: layout.isPortrait ? 'flex-start' : 'center',
           gap: 0,
         }}>
-          {/* Backbone line */}
+          {/* Glowing backbone line */}
           {layout.isPortrait ? (
-            /* Vertical line */
             <div style={{
               position: 'absolute' as const,
               left: 20, top: 24, bottom: 24,
@@ -80,9 +99,9 @@ export const SceneTimeline: React.FC<SceneTimelineProps & SharedSceneProps> = ({
               background: `linear-gradient(to bottom, ${accentColor}, ${av.border})`,
               height: `${Math.round(lineProgress * 100)}%`,
               borderRadius: 1,
+              boxShadow: `0 0 ${10 * lineGlow}px ${av.glow}`,
             }} />
           ) : (
-            /* Horizontal line */
             <div style={{
               position: 'absolute' as const,
               top: '50%', left: 20,
@@ -91,17 +110,16 @@ export const SceneTimeline: React.FC<SceneTimelineProps & SharedSceneProps> = ({
               width: `calc(${Math.round(lineProgress * 100)}% - 40px)`,
               transform: 'translateY(-50%)',
               borderRadius: 1,
+              boxShadow: `0 0 ${10 * lineGlow}px ${av.glow}`,
             }} />
           )}
 
           {/* Events */}
           {displayEvents.map((event, i) => {
-            const cue  = CUE_EVENT_0 + i * EVENT_STEP;
-            const p    = spring({ frame: frame - cue, fps, config: { damping: 200 } });
-            const op   = interpolate(frame - cue, [0, 18], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-            const sc   = interpolate(p, [0, 1], [0.6, 1]);
-
-            // Alternate label position in landscape (above/below)
+            const cue     = CUE_EVENT_0 + i * EVENT_STEP;
+            const p       = spring({ frame: frame - cue, fps, config: { damping: 200 } });
+            const op      = interpolate(frame - cue, [0, 18], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+            const sc      = interpolate(p, [0, 1], [0.5, 1]);
             const isAbove = !layout.isPortrait && i % 2 === 0;
 
             return (
@@ -116,30 +134,31 @@ export const SceneTimeline: React.FC<SceneTimelineProps & SharedSceneProps> = ({
                 paddingBottom: layout.isPortrait ? (i < totalEvents - 1 ? layout.innerGap * 0.6 : 0) : 0,
                 position: 'relative' as const,
               }}>
-                {/* Dot */}
+                {/* Glowing dot */}
                 <div style={{
                   position: layout.isPortrait ? 'absolute' as const : 'relative' as const,
                   left: layout.isPortrait ? -28 : undefined,
                   top: layout.isPortrait ? 4 : undefined,
-                  width: 18, height: 18, borderRadius: '50%',
-                  background: accentColor,
+                  width: 20, height: 20, borderRadius: '50%',
+                  background: `radial-gradient(circle, ${av.strong}, ${accentColor})`,
                   border: `3px solid ${bgColor}`,
-                  boxShadow: `0 0 16px ${av.glow}`,
+                  boxShadow: `0 0 20px ${av.glow}, 0 0 8px ${av.glow}`,
                   opacity: op,
                   transform: `scale(${sc})`,
                   flexShrink: 0,
                   zIndex: 2,
                 }} />
 
-                {/* Label block */}
                 {!layout.isPortrait && isAbove && (
                   <div style={{ height: layout.bodySize * 2.5 }} />
                 )}
+
                 <div style={{
                   opacity: op,
                   textAlign: layout.isPortrait ? 'left' as const : 'center' as const,
                   order: layout.isPortrait ? undefined : isAbove ? -1 : undefined,
                 }}>
+                  {/* Year */}
                   <div style={{
                     fontSize: layout.isPortrait ? layout.bodySize : layout.labelSize + 2,
                     fontWeight: '700',
@@ -147,10 +166,11 @@ export const SceneTimeline: React.FC<SceneTimelineProps & SharedSceneProps> = ({
                     fontFamily: MONO_FONT,
                     letterSpacing: '1px',
                     marginBottom: 4,
-                    textShadow: '0 1px 12px rgba(0,0,0,0.85)',
+                    textShadow: `0 0 12px ${av.glow}`,
                   }}>
                     {event.year}
                   </div>
+                  {/* Event label */}
                   <div style={{
                     fontSize: layout.isPortrait ? layout.bodySize - 2 : layout.labelSize,
                     color: 'rgba(241,245,249,0.85)',
@@ -163,6 +183,7 @@ export const SceneTimeline: React.FC<SceneTimelineProps & SharedSceneProps> = ({
                     {event.label}
                   </div>
                 </div>
+
                 {!layout.isPortrait && !isAbove && (
                   <div style={{ height: layout.bodySize * 2.5 }} />
                 )}

@@ -1,10 +1,14 @@
 // agentforge-video/src/scenes/SceneTeamIntro.tsx
+// Visual: TEAM GRID — GradientMesh, hexagon geometry, ShimmerOverlay on avatars, glow cards
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate, spring, AbsoluteFill, staticFile } from 'remotion';
 import { Audio } from '@remotion/media';
 import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
+import { GradientMesh } from '../shared/GradientMesh';
+import { GeometricShapes } from '../shared/GeometricShapes';
+import { ShimmerOverlay } from '../shared/ShimmerOverlay';
 import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
 import type { SceneTeamIntroProps, SharedSceneProps } from '../types';
@@ -19,75 +23,122 @@ export const SceneTeamIntro: React.FC<SceneTeamIntroProps & SharedSceneProps> = 
   const layout = useSceneLayout();
 
   const CUE_TITLE = 0;
-  const memberCues = members.slice(0, layout.isPortrait ? 3 : 4).map((_, i) => dur * 0.22 + i * (dur * 0.12));
+  const numCards  = layout.isPortrait ? 3 : 4;
+  const memberCues = Array.from({ length: numCards }, (_, i) => dur * 0.20 + i * (dur * 0.11));
 
   const titleOp = interpolate(frame, [CUE_TITLE, CUE_TITLE + 20], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-  const titleY  = interpolate(spring({ frame, fps, config: { damping: 200 } }), [0, 1], [20, 0]);
+  const titleY  = interpolate(spring({ frame, fps, config: { damping: 200 } }), [0, 1], [22, 0]);
 
-  // Warm tint overlay
-  const warmOp = interpolate(frame, [0, 40], [0, 1], { extrapolateRight: 'clamp' });
+  const cardWidth  = Math.floor((layout.width - layout.outerPadding * 2 - (numCards - 1) * layout.cardGap) / numCards);
+  const avatarSize = layout.isPortrait ? 64 : 84;
 
-  const numCards = layout.isPortrait ? 3 : 4;
-  const cardWidth = Math.floor((layout.width - layout.outerPadding * 2 - (numCards - 1) * layout.cardGap) / numCards);
-  const avatarSize = layout.isPortrait ? 60 : 80;
+  const exitOp = interpolate(frame, [dur * 0.88, dur * 0.88 + 10], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
       {showImage && (
         <>
-          {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.75)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.78)' }} />
         </>
       )}
-      {/* Warm tint radial */}
-      <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 40%, rgba(251,191,36,0.04) 0%, transparent 65%)`, opacity: warmOp }} />
-      <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 0%, ${av.bg} 0%, transparent 55%)` }} />
+
+      {/* Animated gradient mesh */}
+      <GradientMesh colors={[accentColor, '#1e3a8a', '#0f172a']} speed={0.6} opacity={0.40} />
+
+      {/* Hexagon geometry in background */}
+      <GeometricShapes color={accentColor} opacity={0.06} count={8} style="hexagons" />
+
       <NoiseOverlay />
 
-      <AbsoluteFill style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: `0 ${layout.outerPadding}px`, gap: layout.innerGap }}>
+      <AbsoluteFill style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        padding: `0 ${layout.outerPadding}px`,
+        gap: layout.innerGap,
+        opacity: exitOp,
+      }}>
         {/* Title */}
         <div style={{ opacity: titleOp, transform: `translateY(${titleY}px)`, textAlign: 'center' as const }}>
-          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px', textShadow: '0 2px 16px rgba(0,0,0,0.7)' }}>{title}</div>
+          <div style={{
+            fontSize: layout.labelSize, color: accentColor, fontFamily: MONO_FONT,
+            letterSpacing: '3px', textTransform: 'uppercase' as const, marginBottom: 10,
+            textShadow: `0 0 16px ${av.glow}`,
+          }}>
+            ◈ OUR TEAM
+          </div>
+          <div style={{
+            fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9',
+            fontFamily: FONT, letterSpacing: '-1.5px', textShadow: '0 2px 20px rgba(0,0,0,0.7)',
+          }}>
+            {title}
+          </div>
         </div>
 
         {/* Member cards */}
         <div style={{ display: 'flex', gap: layout.cardGap, flexWrap: 'wrap' as const, justifyContent: 'center' }}>
-          {members.slice(0, layout.isPortrait ? 3 : 4).map((member, i) => {
+          {members.slice(0, numCards).map((member, i) => {
             const cue = memberCues[i];
             const p   = spring({ frame: frame - cue, fps, config: { damping: 200 } });
-            const y   = interpolate(p, [0, 1], [50, 0]);
+            const y   = interpolate(p, [0, 1], [60, 0]);
             const op  = interpolate(frame - cue, [0, 18], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
             return (
               <div key={i} style={{
                 opacity: op, transform: `translateY(${y}px)`,
                 width: cardWidth,
-                background: av.bg,
+                background: 'rgba(255,255,255,0.04)',
                 borderRadius: 20,
                 border: `1px solid ${av.border}`,
-                padding: `${layout.innerGap * 0.7}px ${layout.cardGap}px`,
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: layout.cardGap * 0.5,
+                borderTop: `2px solid ${av.strong}`,
+                padding: `${layout.innerGap * 0.8}px ${layout.cardGap}px`,
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: layout.cardGap * 0.55,
+                boxShadow: `0 0 30px ${av.glow}`,
               }}>
-                {/* Avatar circle */}
+                {/* Avatar with shimmer sweep */}
                 <div style={{
                   width: avatarSize, height: avatarSize, borderRadius: '50%',
-                  background: `linear-gradient(135deg, ${accentColor}, ${av.strong})`,
+                  background: `radial-gradient(circle at 35% 35%, ${av.strong}, ${accentColor})`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: `0 0 24px ${av.glow}`,
+                  boxShadow: `0 0 32px ${av.glow}, 0 0 16px ${av.glow}`,
                   flexShrink: 0,
+                  position: 'relative' as const,
+                  overflow: 'hidden',
                 }}>
-                  <span style={{ fontSize: layout.bodySize - 4, fontWeight: '700', color: '#ffffff', fontFamily: FONT }}>
+                  <span style={{
+                    fontSize: layout.bodySize - 2,
+                    fontWeight: '800',
+                    color: '#ffffff',
+                    fontFamily: FONT,
+                    textShadow: '0 1px 8px rgba(0,0,0,0.5)',
+                  }}>
                     {member.initials}
                   </span>
+                  <ShimmerOverlay color="#ffffff" periodFrames={120 + i * 30} opacity={0.4} width="70%" />
                 </div>
+
                 {/* Name */}
-                <div style={{ fontSize: layout.bodySize - 6, fontWeight: '700', color: '#f1f5f9', fontFamily: FONT, textAlign: 'center' as const, lineHeight: 1.3 }}>
+                <div style={{
+                  fontSize: layout.bodySize - 5,
+                  fontWeight: '700',
+                  color: '#f1f5f9',
+                  fontFamily: FONT,
+                  textAlign: 'center' as const,
+                  lineHeight: 1.3,
+                  textShadow: '0 1px 8px rgba(0,0,0,0.6)',
+                }}>
                   {member.name}
                 </div>
+
                 {/* Role */}
-                <div style={{ fontSize: layout.labelSize, color: 'rgba(148,163,184,0.65)', fontFamily: MONO_FONT, textTransform: 'uppercase' as const, letterSpacing: '1.5px', textAlign: 'center' as const }}>
+                <div style={{
+                  fontSize: layout.labelSize,
+                  color: accentColor,
+                  fontFamily: MONO_FONT,
+                  textTransform: 'uppercase' as const,
+                  letterSpacing: '1.5px',
+                  textAlign: 'center' as const,
+                  textShadow: `0 0 10px ${av.glow}`,
+                }}>
                   {member.role}
                 </div>
               </div>

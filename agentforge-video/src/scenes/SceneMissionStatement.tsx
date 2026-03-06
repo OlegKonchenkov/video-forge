@@ -1,10 +1,13 @@
 // agentforge-video/src/scenes/SceneMissionStatement.tsx
+// Visual: MANIFESTO — GradientMesh, GeometricShapes circles, WordByWord reveal, glowing values
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate, spring, AbsoluteFill, staticFile } from 'remotion';
 import { Audio } from '@remotion/media';
-import { FONT, DISPLAY_FONT, MONO_FONT } from '../font';
+import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
+import { GradientMesh } from '../shared/GradientMesh';
+import { GeometricShapes } from '../shared/GeometricShapes';
 import { WordByWord } from '../shared/WordByWord';
 import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
@@ -27,53 +30,65 @@ export const SceneMissionStatement: React.FC<SceneMissionStatementProps & Shared
 
   const dividerW  = interpolate(
     spring({ frame: frame - CUE_DIVIDER, fps, config: { damping: 200 } }),
-    [0, 1], [0, layout.isPortrait ? layout.maxContentWidth * 0.4 : 600],
+    [0, 1], [0, layout.isPortrait ? layout.maxContentWidth * 0.45 : 640],
   );
   const dividerOp = interpolate(frame - CUE_DIVIDER, [0, 12], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   const valueCues = [CUE_VALUES, CUE_VALUES + dur * 0.06, CUE_VALUES + dur * 0.12];
 
-  const statementFontSize = Math.max(layout.bodySize + 6, Math.round(layout.headingSize * (layout.isPortrait ? 0.85 : 0.9)));
+  const statementFontSize = Math.max(
+    layout.bodySize + 8,
+    Math.round(layout.headingSize * (layout.isPortrait ? 0.85 : 0.90)),
+  );
+
+  // Pulsing divider glow
+  const divGlow = 0.6 + Math.sin(frame * 0.10) * 0.4;
+
+  const exitOp = interpolate(frame, [dur * 0.88, dur * 0.88 + 10], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
       {showImage && (
         <>
-          {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.75)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.78)' }} />
         </>
       )}
-      {/* Gradient sweep */}
-      <AbsoluteFill style={{
-        background: `radial-gradient(ellipse at 50% 40%, ${av.bg} 0%, transparent 65%)`,
-        opacity: bgReveal,
-      }} />
+
+      {/* Animated gradient mesh */}
+      <GradientMesh colors={[accentColor, '#1e1b4b', '#0f172a']} speed={0.5} opacity={0.38 * bgReveal} />
+
+      {/* Subtle circles in background */}
+      <GeometricShapes color={accentColor} opacity={0.05} count={5} style="circles" />
+
       {/* Giant decorative quote mark */}
       <AbsoluteFill style={{
-        display: 'flex', alignItems: 'flex-start', justifyContent: layout.isPortrait ? 'flex-start' : 'center',
+        display: 'flex', alignItems: 'flex-start',
+        justifyContent: layout.isPortrait ? 'flex-start' : 'center',
         pointerEvents: 'none',
         padding: `${layout.outerPadding * 0.5}px ${layout.outerPadding}px`,
       }}>
         <div style={{
           fontSize: layout.isPortrait ? 200 : 320,
-          fontFamily: DISPLAY_FONT,
+          fontFamily: FONT,
           color: accentColor,
-          opacity: bgReveal * 0.06,
+          opacity: bgReveal * 0.07,
           lineHeight: 1,
+          fontWeight: '900',
         }}>
           "
         </div>
       </AbsoluteFill>
+
       <NoiseOverlay />
 
       <AbsoluteFill style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         padding: `0 ${layout.outerPadding + (layout.isPortrait ? 0 : 60)}px`,
         gap: layout.isPortrait ? layout.innerGap * 0.6 : 32,
+        opacity: exitOp,
       }}>
-        {/* Statement text — word by word */}
+        {/* Statement — word by word */}
         <div style={{ maxWidth: layout.maxContentWidth, textAlign: 'center' as const }}>
           <WordByWord
             text={statement}
@@ -93,15 +108,16 @@ export const SceneMissionStatement: React.FC<SceneMissionStatementProps & Shared
           />
         </div>
 
-        {/* Animated divider */}
+        {/* Animated divider with glow */}
         <div style={{ opacity: dividerOp }}>
           <div style={{
             width: dividerW, height: 2,
             background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)`,
+            boxShadow: `0 0 ${12 * divGlow}px ${av.glow}`,
           }} />
         </div>
 
-        {/* 3 core values */}
+        {/* Value pills */}
         <div style={{
           display: 'flex',
           flexDirection: 'row' as const,
@@ -113,7 +129,7 @@ export const SceneMissionStatement: React.FC<SceneMissionStatementProps & Shared
           {values.map((val, i) => {
             const cue = valueCues[i];
             const p   = spring({ frame: frame - cue, fps, config: { damping: 15 } });
-            const sc  = interpolate(p, [0, 1], [0.7, 1]);
+            const sc  = interpolate(p, [0, 1], [0.65, 1]);
             const op  = interpolate(frame - cue, [0, 10], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
             return (
               <div key={i} style={{ opacity: op, transform: `scale(${sc})` }}>
@@ -123,9 +139,14 @@ export const SceneMissionStatement: React.FC<SceneMissionStatementProps & Shared
                   border: `1px solid ${av.border}`,
                   borderTop: `2px solid ${accentColor}`,
                   borderRadius: 100,
-                  padding: `${layout.isPortrait ? 10 : 12}px ${layout.isPortrait ? 18 : 24}px`,
+                  padding: `${layout.isPortrait ? 10 : 12}px ${layout.isPortrait ? 18 : 26}px`,
+                  boxShadow: `0 0 20px ${av.glow}`,
                 }}>
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: accentColor, flexShrink: 0 }} />
+                  <div style={{
+                    width: 6, height: 6, borderRadius: '50%',
+                    background: accentColor, flexShrink: 0,
+                    boxShadow: `0 0 8px ${av.glow}`,
+                  }} />
                   <span style={{
                     fontSize: layout.isPortrait ? layout.labelSize + 2 : layout.bodySize - 4,
                     fontFamily: MONO_FONT,
