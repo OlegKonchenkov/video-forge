@@ -1,14 +1,16 @@
 // agentforge-video/src/scenes/ScenePainHook.tsx
+// GLITCH TERMINAL — scanlines + hexagons + slide-in terminal entries
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate, spring, AbsoluteFill, staticFile } from 'remotion';
 import { Audio } from '@remotion/media';
 import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
-import { WordByWord } from '../shared/WordByWord';
 import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
-import { GridDots } from '../shared/svg/GridDots';
+import { KineticText } from '../shared/KineticText';
+import { ScanlineEffect } from '../shared/ScanlineEffect';
+import { GeometricShapes } from '../shared/GeometricShapes';
 import type { ScenePainHookProps, SharedSceneProps } from '../types';
 
 export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
@@ -20,31 +22,36 @@ export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
   const av = accentVariants(accentColor);
   const layout = useSceneLayout();
 
-  const CUE_TAG  = 0;
-  const CUE_HEAD = dur * 0.08;
-  const CUE_SUB  = dur * 0.35;
-  const CUE_C1   = dur * 0.45;
-  const CUE_C2   = dur * 0.57;
-  const CUE_C3   = dur * 0.69;
+  const CUE_BADGE = dur * 0.04;
+  const CUE_HEAD  = dur * 0.10;
+  const CUE_SUB   = dur * 0.33;
+  const CUE_C1    = dur * 0.43;
+  const CUE_C2    = dur * 0.56;
+  const CUE_C3    = dur * 0.69;
 
-  const bgX    = interpolate(frame, [0, dur], [0, -24], { extrapolateRight: 'clamp' });
-  const tagOp  = interpolate(frame, [CUE_TAG, CUE_TAG + 14], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const exitOp = interpolate(frame, [dur * 0.88, dur * 0.88 + 12], [1, 0.3], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
-  const cardCues = [CUE_C1, CUE_C2, CUE_C3];
+  const badgeOp  = interpolate(frame - CUE_BADGE, [0, 14], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const subOp    = interpolate(frame - CUE_SUB, [0, 18], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const subY     = interpolate(spring({ frame: frame - CUE_SUB, fps, config: { damping: 200 } }), [0, 1], [22, 0]);
+
+  const cardCues     = [CUE_C1, CUE_C2, CUE_C3];
+  const termPrefixes = ['01 ▶', '02 ▶', '03 ▶'];
 
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
       {showImage && (
         <>
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.75)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.80)' }} />
         </>
       )}
-      {/* Animated dot grid — replaces CSS radial-gradient background */}
-      <GridDots color={av.border} opacity={0.4} translateX={bgX} />
-      {/* Diagonal accent gradient */}
-      <AbsoluteFill style={{ background: `linear-gradient(130deg, ${av.bg} 0%, transparent 55%)` }} />
+      {/* Diagonal tint */}
+      <AbsoluteFill style={{ background: `linear-gradient(135deg, ${av.bg} 0%, transparent 58%)` }} />
+      {/* Hexagonal decor — very subtle */}
+      <GeometricShapes color={accentColor} opacity={0.05} count={6} style="hexagons" />
+      {/* CRT effect */}
+      <ScanlineEffect opacity={0.05} spacing={5} />
       <NoiseOverlay />
 
       <AbsoluteFill style={{
@@ -52,84 +59,76 @@ export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
         flexDirection: layout.direction,
         alignItems: layout.isPortrait ? 'flex-start' : 'center',
         justifyContent: 'center',
-        padding: `${layout.isPortrait ? layout.outerPadding * 0.8 : 0}px ${layout.outerPadding}px`,
+        padding: `${layout.isPortrait ? layout.outerPadding * 0.85 : 0}px ${layout.outerPadding}px`,
         gap: layout.isPortrait ? layout.innerGap : 0,
         overflow: 'hidden',
+        opacity: exitOp,
       }}>
-        {/* ── Left / Top: text ── */}
-        <div style={{
-          width: layout.isPortrait ? '100%' : '54%',
-          display: 'flex', flexDirection: 'column', gap: 26,
-        }}>
-          {/* Tag badge */}
+        {/* ── Left / Top: headline block ── */}
+        <div style={{ width: layout.isPortrait ? '100%' : '50%', display: 'flex', flexDirection: 'column', gap: 22 }}>
+          {/* Terminal badge */}
           <div style={{
-            opacity: tagOp, display: 'inline-flex', alignItems: 'center', gap: 10,
+            opacity: badgeOp,
+            display: 'inline-flex', alignItems: 'center', gap: 10,
             background: av.bg, border: `1px solid ${av.border}`,
-            borderRadius: 100, padding: '8px 22px', width: 'fit-content',
+            borderRadius: 6, padding: '7px 18px', width: 'fit-content',
           }}>
-            <div style={{ width: 7, height: 7, background: accentColor, borderRadius: '50%' }} />
-            <span style={{ fontSize: layout.labelSize, color: accentColor, fontFamily: MONO_FONT, fontWeight: '600', letterSpacing: '2px', textTransform: 'uppercase' as const }}>
-              Sound familiar?
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: accentColor, boxShadow: `0 0 6px ${accentColor}` }} />
+            <span style={{ fontSize: layout.labelSize, color: accentColor, fontFamily: MONO_FONT, fontWeight: '700', letterSpacing: '2.5px', textTransform: 'uppercase' as const }}>
+              SYSTEM ALERT
             </span>
           </div>
 
-          {/* Headline word-by-word */}
-          <WordByWord
-            text={headline}
-            frame={frame} fps={fps} startFrame={CUE_HEAD} staggerFrames={3}
-            style={{ flexWrap: 'wrap', gap: '0.18em', overflow: 'hidden' }}
-            wordStyle={{
-              fontSize: layout.isPortrait ? layout.headingSize - 2 : layout.displaySize,
-              fontWeight: '700',
-              color: '#f1f5f9',
-              fontFamily: FONT,
-              lineHeight: 1.05,
-              letterSpacing: '-2.5px',
-              textShadow: '0 2px 20px rgba(0,0,0,0.7)',
-            }}
-          />
+          {/* Kinetic headline — blur-in */}
+          <div style={{ overflow: 'hidden' }}>
+            <KineticText
+              text={headline}
+              startFrame={CUE_HEAD}
+              fps={fps}
+              type="blur-in"
+              staggerFrames={2}
+              style={{
+                fontSize: layout.isPortrait ? layout.headingSize - 4 : layout.displaySize - 8,
+                fontWeight: '800' as const,
+                color: '#f1f5f9',
+                fontFamily: FONT,
+                lineHeight: 1.08,
+                letterSpacing: '-2px',
+                textShadow: '0 2px 24px rgba(0,0,0,0.9)',
+              }}
+            />
+          </div>
 
-          {/* Subtitle */}
-          {(() => {
-            const op = interpolate(frame - CUE_SUB, [0, 18], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-            const y  = interpolate(spring({ frame: frame - CUE_SUB, fps, config: { damping: 200 } }), [0, 1], [22, 0]);
-            return (
-              <div style={{ opacity: op, transform: `translateY(${y}px)` }}>
-                <div style={{ fontSize: layout.bodySize, color: 'rgba(148,163,184,0.88)', fontFamily: FONT, fontWeight: '400', lineHeight: 1.6, maxWidth: 540 }}>
-                  {sub}
-                </div>
-              </div>
-            );
-          })()}
+          {/* Sub */}
+          <div style={{ opacity: subOp, transform: `translateY(${subY}px)` }}>
+            <div style={{ fontSize: layout.bodySize, color: 'rgba(148,163,184,0.85)', fontFamily: MONO_FONT, lineHeight: 1.55, maxWidth: 520, textShadow: '0 1px 10px rgba(0,0,0,0.8)' }}>
+              {sub}
+            </div>
+          </div>
         </div>
 
-        {/* ── Right / Bottom: pain point cards ── */}
-        <div style={{
-          flex: 1,
-          display: 'flex', flexDirection: 'column', gap: layout.cardGap,
-          paddingLeft: layout.isPortrait ? 0 : 64,
-          opacity: exitOp,
-        }}>
+        {/* ── Right / Bottom: terminal pain cards ── */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: layout.cardGap, paddingLeft: layout.isPortrait ? 0 : 56 }}>
           {painPoints.slice(0, layout.maxListItems).map((point, i) => {
             const cue = cardCues[i];
-            const p   = spring({ frame: frame - cue, fps, config: { damping: 200 } });
-            const y   = interpolate(p, [0, 1], [60, 0]);
-            const op  = interpolate(frame - cue, [0, 14], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+            const p   = spring({ frame: frame - cue, fps, config: { damping: 180, stiffness: 120 } });
+            const x   = interpolate(p, [0, 1], [-60, 0]);
+            const op  = interpolate(frame - cue, [0, 12], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
             return (
               <div key={i} style={{
-                opacity: op, transform: `translateY(${y}px)`,
-                background: av.bg, borderRadius: 18,
-                border: `1px solid ${av.border}`, borderLeft: `3px solid ${av.strong}`,
-                padding: '22px 28px',
-                display: 'flex', alignItems: 'center', gap: 18,
+                opacity: op, transform: `translateX(${x}px)`,
+                background: 'rgba(0,0,0,0.45)',
+                border: `1px solid ${av.border}`,
+                borderLeft: `3px solid ${accentColor}`,
+                borderRadius: 8,
+                padding: '20px 24px',
+                display: 'flex', alignItems: 'center', gap: 16,
+                boxShadow: `0 0 20px ${av.glow}`,
               }}>
-                <div style={{
-                  width: 48, height: 48, borderRadius: 14, flexShrink: 0,
-                  background: av.glow, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <div style={{ width: 18, height: 18, borderRadius: '50%', background: accentColor, opacity: 0.9 }} />
-                </div>
-                <span style={{ fontSize: layout.bodySize, color: '#e2e8f0', fontFamily: FONT, fontWeight: '600', lineHeight: 1.35 }}>
+                <span style={{ fontSize: layout.labelSize, color: accentColor, fontFamily: MONO_FONT, fontWeight: '700', flexShrink: 0, letterSpacing: '1px' }}>
+                  {termPrefixes[i]}
+                </span>
+                <span style={{ fontSize: layout.bodySize - 1, color: '#e2e8f0', fontFamily: FONT, fontWeight: '600', lineHeight: 1.35, textShadow: '0 1px 10px rgba(0,0,0,0.8)' }}>
                   {point}
                 </span>
               </div>
