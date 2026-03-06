@@ -1,10 +1,13 @@
 // agentforge-video/src/scenes/SceneHowItWorks.tsx
+// Visual: FLOW DIAGRAM — GradientMesh background, glowing step nodes, pulsing rings, animated connectors
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate, spring, AbsoluteFill, staticFile } from 'remotion';
 import { Audio } from '@remotion/media';
-import { FONT, DISPLAY_FONT } from '../font';
+import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
+import { GradientMesh } from '../shared/GradientMesh';
+import { GeometricShapes } from '../shared/GeometricShapes';
 import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
 import type { SceneHowItWorksProps, SharedSceneProps } from '../types';
@@ -19,103 +22,186 @@ export const SceneHowItWorks: React.FC<SceneHowItWorksProps & SharedSceneProps> 
   const layout = useSceneLayout();
 
   const CUE_TITLE = 0;
-  const stepCues  = [dur * 0.18, dur * 0.38, dur * 0.58];
+  const stepCues  = [dur * 0.15, dur * 0.38, dur * 0.60];
 
-  const titleOp = interpolate(frame, [CUE_TITLE, CUE_TITLE + 20], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-  const titleY  = interpolate(spring({ frame, fps, config: { damping: 200 } }), [0, 1], [20, 0]);
+  const titleOp = interpolate(frame, [CUE_TITLE, CUE_TITLE + 18], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const titleY  = interpolate(spring({ frame, fps, config: { damping: 200 } }), [0, 1], [24, 0]);
 
-  // Connector lines between steps
-  const connector1W = interpolate(frame - stepCues[1], [0, 20], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-  const connector2W = interpolate(frame - stepCues[2], [0, 20], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-  const connectors  = [connector1W, connector2W];
+  // Connector animations
+  const connector1 = interpolate(spring({ frame: frame - stepCues[1], fps, config: { damping: 200 } }), [0, 1], [0, 1]);
+  const connector2 = interpolate(spring({ frame: frame - stepCues[2], fps, config: { damping: 200 } }), [0, 1], [0, 1]);
+  const connectors = [connector1, connector2];
 
   const displaySteps = steps.slice(0, 3);
+
+  // Pulsing aura ring
+  const pulse = 0.5 + Math.sin(frame * 0.11) * 0.5;
+
+  const exitOp = interpolate(frame, [dur * 0.88, dur * 0.88 + 10], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
       {showImage && (
         <>
-          {/* Scene background image */}
           <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          {/* Dark overlay */}
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.75)' }} />
+          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.80)' }} />
         </>
       )}
-      <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 10%, rgba(10,22,40,0.8) 0%, ${bgColor} 55%)` }} />
+
+      {/* Animated gradient mesh */}
+      <GradientMesh colors={[accentColor, '#1e40af', '#0f172a']} speed={0.6} opacity={0.45} />
+
+      {/* Decorative triangles in background */}
+      <GeometricShapes color={accentColor} opacity={0.05} count={6} style="triangles" />
+
       <NoiseOverlay />
 
       <AbsoluteFill style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         padding: `0 ${layout.outerPadding}px`,
-        gap: layout.innerGap,
+        gap: layout.innerGap * 0.8,
+        opacity: exitOp,
       }}>
         {/* Title */}
         <div style={{ opacity: titleOp, transform: `translateY(${titleY}px)`, textAlign: 'center' as const }}>
-          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px', textShadow: '0 2px 16px rgba(0,0,0,0.7)' }}>{title}</div>
+          <div style={{
+            fontSize: layout.labelSize,
+            color: accentColor,
+            fontFamily: MONO_FONT,
+            letterSpacing: '3px',
+            textTransform: 'uppercase' as const,
+            marginBottom: 10,
+            textShadow: `0 0 16px ${av.glow}`,
+          }}>
+            ◈ HOW IT WORKS
+          </div>
+          <div style={{
+            fontSize: layout.headingSize,
+            fontWeight: '800',
+            color: '#f1f5f9',
+            fontFamily: FONT,
+            letterSpacing: '-1.5px',
+            textShadow: '0 2px 24px rgba(0,0,0,0.7)',
+          }}>
+            {title}
+          </div>
         </div>
 
-        {/* Steps — row in landscape, column in portrait */}
+        {/* Steps */}
         <div style={{
           display: 'flex',
           flexDirection: layout.direction,
           alignItems: layout.isPortrait ? 'center' : 'flex-start',
           width: '100%',
           justifyContent: 'center',
-          gap: layout.isPortrait ? layout.innerGap : 0,
+          gap: layout.isPortrait ? layout.innerGap * 0.7 : 0,
         }}>
           {displaySteps.map((step, i) => {
             const cue = stepCues[i];
             const p   = spring({ frame: frame - cue, fps, config: { damping: 200 } });
-            const y   = interpolate(p, [0, 1], [50, 0]);
+            const y   = interpolate(p, [0, 1], [60, 0]);
             const op  = interpolate(frame - cue, [0, 18], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+            const circleSize = layout.isPortrait ? 72 : 90;
+            const isActive = frame >= cue;
+            const ringScale = isActive ? (1 + pulse * 0.18) : 1;
+            const ringOp    = isActive ? pulse * 0.40 : 0;
 
             return (
               <React.Fragment key={i}>
                 <div style={{
                   opacity: op, transform: `translateY(${y}px)`,
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
-                  width: layout.isPortrait ? '100%' : undefined, flex: layout.isPortrait ? undefined : 1,
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14,
+                  width: layout.isPortrait ? '90%' : undefined,
+                  flex: layout.isPortrait ? undefined : 1,
+                  padding: layout.isPortrait ? 0 : '0 12px',
                 }}>
-                  {/* Step number circle */}
+                  {/* Pulsing ring behind circle */}
                   <div style={{
-                    width: layout.isPortrait ? 64 : 80,
-                    height: layout.isPortrait ? 64 : 80,
-                    borderRadius: '50%',
-                    background: av.bg,
-                    border: `2px solid ${av.strong}`,
+                    position: 'relative' as const,
+                    width: circleSize, height: circleSize,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: `0 0 24px ${av.glow}`,
                   }}>
-                    <span style={{ fontSize: layout.isPortrait ? 28 : 36, fontFamily: DISPLAY_FONT, color: accentColor }}>{step.number}</span>
+                    {/* Outer pulsing ring */}
+                    <div style={{
+                      position: 'absolute' as const,
+                      width: circleSize, height: circleSize,
+                      borderRadius: '50%',
+                      border: `2px solid ${accentColor}`,
+                      transform: `scale(${ringScale})`,
+                      opacity: ringOp,
+                    }} />
+
+                    {/* Step number circle */}
+                    <div style={{
+                      width: circleSize, height: circleSize,
+                      borderRadius: '50%',
+                      background: `radial-gradient(circle at 35% 35%, ${av.strong}, ${av.bg})`,
+                      border: `2px solid ${av.strong}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: `0 0 32px ${av.glow}, 0 0 64px ${av.glow}`,
+                    }}>
+                      <span style={{
+                        fontSize: layout.isPortrait ? 30 : 38,
+                        fontFamily: MONO_FONT,
+                        fontWeight: '800',
+                        color: accentColor,
+                        lineHeight: 1,
+                        textShadow: `0 0 12px ${av.glow}`,
+                      }}>
+                        {String(step.number).padStart(2, '0')}
+                      </span>
+                    </div>
                   </div>
+
                   {/* Icon */}
-                  <div style={{ width: layout.isPortrait ? 28 : 36, height: layout.isPortrait ? 28 : 36, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: layout.isPortrait ? 28 : 36 }}>{step.icon}</div>
+                  <div style={{ fontSize: layout.isPortrait ? 32 : 40, lineHeight: 1 }}>{step.icon}</div>
+
                   {/* Title */}
-                  <div style={{ fontSize: layout.bodySize - 4, fontWeight: '700', color: '#f1f5f9', fontFamily: FONT, textAlign: 'center' as const, lineHeight: 1.3, textShadow: '0 1px 12px rgba(0,0,0,0.85)' }}>{step.title}</div>
+                  <div style={{
+                    fontSize: layout.bodySize - 2,
+                    fontWeight: '700',
+                    color: '#f1f5f9',
+                    fontFamily: FONT,
+                    textAlign: 'center' as const,
+                    lineHeight: 1.3,
+                    textShadow: '0 1px 12px rgba(0,0,0,0.85)',
+                  }}>
+                    {step.title}
+                  </div>
+
                   {/* Description */}
-                  <div style={{ fontSize: layout.labelSize + 2, color: 'rgba(148,163,184,0.7)', fontFamily: FONT, textAlign: 'center' as const, lineHeight: 1.55, textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>{step.description}</div>
+                  <div style={{
+                    fontSize: layout.labelSize + 2,
+                    color: 'rgba(148,163,184,0.75)',
+                    fontFamily: FONT,
+                    textAlign: 'center' as const,
+                    lineHeight: 1.55,
+                  }}>
+                    {step.description}
+                  </div>
                 </div>
 
-                {/* Connector between steps */}
+                {/* Animated connector */}
                 {i < displaySteps.length - 1 && (
-                  layout.isPortrait
-                    ? (
-                      /* Portrait: vertical connector */
-                      <div style={{
-                        width: 2, height: 32,
-                        background: `linear-gradient(to bottom, ${av.strong}, ${av.border})`,
-                        transform: `scaleY(${connectors[i]})`,
-                        transformOrigin: 'top',
-                      }} />
-                    ) : (
-                      /* Landscape: horizontal connector */
-                      <div style={{
-                        width: 48, height: 2, marginTop: 39, flexShrink: 0,
-                        background: `linear-gradient(90deg, ${av.strong}, ${av.border})`,
-                        transform: `scaleX(${connectors[i]})`,
-                        transformOrigin: 'left',
-                      }} />
-                    )
+                  layout.isPortrait ? (
+                    <div style={{
+                      width: 2, height: 36,
+                      background: `linear-gradient(to bottom, ${accentColor}, ${av.border})`,
+                      transform: `scaleY(${connectors[i]})`,
+                      transformOrigin: 'top',
+                      boxShadow: `0 0 10px ${av.glow}`,
+                    }} />
+                  ) : (
+                    <div style={{
+                      width: 56, height: 2,
+                      marginTop: 43,
+                      flexShrink: 0,
+                      background: `linear-gradient(90deg, ${accentColor}, ${av.border})`,
+                      transform: `scaleX(${connectors[i]})`,
+                      transformOrigin: 'left',
+                      boxShadow: `0 0 10px ${av.glow}`,
+                    }} />
+                  )
                 )}
               </React.Fragment>
             );
