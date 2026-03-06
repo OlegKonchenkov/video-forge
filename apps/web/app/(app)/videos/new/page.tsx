@@ -67,10 +67,11 @@ export default function NewVideoPage() {
   const [url, setUrl]                 = useState('');
   const [prompt, setPrompt]           = useState('');
   const [file, setFile]               = useState<File | null>(null);
-  const [resources, setResources]     = useState<File[]>([]);
-  const [title, setTitle]             = useState('');
-  const [loading, setLoading]         = useState(false);
-  const [error, setError]             = useState('');
+  const [resources, setResources]           = useState<File[]>([]);
+  const [title, setTitle]                   = useState('');
+  const [userInstructions, setUserInstructions] = useState('');
+  const [loading, setLoading]               = useState(false);
+  const [error, setError]                   = useState('');
 
   // Settings step state
   const [voiceMode, setVoiceMode]             = useState<'off' | 'auto' | 'choose'>('auto');
@@ -192,6 +193,7 @@ export default function NewVideoPage() {
           resourcePaths,
           voiceId: resolvedVoiceId(),
           musicId: selectedMusicId,
+          userInstructions: userInstructions.trim() || undefined,
         }),
       });
 
@@ -378,6 +380,23 @@ export default function NewVideoPage() {
               />
             </div>
           )}
+
+          {/* AI Instructions — visible for all input types */}
+          <div>
+            <label className="block text-xs font-sans font-semibold tracking-widest uppercase text-film-gray-light mb-1">
+              Instructions for the AI <span className="text-film-gray normal-case tracking-normal font-normal">(optional)</span>
+            </label>
+            <p className="text-xs text-film-gray/60 font-sans mb-2">
+              Guide the AI on tone, focus, scenes, language, or anything specific you want in the video.
+            </p>
+            <textarea
+              value={userInstructions}
+              onChange={e => setUserInstructions(e.target.value)}
+              rows={3}
+              placeholder={'E.g. "Focus on our B2B energy clients, use Italian, include a timeline of our 20-year history, avoid mention of pricing"'}
+              className="w-full px-4 py-3 bg-film-warm border border-film-border text-film-cream placeholder-film-gray font-sans text-sm focus:outline-none focus:border-film-amber/60 transition-colors resize-none"
+            />
+          </div>
 
           {/* Resource upload */}
           <div>
@@ -629,6 +648,7 @@ export default function NewVideoPage() {
                   ? 'Auto (AI picks)'
                   : `${musicCategory} — ${musicCategory ? MUSIC_TRACKS[musicCategory as MusicCategory]?.find(t => t.id === selectedMusicId)?.label ?? selectedMusicId : selectedMusicId}`,
               },
+              { label: 'AI Instructions', value: userInstructions.trim() ? userInstructions.slice(0, 80) + (userInstructions.length > 80 ? '…' : '') : 'None' },
               { label: 'Title',       value: title || 'Auto-generated' },
               { label: 'Credit Cost', value: '1 credit' },
             ].map(({ label, value }, idx, arr) => (

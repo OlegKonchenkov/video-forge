@@ -96,13 +96,14 @@ SELECTION RULES:
 `;
 
 function buildPrompt(
-  sourceText:       string,
-  inputType:        string,
-  language:         string,
-  businessType:     string,
-  knownAccentColor: string | null,
-  brandPalette:     BrandPalette | null,
-  seed:             string,
+  sourceText:        string,
+  inputType:         string,
+  language:          string,
+  businessType:      string,
+  knownAccentColor:  string | null,
+  brandPalette:      BrandPalette | null,
+  seed:              string,
+  userInstructions?: string,
 ): string {
   const langInstruction = language !== 'en'
     ? `CRITICAL LANGUAGE RULE: Write ALL copy (voiceovers, headlines, taglines, labels, CTAs) in "${language}" — the language of the source website. Never mix in English words unless they are brand names or technical terms universally understood.`
@@ -168,16 +169,20 @@ COPY RULES:
 - punchWords in inbox_chaos: short (1-3 words each), punchy, end with period
 - comparison: brandLabel should be the actual brand name; show clear advantage
 - ctaText: match the action ("Prenota una Demo" for SaaS, "Richiedi un Preventivo" for services, "Acquista Ora" for retail)
-- showImage: set true for atmospheric/visual scenes (brand_reveal, pain_hook, product_showcase, big_stat, mission_statement, testimonial); set false for data-heavy scenes (comparison, stats_grid, cost_counter, social_proof, timeline, how_it_works)`;
+- showImage: set true for atmospheric/visual scenes (brand_reveal, pain_hook, product_showcase, big_stat, mission_statement, testimonial); set false for data-heavy scenes (comparison, stats_grid, cost_counter, social_proof, timeline, how_it_works)${userInstructions ? `
+
+USER INSTRUCTIONS (HIGHEST PRIORITY — follow these strictly, they override any default rules above):
+${userInstructions}` : ''}`;
 }
 
 export async function generateScript(
-  sourceText:       string,
-  inputType:        string,
-  language:         string = 'en',
-  businessType:     string = 'mixed',
-  knownAccentColor: string | null = null,
-  brandPalette:     BrandPalette | null = null,
+  sourceText:        string,
+  inputType:         string,
+  language:          string = 'en',
+  businessType:      string = 'mixed',
+  knownAccentColor:  string | null = null,
+  brandPalette:      BrandPalette | null = null,
+  userInstructions?: string,
 ): Promise<VideoScript> {
   const seed = Math.random().toString(36).slice(2, 8);
   const model = process.env.OPENAI_MODEL || 'gpt-4.1-mini';
@@ -187,7 +192,7 @@ export async function generateScript(
     response_format: { type: 'json_object' },
     messages: [
       { role: 'system', content: SYSTEM },
-      { role: 'user',   content: buildPrompt(sourceText, inputType, language, businessType, knownAccentColor, brandPalette, seed) },
+      { role: 'user',   content: buildPrompt(sourceText, inputType, language, businessType, knownAccentColor, brandPalette, seed, userInstructions) },
     ],
     max_completion_tokens: 4500,
     temperature: 0.9,

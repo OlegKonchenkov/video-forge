@@ -48,10 +48,11 @@ async function downloadResources(resourcePaths: string[], workDir: string): Prom
 
 export async function runVideoPipeline(job: any) {
   const { videoId, inputType, inputData } = job.data;
-  const aspectRatio:   '16:9' | '9:16' = job.data.aspectRatio   ?? '16:9';
-  const resourcePaths: string[]         = job.data.resourcePaths ?? [];
-  const voiceId:       string | null    = job.data.voiceId       ?? 'auto'; // null=Off, 'auto'=AI picks
-  const musicId:       string           = job.data.musicId       ?? 'auto';
+  const aspectRatio:    '16:9' | '9:16' = job.data.aspectRatio    ?? '16:9';
+  const resourcePaths:  string[]         = job.data.resourcePaths  ?? [];
+  const voiceId:        string | null    = job.data.voiceId        ?? 'auto'; // null=Off, 'auto'=AI picks
+  const musicId:        string           = job.data.musicId        ?? 'auto';
+  const userInstructions: string | undefined = job.data.userInstructions || undefined;
   const workDir = `/tmp/videoforge/${videoId}`;
 
   try {
@@ -86,7 +87,7 @@ export async function runVideoPipeline(job: any) {
     await updateStatus(videoId, 'processing', 15, 'Writing script...');
 
     // 2. Generate structured script via GPT-5.2
-    const script = await generateScript(sourceText, inputType, language, businessType, accentColor, brandPalette);
+    const script = await generateScript(sourceText, inputType, language, businessType, accentColor, brandPalette, userInstructions);
 
     await updateStatus(videoId, 'processing', 22, 'Preparing assets...');
 

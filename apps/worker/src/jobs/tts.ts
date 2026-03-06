@@ -42,18 +42,26 @@ export async function generateVoiceovers(
 
   for (let i = 0; i < scenes.length; i++) {
     const outPath = path.join(workDir, 'audio', `scene${i + 1}.mp3`);
-    const response = await axios.post(
-      `https://api.elevenlabs.io/v1/text-to-speech/${resolvedVoiceId}`,
-      { text: scenes[i], model_id: MODEL_ID, voice_settings: { stability: 0.5, similarity_boost: 0.75 } },
-      {
-        headers: { 'xi-api-key': process.env.ELEVENLABS_API_KEY!, 'Content-Type': 'application/json' },
-        responseType: 'arraybuffer',
-      }
-    );
-    fs.writeFileSync(outPath, Buffer.from(response.data));
-    paths.push(outPath);
-    // Small delay to respect rate limits
-    await new Promise(r => setTimeout(r, 300));
+    try {
+      const response = await axios.post(
+        `https://api.elevenlabs.io/v1/text-to-speech/${resolvedVoiceId}`,
+        { text: scenes[i], model_id: MODEL_ID, voice_settings: { stability: 0.5, similarity_boost: 0.75 } },
+        {
+          headers: { 'xi-api-key': process.env.ELEVENLABS_API_KEY!, 'Content-Type': 'application/json' },
+          responseType: 'arraybuffer',
+        }
+      );
+      fs.writeFileSync(outPath, Buffer.from(response.data));
+      paths.push(outPath);
+      // Small delay to respect rate limits
+      await new Promise(r => setTimeout(r, 300));
+    } catch (e: unknown) {
+      const status = (e as { response?: { status?: number } })?.response?.status;
+      console.warn(`[tts] ElevenLabs error (HTTP ${status ?? 'network'}) on scene ${i + 1} — disabling voiceover for this video`);
+      // Clean up any partial audio files to avoid broken render state
+      for (const p of paths) { try { fs.unlinkSync(p); } catch { /* ignore */ } }
+      return [];
+    }
   }
 
   return paths;
