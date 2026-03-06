@@ -206,34 +206,52 @@ function extractImageUrls(html: string, baseUrl: string): string[] {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function scrapeUrl(url: string): Promise<ScrapeResult> {
+  let html = '';
+  let jinaText = '';
+  let usedJina = false;
+
+  // Attempt 1: raw HTML (fast, gets metadata)
   try {
     const { data } = await axios.get(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VideoForgeBot/1.0)' },
-      timeout: 15000,
+      timeout: 12000,
     });
+    html = data as string;
+    // Sanity check: if response looks like bot-blocking page, body will be very short
+    const bodyTextLen = extractText(html).length;
+    if (bodyTextLen < 200) throw new Error('Response too short — likely bot-blocked');
+  } catch (axiosErr) {
+    console.log(`[scraper] axios failed (${(axiosErr as Error).message?.slice(0, 60)}), trying Jina Reader...`);
+    // Attempt 2: Jina Reader (handles JS/Cloudflare-protected sites, no API key needed)
+    try {
+      const jinaUrl = `https://r.jina.ai/${url}`;
+      const { data } = await axios.get(jinaUrl, {
+        headers: { 'Accept': 'text/plain', 'X-Return-Format': 'text' },
+        timeout: 25000,
+      });
+      jinaText = data as string;
+      usedJina = true;
+      console.log(`[scraper] Jina Reader success — chars=${jinaText.length}`);
+    } catch {
+      throw new Error(`Failed to scrape URL: ${url}`);
+    }
+  }
 
-    const html = data as string;
+  // Extract HTML metadata (only available from axios path)
+  const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+               || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+  const brandImageUrl = ogMatch ? ogMatch[1] : null;
+  const imageUrls = html ? extractImageUrls(html, url) : [];
+  const themeMatch = html.match(/<meta[^>]+name=["']theme-color["'][^>]+content=["'](#[0-9a-fA-F]{3,6})["']/i)
+                  || html.match(/<meta[^>]+content=["'](#[0-9a-fA-F]{3,6})["'][^>]+name=["']theme-color["']/i);
+  const accentColor = themeMatch ? themeMatch[1] : null;
+  const palette = html ? extractBrandPalette(html) : null;
+  const language = html ? detectLanguage(html) : 'it'; // Jina path: assume Italian if URL had /it-IT/
 
-    // Extract og:image (primary brand image — kept separate for scene 0)
-    const ogMatch  = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
-                  || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-    const brandImageUrl = ogMatch ? ogMatch[1] : null;
+  let allText = usedJina ? jinaText : extractText(html);
 
-    // Collect all usable image URLs from this page
-    const imageUrls = extractImageUrls(html, url);
-
-    // Extract theme-color (brand accent color)
-    const themeMatch = html.match(/<meta[^>]+name=["']theme-color["'][^>]+content=["'](#[0-9a-fA-F]{3,6})["']/i)
-                    || html.match(/<meta[^>]+content=["'](#[0-9a-fA-F]{3,6})["'][^>]+name=["']theme-color["']/i);
-    const accentColor = themeMatch ? themeMatch[1] : null;
-
-    // Extract brand palette via CSS color mining
-    const palette = extractBrandPalette(html);
-
-    const language = detectLanguage(html);
-    let   allText  = extractText(html);
-
-    // Follow up to 3 priority subpages for richer context (budget: 8000 chars total)
+  // Subpage crawl only on axios path (Jina already returns full text)
+  if (!usedJina && html) {
     const subUrls = extractSubpageLinks(html, url);
     for (const subUrl of subUrls) {
       if (allText.length >= 8000) break;
@@ -244,22 +262,16 @@ export async function scrapeUrl(url: string): Promise<ScrapeResult> {
         });
         const subHtmlStr = subHtml as string;
         allText += ' ' + extractText(subHtmlStr);
-        // Also collect images from subpages
         const subImages = extractImageUrls(subHtmlStr, subUrl);
         for (const img of subImages) {
           if (!imageUrls.includes(img) && imageUrls.length < 12) imageUrls.push(img);
         }
-        console.log(`[scraper] scraped subpage: ${subUrl}`);
-      } catch { /* skip failed subpages */ }
+      } catch { /* skip */ }
     }
-
-    const text         = allText.slice(0, 8000);
-    const businessType = detectBusinessType(text);
-
-    console.log(`[scraper] language=${language} businessType=${businessType} chars=${text.length} images=${imageUrls.length}`);
-    return { text, brandImageUrl, imageUrls, accentColor, palette, language, businessType };
-
-  } catch {
-    throw new Error(`Failed to scrape URL: ${url}`);
   }
+
+  const text = allText.slice(0, 8000);
+  const businessType = detectBusinessType(text);
+  console.log(`[scraper] language=${language} businessType=${businessType} chars=${text.length} images=${imageUrls.length} jinaFallback=${usedJina}`);
+  return { text, brandImageUrl, imageUrls, accentColor, palette, language, businessType };
 }
