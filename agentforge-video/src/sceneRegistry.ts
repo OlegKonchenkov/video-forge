@@ -15,6 +15,10 @@ import { SceneOfferCountdown } from './scenes/SceneOfferCountdown';
 import { SceneMapLocation }    from './scenes/SceneMapLocation';
 import { SceneTeamIntro }      from './scenes/SceneTeamIntro';
 import { SceneComparison }     from './scenes/SceneComparison';
+import { SceneBigStat }        from './scenes/SceneBigStat';
+import { SceneMissionStatement }from './scenes/SceneMissionStatement';
+import { SceneSocialProof }     from './scenes/SceneSocialProof';
+import { SceneTimeline }        from './scenes/SceneTimeline';
 import type { SharedSceneProps } from './types';
 
 export const SCENE_REGISTRY: Record<string, React.FC<any & SharedSceneProps>> = {
@@ -33,4 +37,8 @@ export const SCENE_REGISTRY: Record<string, React.FC<any & SharedSceneProps>> = 
   map_location:     SceneMapLocation,
   team_intro:       SceneTeamIntro,
   comparison:       SceneComparison,
+  big_stat:         SceneBigStat,
+  mission_statement:SceneMissionStatement,
+  social_proof:     SceneSocialProof,
+  timeline:         SceneTimeline,
 };
