@@ -7,6 +7,7 @@ import { generateVoiceovers } from './tts';
 import { generateImages } from './images';
 import { renderVideo } from './render';
 import { uploadVideo } from './upload';
+import { generateCodexScenes, cleanupCodex, type CodexResult } from './codexgen';
 import fs from 'fs';
 import path from 'path';
 
@@ -48,12 +49,15 @@ async function downloadResources(resourcePaths: string[], workDir: string): Prom
 
 export async function runVideoPipeline(job: any) {
   const { videoId, inputType, inputData } = job.data;
-  const aspectRatio:    '16:9' | '9:16' = job.data.aspectRatio    ?? '16:9';
-  const resourcePaths:  string[]         = job.data.resourcePaths  ?? [];
-  const voiceId:        string | null    = job.data.voiceId        ?? 'auto'; // null=Off, 'auto'=AI picks
-  const musicId:        string           = job.data.musicId        ?? 'auto';
+  const aspectRatio:      '16:9' | '9:16' = job.data.aspectRatio      ?? '16:9';
+  const resourcePaths:    string[]         = job.data.resourcePaths    ?? [];
+  const voiceId:          string | null    = job.data.voiceId          ?? 'auto'; // null=Off, 'auto'=AI picks
+  const musicId:          string           = job.data.musicId          ?? 'auto';
   const userInstructions: string | undefined = job.data.userInstructions || undefined;
+  const generationMode:   'prefab' | 'codex' = job.data.generationMode ?? 'prefab';
+  const creditCost:       number           = job.data.creditCost       ?? 1;
   const workDir = `/tmp/videoforge/${videoId}`;
+  let codexResult: CodexResult | undefined;
 
   try {
     await updateStatus(videoId, 'processing', 5, 'Extracting content...');
@@ -105,6 +109,18 @@ export async function runVideoPipeline(job: any) {
     const audioPaths = await generateVoiceovers(voiceovers, workDir, voiceId, language, businessType);
     const hasVoiceover = audioPaths.length > 0;
 
+    // 4b. CODEX mode: generate custom scene TSX files via AI
+    if (generationMode === 'codex') {
+      await updateStatus(videoId, 'processing', 40, 'Generating custom scenes (CODEX)...');
+      try {
+        codexResult = await generateCodexScenes(script, videoId);
+        console.log(`[pipeline] CODEX: ${codexResult.sceneCount - codexResult.fallbackScenes.length} custom scenes generated`);
+      } catch (err) {
+        console.warn(`[pipeline] CODEX failed, falling back to prefab: ${(err as Error).message}`);
+        // Continue with prefab mode — codexResult stays undefined
+      }
+    }
+
     await updateStatus(videoId, 'processing', 48, 'Generating visuals...');
 
     // 5. Gemini images — pass imageUrls (user uploads + scraped) and showImageFlags for cost saving
@@ -115,8 +131,8 @@ export async function runVideoPipeline(job: any) {
 
     await updateStatus(videoId, 'processing', 63, 'Rendering video...');
 
-    // 6. Remotion render — pass aspectRatio, hasVoiceover, musicId, businessType
-    const mp4Path = await renderVideo({ videoId, script, audioPaths, imagePaths, workDir, aspectRatio, hasVoiceover, musicId, businessType });
+    // 6. Remotion render — pass aspectRatio, hasVoiceover, musicId, businessType, codex info
+    const mp4Path = await renderVideo({ videoId, script, audioPaths, imagePaths, workDir, aspectRatio, hasVoiceover, musicId, businessType, codexResult });
 
     await updateStatus(videoId, 'processing', 85, 'Uploading...');
 
@@ -134,10 +150,14 @@ export async function runVideoPipeline(job: any) {
     await supabase.from('videos').update({
       status: 'failed', error_msg: error.message, updated_at: new Date().toISOString(),
     }).eq('id', videoId);
-    // Refund credit on failure (Supabase rpc returns {data,error}, never throws)
+    // Refund credits on failure (Supabase rpc returns {data,error}, never throws)
     if (job.data.userId) {
-      await supabase.rpc('refund_credit', { p_user_id: job.data.userId, p_video_id: videoId });
+      for (let c = 0; c < creditCost; c++) {
+        await supabase.rpc('refund_credit', { p_user_id: job.data.userId, p_video_id: videoId });
+      }
     }
+    // Cleanup codex files on failure
+    if (codexResult) cleanupCodex(codexResult.codexDir);
     throw err;
   }
 }

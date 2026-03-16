@@ -6,20 +6,20 @@ import { Audio } from '@remotion/media';
 import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
-import { GradientMesh } from '../shared/GradientMesh';
-import { GeometricShapes } from '../shared/GeometricShapes';
 import { ShimmerOverlay } from '../shared/ShimmerOverlay';
-import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
+import { useVisualVariant } from '../shared/useVisualVariant';
+import { VariantBackground } from '../shared/VariantBackground';
 import type { SceneTeamIntroProps, SharedSceneProps } from '../types';
 
 export const SceneTeamIntro: React.FC<SceneTeamIntroProps & SharedSceneProps> = ({
   title, members,
-  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal, variantId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
-  const av = accentVariants(accentColor);
+  const variant = useVisualVariant(variantId, accentColor);
+  const av = variant.av;
   const layout = useSceneLayout();
 
   const CUE_TITLE = 0;
@@ -43,11 +43,8 @@ export const SceneTeamIntro: React.FC<SceneTeamIntroProps & SharedSceneProps> = 
         </>
       )}
 
-      {/* Animated gradient mesh */}
-      <GradientMesh colors={[accentColor, '#1e3a8a', '#0f172a']} speed={0.6} opacity={0.40} />
-
-      {/* Hexagon geometry in background */}
-      <GeometricShapes color={accentColor} opacity={0.06} count={8} style="hexagons" />
+      {/* Variant background */}
+      <VariantBackground variant={variant} accentColor={accentColor} />
 
       <NoiseOverlay />
 

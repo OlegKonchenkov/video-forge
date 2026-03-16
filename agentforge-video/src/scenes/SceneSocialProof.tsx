@@ -6,10 +6,9 @@ import { Audio } from '@remotion/media';
 import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
-import { GradientMesh } from '../shared/GradientMesh';
-import { ParticleField } from '../shared/ParticleField';
-import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
+import { useVisualVariant } from '../shared/useVisualVariant';
+import { VariantBackground } from '../shared/VariantBackground';
 import type { SceneSocialProofProps, SharedSceneProps } from '../types';
 
 const CHARS = '0123456789';
@@ -29,11 +28,12 @@ function scramble(target: string, frame: number, cue: number): string {
 
 export const SceneSocialProof: React.FC<SceneSocialProofProps & SharedSceneProps> = ({
   title, badges,
-  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal, variantId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
-  const av = accentVariants(accentColor);
+  const variant = useVisualVariant(variantId, accentColor);
+  const av = variant.av;
   const layout = useSceneLayout();
 
   const CUE_TITLE   = 0;
@@ -56,11 +56,8 @@ export const SceneSocialProof: React.FC<SceneSocialProofProps & SharedSceneProps
         </>
       )}
 
-      {/* Animated gradient mesh */}
-      <GradientMesh colors={[accentColor, '#1e3a8a', '#050d1a']} speed={0.7} opacity={0.42} />
-
-      {/* Floating particles */}
-      <ParticleField count={35} color={accentColor} opacity={0.16} speed={0.9} />
+      {/* Variant background */}
+      <VariantBackground variant={variant} accentColor={accentColor} />
 
       <NoiseOverlay />
 

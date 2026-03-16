@@ -6,19 +6,19 @@ import { Audio } from '@remotion/media';
 import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
-import { GradientMesh } from '../shared/GradientMesh';
-import { GeometricShapes } from '../shared/GeometricShapes';
-import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
+import { useVisualVariant } from '../shared/useVisualVariant';
+import { VariantBackground } from '../shared/VariantBackground';
 import type { SceneHowItWorksProps, SharedSceneProps } from '../types';
 
 export const SceneHowItWorks: React.FC<SceneHowItWorksProps & SharedSceneProps> = ({
   title, steps,
-  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal, variantId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
-  const av = accentVariants(accentColor);
+  const variant = useVisualVariant(variantId, accentColor);
+  const av = variant.av;
   const layout = useSceneLayout();
 
   const CUE_TITLE = 0;
@@ -48,11 +48,8 @@ export const SceneHowItWorks: React.FC<SceneHowItWorksProps & SharedSceneProps> 
         </>
       )}
 
-      {/* Animated gradient mesh */}
-      <GradientMesh colors={[accentColor, '#1e40af', '#0f172a']} speed={0.6} opacity={0.45} />
-
-      {/* Decorative triangles in background */}
-      <GeometricShapes color={accentColor} opacity={0.05} count={6} style="triangles" />
+      {/* Variant background */}
+      <VariantBackground variant={variant} accentColor={accentColor} />
 
       <NoiseOverlay />
 

@@ -73,6 +73,7 @@ export const AgentForgeAd: React.FC<AgentForgeAdProps> = ({
             audioPath:    hasVoiceover ? `audio/voiceover/scene_${i}.mp3` : '',
             sceneIndex:   i,
             sceneTotal:   scenes.length,
+            variantId:    scene.variantId ?? 0,
           };
 
           return (

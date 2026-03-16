@@ -7,21 +7,21 @@ import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
 import { WordByWord } from '../shared/WordByWord';
-import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
-import { GeometricShapes } from '../shared/GeometricShapes';
-import { GradientMesh } from '../shared/GradientMesh';
+import { useVisualVariant } from '../shared/useVisualVariant';
+import { VariantBackground } from '../shared/VariantBackground';
 import { ShimmerOverlay } from '../shared/ShimmerOverlay';
 import type { SceneCTAProps, SharedSceneProps } from '../types';
 
 export const SceneCTA: React.FC<SceneCTAProps & SharedSceneProps> = ({
   headline, accentLine, sub,
-  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal, variantId,
   brandName, ctaText, ctaUrl,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
-  const av = accentVariants(accentColor);
+  const variant = useVisualVariant(variantId, accentColor);
+  const av = variant.av;
   const layout = useSceneLayout();
 
   const CUE_HEAD   = dur * 0.06;
@@ -64,10 +64,8 @@ export const SceneCTA: React.FC<SceneCTAProps & SharedSceneProps> = ({
         </>
       )}
 
-      {/* Hexagonal geometry background */}
-      <GeometricShapes color={accentColor} opacity={0.07} count={9} style="hexagons" />
-      {/* Gradient mesh for depth */}
-      <GradientMesh colors={[accentColor, accentColor, bgColor]} speed={0.6} opacity={0.32} />
+      {/* Variant background */}
+      <VariantBackground variant={variant} accentColor={accentColor} />
       <NoiseOverlay />
 
       {/* Ghost brand watermark */}

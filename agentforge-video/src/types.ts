@@ -13,6 +13,7 @@ export interface SharedSceneProps {
   audioPath:    string;   // e.g. "audio/voiceover/scene_2.mp3"
   sceneIndex:   number;
   sceneTotal:   number;
+  variantId:    number;      // visual variant preset (0-4)
 }
 
 // ─── Per-scene prop interfaces ───────────────────────────────────────────────
@@ -147,25 +148,25 @@ export interface SceneTimelineProps {
 
 // ─── Discriminated union ─────────────────────────────────────────────────────
 export type SceneConfig =
-  | { type: 'pain_hook';         showImage: boolean; props: ScenePainHookProps }
-  | { type: 'inbox_chaos';       showImage: boolean; props: SceneInboxChaosProps }
-  | { type: 'cost_counter';      showImage: boolean; props: SceneCostCounterProps }
-  | { type: 'brand_reveal';      showImage: boolean; props: SceneBrandRevealProps }
-  | { type: 'feature_list';      showImage: boolean; props: SceneFeatureListProps }
-  | { type: 'stats_grid';        showImage: boolean; props: SceneStatsGridProps }
-  | { type: 'cta';               showImage: boolean; props: SceneCTAProps }
-  | { type: 'testimonial';       showImage: boolean; props: SceneTestimonialProps }
-  | { type: 'before_after';      showImage: boolean; props: SceneBeforeAfterProps }
-  | { type: 'how_it_works';      showImage: boolean; props: SceneHowItWorksProps }
-  | { type: 'product_showcase';  showImage: boolean; props: SceneProductShowcaseProps }
-  | { type: 'offer_countdown';   showImage: boolean; props: SceneOfferCountdownProps }
-  | { type: 'map_location';      showImage: boolean; props: SceneMapLocationProps }
-  | { type: 'team_intro';        showImage: boolean; props: SceneTeamIntroProps }
-  | { type: 'comparison';        showImage: boolean; props: SceneComparisonProps }
-  | { type: 'big_stat';          showImage: boolean; props: SceneBigStatProps }
-  | { type: 'mission_statement'; showImage: boolean; props: SceneMissionStatementProps }
-  | { type: 'social_proof';      showImage: boolean; props: SceneSocialProofProps }
-  | { type: 'timeline';          showImage: boolean; props: SceneTimelineProps };
+  | { type: 'pain_hook';         showImage: boolean; variantId?: number; props: ScenePainHookProps }
+  | { type: 'inbox_chaos';       showImage: boolean; variantId?: number; props: SceneInboxChaosProps }
+  | { type: 'cost_counter';      showImage: boolean; variantId?: number; props: SceneCostCounterProps }
+  | { type: 'brand_reveal';      showImage: boolean; variantId?: number; props: SceneBrandRevealProps }
+  | { type: 'feature_list';      showImage: boolean; variantId?: number; props: SceneFeatureListProps }
+  | { type: 'stats_grid';        showImage: boolean; variantId?: number; props: SceneStatsGridProps }
+  | { type: 'cta';               showImage: boolean; variantId?: number; props: SceneCTAProps }
+  | { type: 'testimonial';       showImage: boolean; variantId?: number; props: SceneTestimonialProps }
+  | { type: 'before_after';      showImage: boolean; variantId?: number; props: SceneBeforeAfterProps }
+  | { type: 'how_it_works';      showImage: boolean; variantId?: number; props: SceneHowItWorksProps }
+  | { type: 'product_showcase';  showImage: boolean; variantId?: number; props: SceneProductShowcaseProps }
+  | { type: 'offer_countdown';   showImage: boolean; variantId?: number; props: SceneOfferCountdownProps }
+  | { type: 'map_location';      showImage: boolean; variantId?: number; props: SceneMapLocationProps }
+  | { type: 'team_intro';        showImage: boolean; variantId?: number; props: SceneTeamIntroProps }
+  | { type: 'comparison';        showImage: boolean; variantId?: number; props: SceneComparisonProps }
+  | { type: 'big_stat';          showImage: boolean; variantId?: number; props: SceneBigStatProps }
+  | { type: 'mission_statement'; showImage: boolean; variantId?: number; props: SceneMissionStatementProps }
+  | { type: 'social_proof';      showImage: boolean; variantId?: number; props: SceneSocialProofProps }
+  | { type: 'timeline';          showImage: boolean; variantId?: number; props: SceneTimelineProps };
   // Adding a new scene type: add entry here + sceneRegistry.ts + scriptgen.ts prompt
 
 // ─── Root composition props ───────────────────────────────────────────────────

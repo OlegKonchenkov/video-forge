@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import axios from 'axios';
 import type { VideoScript } from '../types/script';
+import { cleanupCodex, type CodexResult } from './codexgen';
 
 const REMOTION_ROOT = path.resolve(__dirname, '../../../../agentforge-video');
 
@@ -33,16 +34,17 @@ async function downloadMusic(songName: string, outPath: string): Promise<void> {
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export async function renderVideo({ videoId, script, audioPaths, imagePaths, workDir, aspectRatio, hasVoiceover, musicId, businessType }: {
-  videoId:      string;
-  script:       VideoScript;
-  audioPaths:   string[];
-  imagePaths:   string[];
-  workDir:      string;
-  aspectRatio:  '16:9' | '9:16';
-  hasVoiceover: boolean;
-  musicId:      string;
-  businessType: string;
+export async function renderVideo({ videoId, script, audioPaths, imagePaths, workDir, aspectRatio, hasVoiceover, musicId, businessType, codexResult }: {
+  videoId:       string;
+  script:        VideoScript;
+  audioPaths:    string[];
+  imagePaths:    string[];
+  workDir:       string;
+  aspectRatio:   '16:9' | '9:16';
+  hasVoiceover:  boolean;
+  musicId:       string;
+  businessType:  string;
+  codexResult?:  CodexResult;
 }): Promise<string> {
   const outPath = path.join(workDir, 'output.mp4');
   fs.mkdirSync(workDir, { recursive: true });
@@ -87,10 +89,21 @@ export async function renderVideo({ videoId, script, audioPaths, imagePaths, wor
   };
   fs.writeFileSync(propsPath, JSON.stringify(remotionProps));
 
-  execSync(
-    `npx remotion render AgentForgeAd "${outPath}" --codec h264 --props "${propsPath}"`,
-    { cwd: REMOTION_ROOT, stdio: 'pipe', timeout: 300_000 }
-  );
+  // CODEX mode: use generated entry point; PREFAB mode: default entry
+  const compositionId = codexResult ? 'CodexAd' : 'AgentForgeAd';
+  const entryArg      = codexResult ? `${codexResult.entryFile} ` : '';
+
+  try {
+    execSync(
+      `npx remotion render ${entryArg}${compositionId} "${outPath}" --codec h264 --props "${propsPath}"`,
+      { cwd: REMOTION_ROOT, stdio: 'pipe', timeout: 300_000 }
+    );
+  } finally {
+    // Cleanup codex files after render (success or failure)
+    if (codexResult) {
+      cleanupCodex(codexResult.codexDir);
+    }
+  }
 
   return outPath;
 }

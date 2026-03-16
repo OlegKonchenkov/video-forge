@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import {
   Globe, FileText, Presentation, MessageSquare,
   ArrowRight, ArrowLeft, Loader2, Upload, ImageIcon, X,
-  Play, Square, ChevronDown,
+  Play, Square, ChevronDown, Layers, Zap,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -81,6 +81,7 @@ export default function NewVideoPage() {
   const [playingId, setPlayingId]             = useState<string>('');  // id of currently previewing item
   const [musicCategory, setMusicCategory]     = useState<MusicCategory | ''>('');  // '' = Auto
   const [selectedMusicId, setSelectedMusicId] = useState<string>('auto');
+  const [generationMode, setGenerationMode]   = useState<'prefab' | 'codex'>('prefab');
 
   // ── Audio preview helpers ──────────────────────────────────────────────────
 
@@ -194,6 +195,7 @@ export default function NewVideoPage() {
           voiceId: resolvedVoiceId(),
           musicId: selectedMusicId,
           userInstructions: userInstructions.trim() || undefined,
+          generationMode,
         }),
       });
 
@@ -462,6 +464,51 @@ export default function NewVideoPage() {
       {step === 3 && (
         <div className="film-card p-8 space-y-8">
 
+          {/* ── Generation Mode ──────────────────────────────────────────── */}
+          <div>
+            <label className="block text-xs font-sans font-semibold tracking-widest uppercase text-film-gray-light mb-4">
+              Generation Mode
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setGenerationMode('prefab')}
+                className={`flex items-start gap-4 p-5 border transition-all text-left ${
+                  generationMode === 'prefab'
+                    ? 'border-film-amber bg-film-amber/10'
+                    : 'border-film-border hover:border-film-amber/30 bg-film-warm'
+                }`}
+              >
+                <Layers className={`w-6 h-6 mt-0.5 flex-shrink-0 ${generationMode === 'prefab' ? 'text-film-amber' : 'text-film-gray'}`} />
+                <div>
+                  <div className={`font-display tracking-wider text-sm ${generationMode === 'prefab' ? 'text-film-amber' : 'text-film-cream'}`}>
+                    PREFAB
+                  </div>
+                  <div className="text-xs text-film-gray font-sans mt-1">19 proven templates with visual variants</div>
+                  <div className="text-xs text-film-amber/70 font-sans mt-2 font-semibold">1 credit</div>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setGenerationMode('codex')}
+                className={`flex items-start gap-4 p-5 border transition-all text-left ${
+                  generationMode === 'codex'
+                    ? 'border-film-amber bg-film-amber/10'
+                    : 'border-film-border hover:border-film-amber/30 bg-film-warm'
+                }`}
+              >
+                <Zap className={`w-6 h-6 mt-0.5 flex-shrink-0 ${generationMode === 'codex' ? 'text-film-amber' : 'text-film-gray'}`} />
+                <div>
+                  <div className={`font-display tracking-wider text-sm ${generationMode === 'codex' ? 'text-film-amber' : 'text-film-cream'}`}>
+                    CODEX
+                  </div>
+                  <div className="text-xs text-film-gray font-sans mt-1">AI generates unique scenes from scratch</div>
+                  <div className="text-xs text-film-amber/70 font-sans mt-2 font-semibold">3 credits</div>
+                </div>
+              </button>
+            </div>
+          </div>
+
           {/* ── Voice section ────────────────────────────────────────────── */}
           <div>
             <label className="block text-xs font-sans font-semibold tracking-widest uppercase text-film-gray-light mb-4">
@@ -649,8 +696,9 @@ export default function NewVideoPage() {
                   : `${musicCategory} — ${musicCategory ? MUSIC_TRACKS[musicCategory as MusicCategory]?.find(t => t.id === selectedMusicId)?.label ?? selectedMusicId : selectedMusicId}`,
               },
               { label: 'AI Instructions', value: userInstructions.trim() ? userInstructions.slice(0, 80) + (userInstructions.length > 80 ? '…' : '') : 'None' },
+              { label: 'Generation',  value: generationMode === 'codex' ? 'CODEX (AI-generated scenes)' : 'PREFAB (templates)' },
               { label: 'Title',       value: title || 'Auto-generated' },
-              { label: 'Credit Cost', value: '1 credit' },
+              { label: 'Credit Cost', value: generationMode === 'codex' ? '3 credits' : '1 credit' },
             ].map(({ label, value }, idx, arr) => (
               <div
                 key={label}
@@ -673,7 +721,7 @@ export default function NewVideoPage() {
             >
               {loading
                 ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</>
-                : <>Generate Video — 1 Credit <ArrowRight className="w-4 h-4" /></>}
+                : <>Generate Video — {generationMode === 'codex' ? '3 Credits' : '1 Credit'} <ArrowRight className="w-4 h-4" /></>}
             </button>
           </div>
         </div>

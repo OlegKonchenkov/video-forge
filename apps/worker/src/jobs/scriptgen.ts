@@ -84,6 +84,7 @@ SELECTION RULES:
 - Always end with "cta" as the last scene
 - Choose scenes that tell the most compelling story ARC for THIS specific business: problem → solution → proof → CTA
 - VARY your selection: the same business type should produce different scene combinations each run (use the variation seed above)
+- Each scene has a "variantId" (0-4) that controls its visual style. Pick DIFFERENT variantIds for consecutive scenes to create visual variety. Variants: 0=TECH (particles, sharp), 1=ELEGANT (gradient mesh, rounded), 2=MINIMAL (clean, fade), 3=BOLD (geometric, heavy shadow), 4=RETRO (scanlines, square)
 - These are SUGGESTIONS not requirements — pick what best tells THIS brand's story:
   - Local businesses: map_location, team_intro are strong choices
   - SaaS/tech: comparison, how_it_works are strong choices
@@ -155,7 +156,7 @@ Return a JSON object with this EXACT structure:
   "surfaceColor": "#hex — card/panel background, slightly lighter than bgColor",
   "language": "${language}",
   "scenes": [
-    { "type": "<scene_type>", "showImage": true/false, "props": { /* matching schema above */ } },
+    { "type": "<scene_type>", "showImage": true/false, "variantId": 0-4, "props": { /* matching schema above */ } },
     ...
   ]
 }
@@ -204,9 +205,14 @@ export async function generateScript(
     // Defensive defaults if GPT omitted new fields
     if (!script.bgColor)      script.bgColor      = '#050d1a';
     if (!script.surfaceColor) script.surfaceColor = '#0a1628';
-    for (const scene of script.scenes) {
-      if (typeof (scene as Record<string, unknown>).showImage === 'undefined') {
-        (scene as Record<string, unknown>).showImage = true;
+    for (let i = 0; i < script.scenes.length; i++) {
+      const scene = script.scenes[i] as Record<string, unknown>;
+      if (typeof scene.showImage === 'undefined') {
+        scene.showImage = true;
+      }
+      // Assign deterministic variantId if GPT omitted it (rotate through 0-4)
+      if (typeof scene.variantId !== 'number' || scene.variantId < 0 || scene.variantId > 4) {
+        scene.variantId = i % 5;
       }
     }
     return script;

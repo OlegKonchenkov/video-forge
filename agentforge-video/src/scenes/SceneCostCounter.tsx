@@ -6,10 +6,10 @@ import { Audio } from '@remotion/media';
 import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
-import { GradientMesh } from '../shared/GradientMesh';
-import { ParticleField } from '../shared/ParticleField';
 import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
+import { useVisualVariant } from '../shared/useVisualVariant';
+import { VariantBackground } from '../shared/VariantBackground';
 import type { SceneCostCounterProps, SharedSceneProps } from '../types';
 
 const CountStat: React.FC<{
@@ -87,10 +87,11 @@ const CountStat: React.FC<{
 
 export const SceneCostCounter: React.FC<SceneCostCounterProps & SharedSceneProps> = ({
   intro, stat1, stat2,
-  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal, variantId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
+  const variant = useVisualVariant(variantId, accentColor);
   const layout = useSceneLayout();
 
   const CUE_INTRO = 0;
@@ -111,11 +112,8 @@ export const SceneCostCounter: React.FC<SceneCostCounterProps & SharedSceneProps
         </>
       )}
 
-      {/* Animated gradient mesh */}
-      <GradientMesh colors={[accentColor, '#1e1b4b', '#050d1a']} speed={0.7} opacity={0.42} />
-
-      {/* Subtle particle field */}
-      <ParticleField count={30} color={accentColor} opacity={0.15} speed={0.8} />
+      {/* Variant background */}
+      <VariantBackground variant={variant} accentColor={accentColor} />
 
       <NoiseOverlay />
 

@@ -6,18 +6,19 @@ import { Audio } from '@remotion/media';
 import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
-import { GradientMesh } from '../shared/GradientMesh';
-import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
+import { useVisualVariant } from '../shared/useVisualVariant';
+import { VariantBackground } from '../shared/VariantBackground';
 import type { SceneMapLocationProps, SharedSceneProps } from '../types';
 
 export const SceneMapLocation: React.FC<SceneMapLocationProps & SharedSceneProps> = ({
   address, city, hours, phone,
-  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal, variantId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
-  const av = accentVariants(accentColor);
+  const variant = useVisualVariant(variantId, accentColor);
+  const av = variant.av;
   const layout = useSceneLayout();
 
   const CUE_PIN  = dur * 0.10;
@@ -45,8 +46,8 @@ export const SceneMapLocation: React.FC<SceneMapLocationProps & SharedSceneProps
         </>
       )}
 
-      {/* Animated gradient mesh — teal/blue radar aesthetic */}
-      <GradientMesh colors={[accentColor, '#0c2a4a', '#050d1a']} speed={0.5} opacity={0.42} />
+      {/* Variant background */}
+      <VariantBackground variant={variant} accentColor={accentColor} />
 
       <NoiseOverlay />
 

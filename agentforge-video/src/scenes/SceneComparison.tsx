@@ -6,18 +6,20 @@ import { Audio } from '@remotion/media';
 import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
-import { ParticleField } from '../shared/ParticleField';
 import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
+import { useVisualVariant } from '../shared/useVisualVariant';
+import { VariantBackground } from '../shared/VariantBackground';
 import type { SceneComparisonProps, SharedSceneProps } from '../types';
 
 export const SceneComparison: React.FC<SceneComparisonProps & SharedSceneProps> = ({
   competitorLabel, brandLabel, features,
-  accentColor, bgColor, showImage, brandName, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, brandName, audioPath, sceneIndex, sceneTotal, variantId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
-  const av = accentVariants(accentColor);
+  const variant = useVisualVariant(variantId, accentColor);
+  const av = variant.av;
   const layout = useSceneLayout();
 
   const CUE_HEADER = 0;
@@ -44,8 +46,8 @@ export const SceneComparison: React.FC<SceneComparisonProps & SharedSceneProps> 
         </>
       )}
 
-      {/* Subtle particle field */}
-      <ParticleField count={25} color={accentColor} opacity={0.12} speed={0.6} />
+      {/* Variant background */}
+      <VariantBackground variant={variant} accentColor={accentColor} />
 
       {/* Right-side accent glow hinting at brand column */}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 82% 50%, ${av.bg} 0%, transparent 48%)` }} />

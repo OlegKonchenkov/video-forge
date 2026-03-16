@@ -6,18 +6,19 @@ import { Audio } from '@remotion/media';
 import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
-import { GradientMesh } from '../shared/GradientMesh';
-import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
+import { useVisualVariant } from '../shared/useVisualVariant';
+import { VariantBackground } from '../shared/VariantBackground';
 import type { SceneTimelineProps, SharedSceneProps } from '../types';
 
 export const SceneTimeline: React.FC<SceneTimelineProps & SharedSceneProps> = ({
   title, events,
-  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal, variantId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
-  const av = accentVariants(accentColor);
+  const variant = useVisualVariant(variantId, accentColor);
+  const av = variant.av;
   const layout = useSceneLayout();
 
   const CUE_TITLE   = 0;
@@ -51,8 +52,8 @@ export const SceneTimeline: React.FC<SceneTimelineProps & SharedSceneProps> = ({
         </>
       )}
 
-      {/* Animated gradient mesh */}
-      <GradientMesh colors={[accentColor, '#1e3a5f', '#0f172a']} speed={0.6} opacity={0.40} />
+      {/* Variant background */}
+      <VariantBackground variant={variant} accentColor={accentColor} />
 
       <NoiseOverlay />
 

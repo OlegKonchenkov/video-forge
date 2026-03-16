@@ -6,20 +6,20 @@ import { Audio } from '@remotion/media';
 import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
-import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
 import { KineticText } from '../shared/KineticText';
-import { ScanlineEffect } from '../shared/ScanlineEffect';
-import { GeometricShapes } from '../shared/GeometricShapes';
+import { useVisualVariant } from '../shared/useVisualVariant';
+import { VariantBackground } from '../shared/VariantBackground';
 import type { ScenePainHookProps, SharedSceneProps } from '../types';
 
 export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
   headline, sub, painPoints,
-  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal, variantId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
-  const av = accentVariants(accentColor);
+  const variant = useVisualVariant(variantId, accentColor);
+  const av = variant.av;
   const layout = useSceneLayout();
 
   const CUE_BADGE = dur * 0.04;
@@ -48,10 +48,8 @@ export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
       )}
       {/* Diagonal tint */}
       <AbsoluteFill style={{ background: `linear-gradient(135deg, ${av.bg} 0%, transparent 58%)` }} />
-      {/* Hexagonal decor — very subtle */}
-      <GeometricShapes color={accentColor} opacity={0.05} count={6} style="hexagons" />
-      {/* CRT effect */}
-      <ScanlineEffect opacity={0.05} spacing={5} />
+      {/* Variant background */}
+      <VariantBackground variant={variant} accentColor={accentColor} />
       <NoiseOverlay />
 
       <AbsoluteFill style={{

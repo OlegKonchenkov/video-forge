@@ -6,21 +6,21 @@ import { Audio } from '@remotion/media';
 import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
-import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
-import { GradientMesh } from '../shared/GradientMesh';
+import { useVisualVariant } from '../shared/useVisualVariant';
+import { VariantBackground } from '../shared/VariantBackground';
 import { KineticText } from '../shared/KineticText';
 import { ShimmerOverlay } from '../shared/ShimmerOverlay';
-import { GeometricShapes } from '../shared/GeometricShapes';
 import type { SceneBrandRevealProps, SharedSceneProps } from '../types';
 
 export const SceneBrandReveal: React.FC<SceneBrandRevealProps & SharedSceneProps> = ({
-  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal, variantId,
   brandName, tagline, ctaUrl,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
-  const av = accentVariants(accentColor);
+  const variant = useVisualVariant(variantId, accentColor);
+  const av = variant.av;
   const layout = useSceneLayout();
 
   const CUE_BADGE    = dur * 0.05;
@@ -50,10 +50,8 @@ export const SceneBrandReveal: React.FC<SceneBrandRevealProps & SharedSceneProps
         </>
       )}
 
-      {/* Animated gradient mesh — centrepiece */}
-      <GradientMesh colors={[accentColor, accentColor, bgColor]} speed={0.8} opacity={0.42} />
-      {/* Subtle circles */}
-      <GeometricShapes color={accentColor} opacity={0.06} count={5} style="circles" />
+      {/* Variant background */}
+      <VariantBackground variant={variant} accentColor={accentColor} />
       <NoiseOverlay />
 
       <AbsoluteFill style={{

@@ -6,20 +6,20 @@ import { Audio } from '@remotion/media';
 import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
-import { GradientMesh } from '../shared/GradientMesh';
-import { GeometricShapes } from '../shared/GeometricShapes';
 import { WordByWord } from '../shared/WordByWord';
-import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
+import { useVisualVariant } from '../shared/useVisualVariant';
+import { VariantBackground } from '../shared/VariantBackground';
 import type { SceneMissionStatementProps, SharedSceneProps } from '../types';
 
 export const SceneMissionStatement: React.FC<SceneMissionStatementProps & SharedSceneProps> = ({
   statement, values,
-  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal, variantId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
-  const av = accentVariants(accentColor);
+  const variant = useVisualVariant(variantId, accentColor);
+  const av = variant.av;
   const layout = useSceneLayout();
 
   const CUE_STATEMENT = 0;
@@ -55,11 +55,8 @@ export const SceneMissionStatement: React.FC<SceneMissionStatementProps & Shared
         </>
       )}
 
-      {/* Animated gradient mesh */}
-      <GradientMesh colors={[accentColor, '#1e1b4b', '#0f172a']} speed={0.5} opacity={0.38 * bgReveal} />
-
-      {/* Subtle circles in background */}
-      <GeometricShapes color={accentColor} opacity={0.05} count={5} style="circles" />
+      {/* Variant background */}
+      <VariantBackground variant={variant} accentColor={accentColor} />
 
       {/* Giant decorative quote mark */}
       <AbsoluteFill style={{

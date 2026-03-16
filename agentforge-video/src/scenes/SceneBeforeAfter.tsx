@@ -6,9 +6,10 @@ import { Audio } from '@remotion/media';
 import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
-import { ParticleField } from '../shared/ParticleField';
 import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
+import { useVisualVariant } from '../shared/useVisualVariant';
+import { VariantBackground } from '../shared/VariantBackground';
 import type { SceneBeforeAfterProps, SharedSceneProps } from '../types';
 
 const PointList: React.FC<{
@@ -61,11 +62,12 @@ const PointList: React.FC<{
 
 export const SceneBeforeAfter: React.FC<SceneBeforeAfterProps & SharedSceneProps> = ({
   beforeLabel, beforePoints, afterLabel, afterPoints,
-  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal, variantId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
-  const av = accentVariants(accentColor);
+  const variant = useVisualVariant(variantId, accentColor);
+  const av = variant.av;
   const layout = useSceneLayout();
 
   const CUE_BEFORE  = dur * 0.08;
@@ -101,8 +103,8 @@ export const SceneBeforeAfter: React.FC<SceneBeforeAfterProps & SharedSceneProps
         background: `linear-gradient(to ${layout.isPortrait ? 'bottom' : 'right'}, rgba(239,68,68,0.08) 0%, transparent 50%, ${av.bg} 50%, transparent 100%)`,
       }} />
 
-      {/* Floating particles — accent color */}
-      <ParticleField count={28} color={accentColor} opacity={0.18} speed={0.7} />
+      {/* Variant background */}
+      <VariantBackground variant={variant} accentColor={accentColor} />
 
       <NoiseOverlay />
 

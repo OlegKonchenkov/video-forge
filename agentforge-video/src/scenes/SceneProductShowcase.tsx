@@ -6,19 +6,20 @@ import { Audio } from '@remotion/media';
 import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
-import { GradientMesh } from '../shared/GradientMesh';
 import { ShimmerOverlay } from '../shared/ShimmerOverlay';
-import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
+import { useVisualVariant } from '../shared/useVisualVariant';
+import { VariantBackground } from '../shared/VariantBackground';
 import type { SceneProductShowcaseProps, SharedSceneProps } from '../types';
 
 export const SceneProductShowcase: React.FC<SceneProductShowcaseProps & SharedSceneProps> = ({
   productName, tagline, price,
-  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal, variantId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
-  const av = accentVariants(accentColor);
+  const variant = useVisualVariant(variantId, accentColor);
+  const av = variant.av;
   const layout = useSceneLayout();
 
   const CUE_NAME  = 0;
@@ -67,8 +68,8 @@ export const SceneProductShowcase: React.FC<SceneProductShowcaseProps & SharedSc
         </AbsoluteFill>
       )}
 
-      {/* GradientMesh spotlight at bottom */}
-      <GradientMesh colors={[accentColor, '#1e3a5f', bgColor]} speed={0.5} opacity={0.30} />
+      {/* Variant background */}
+      <VariantBackground variant={variant} accentColor={accentColor} />
 
       <NoiseOverlay />
 

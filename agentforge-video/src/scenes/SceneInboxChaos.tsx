@@ -6,18 +6,19 @@ import { Audio } from '@remotion/media';
 import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
-import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
-import { ParticleField } from '../shared/ParticleField';
+import { useVisualVariant } from '../shared/useVisualVariant';
+import { VariantBackground } from '../shared/VariantBackground';
 import type { SceneInboxChaosProps, SharedSceneProps } from '../types';
 
 export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> = ({
   items, punchWords,
-  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal, variantId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
-  const av = accentVariants(accentColor);
+  const variant = useVisualVariant(variantId, accentColor);
+  const av = variant.av;
   const layout = useSceneLayout();
 
   const CUE_W1    = dur * 0.06;
@@ -53,8 +54,8 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
         </>
       )}
 
-      {/* Particle noise — drifting dots like scattered messages */}
-      <ParticleField color={accentColor} count={60} opacity={0.15} speed={0.5} maxRadius={2.2} />
+      {/* Variant background */}
+      <VariantBackground variant={variant} accentColor={accentColor} />
       {/* Left accent glow */}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 15% 50%, ${av.glow} 0%, transparent 55%)` }} />
       <NoiseOverlay />

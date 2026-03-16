@@ -6,19 +6,19 @@ import { Audio } from '@remotion/media';
 import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
-import { GradientMesh } from '../shared/GradientMesh';
-import { ScanlineEffect } from '../shared/ScanlineEffect';
-import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
+import { useVisualVariant } from '../shared/useVisualVariant';
+import { VariantBackground } from '../shared/VariantBackground';
 import type { SceneOfferCountdownProps, SharedSceneProps } from '../types';
 
 export const SceneOfferCountdown: React.FC<SceneOfferCountdownProps & SharedSceneProps> = ({
   badge, offer, benefit, urgency,
-  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal, variantId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
-  const av = accentVariants(accentColor);
+  const variant = useVisualVariant(variantId, accentColor);
+  const av = variant.av;
   const layout = useSceneLayout();
 
   const CUE_BADGE   = 0;
@@ -57,11 +57,8 @@ export const SceneOfferCountdown: React.FC<SceneOfferCountdownProps & SharedScen
         </>
       )}
 
-      {/* Urgent red-tinted gradient mesh */}
-      <GradientMesh colors={['#ef4444', accentColor, '#7c1d1d']} speed={0.8} opacity={0.30} />
-
-      {/* CRT scanlines for urgency feel */}
-      <ScanlineEffect opacity={0.06} spacing={4} color="rgba(255,80,80,1)" />
+      {/* Variant background */}
+      <VariantBackground variant={variant} accentColor={accentColor} />
 
       <NoiseOverlay />
 

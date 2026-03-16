@@ -7,18 +7,19 @@ import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
 import { WordByWord } from '../shared/WordByWord';
-import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
-import { GradientMesh } from '../shared/GradientMesh';
+import { useVisualVariant } from '../shared/useVisualVariant';
+import { VariantBackground } from '../shared/VariantBackground';
 import type { SceneFeatureListProps, SharedSceneProps } from '../types';
 
 export const SceneFeatureList: React.FC<SceneFeatureListProps & SharedSceneProps> = ({
   headlineLines, sub, features,
-  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal, variantId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
-  const av = accentVariants(accentColor);
+  const variant = useVisualVariant(variantId, accentColor);
+  const av = variant.av;
   const layout = useSceneLayout();
 
   const lineCues   = [dur * 0.04, dur * 0.14, dur * 0.24, dur * 0.34];
@@ -44,8 +45,8 @@ export const SceneFeatureList: React.FC<SceneFeatureListProps & SharedSceneProps
         </>
       )}
 
-      {/* Animated gradient mesh — replaces static radial */}
-      <GradientMesh colors={[accentColor, accentColor, bgColor]} speed={0.7} opacity={0.35} />
+      {/* Variant background */}
+      <VariantBackground variant={variant} accentColor={accentColor} />
       <NoiseOverlay />
 
       <AbsoluteFill style={{

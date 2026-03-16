@@ -8,7 +8,8 @@ import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
 import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
-import { ParticleField } from '../shared/ParticleField';
+import { useVisualVariant } from '../shared/useVisualVariant';
+import { VariantBackground } from '../shared/VariantBackground';
 import type { SceneStatsGridProps, SharedSceneProps } from '../types';
 
 const CHARS = '0123456789ABCDEFX';
@@ -60,10 +61,11 @@ const StatCard: React.FC<{
 
 export const SceneStatsGrid: React.FC<SceneStatsGridProps & SharedSceneProps> = ({
   title, sub, stats,
-  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal, variantId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
+  const variant = useVisualVariant(variantId, accentColor);
   const layout = useSceneLayout();
 
   const titleP  = spring({ frame, fps, config: { damping: 200 } });
@@ -82,8 +84,8 @@ export const SceneStatsGrid: React.FC<SceneStatsGridProps & SharedSceneProps> = 
         </>
       )}
 
-      {/* Particle field — data points drifting */}
-      <ParticleField color={accentColor} count={50} opacity={0.12} speed={0.4} maxRadius={2} />
+      {/* Variant background */}
+      <VariantBackground variant={variant} accentColor={accentColor} />
       {/* Center glow */}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 30%, ${accentVariants(accentColor).glow} 0%, transparent 60%)` }} />
       <NoiseOverlay />

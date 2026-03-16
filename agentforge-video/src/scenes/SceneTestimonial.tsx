@@ -7,19 +7,20 @@ import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
 import { WordByWord } from '../shared/WordByWord';
-import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
-import { GeometricShapes } from '../shared/GeometricShapes';
 import { ShimmerOverlay } from '../shared/ShimmerOverlay';
+import { useVisualVariant } from '../shared/useVisualVariant';
+import { VariantBackground } from '../shared/VariantBackground';
 import type { SceneTestimonialProps, SharedSceneProps } from '../types';
 
 export const SceneTestimonial: React.FC<SceneTestimonialProps & SharedSceneProps> = ({
   quote, name, role, company,
-  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal, variantId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur } = useVideoConfig();
-  const av = accentVariants(accentColor);
+  const variant = useVisualVariant(variantId, accentColor);
+  const av = variant.av;
   const layout = useSceneLayout();
 
   const CUE_QUOTE  = dur * 0.06;
@@ -49,8 +50,8 @@ export const SceneTestimonial: React.FC<SceneTestimonialProps & SharedSceneProps
         </>
       )}
 
-      {/* Geometric circles — give depth and frame */}
-      <GeometricShapes color={accentColor} opacity={0.07} count={6} style="circles" />
+      {/* Variant background */}
+      <VariantBackground variant={variant} accentColor={accentColor} />
       {/* Left accent glow */}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 25% 50%, ${av.glow} 0%, transparent 55%)` }} />
       <NoiseOverlay />

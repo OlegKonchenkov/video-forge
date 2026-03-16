@@ -6,20 +6,20 @@ import { Audio } from '@remotion/media';
 import { FONT, MONO_FONT } from '../font';
 import { NoiseOverlay } from '../shared/NoiseOverlay';
 import { SceneCounter } from '../shared/SceneCounter';
-import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
-import { GradientMesh } from '../shared/GradientMesh';
 import { KineticText } from '../shared/KineticText';
-import { GeometricShapes } from '../shared/GeometricShapes';
+import { useVisualVariant } from '../shared/useVisualVariant';
+import { VariantBackground } from '../shared/VariantBackground';
 import type { SceneBigStatProps, SharedSceneProps } from '../types';
 
 export const SceneBigStat: React.FC<SceneBigStatProps & SharedSceneProps> = ({
   value, unit, label, sub,
-  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal,
+  accentColor, bgColor, showImage, audioPath, sceneIndex, sceneTotal, variantId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames: dur, height } = useVideoConfig();
-  const av = accentVariants(accentColor);
+  const variant = useVisualVariant(variantId, accentColor);
+  const av = variant.av;
   const layout = useSceneLayout();
 
   const CUE_VALUE = dur * 0.10;
@@ -46,10 +46,8 @@ export const SceneBigStat: React.FC<SceneBigStatProps & SharedSceneProps> = ({
         </>
       )}
 
-      {/* Gradient mesh — dynamic centrepiece */}
-      <GradientMesh colors={[accentColor, accentColor, bgColor]} speed={1.0} opacity={0.4} />
-      {/* Expanding circles — suggest magnitude */}
-      <GeometricShapes color={accentColor} opacity={0.06} count={4} style="circles" />
+      {/* Variant background */}
+      <VariantBackground variant={variant} accentColor={accentColor} />
       {/* Central radial glow that blooms with stat */}
       <AbsoluteFill style={{
         background: `radial-gradient(ellipse at 50% 50%, ${av.glow} 0%, transparent 55%)`,
