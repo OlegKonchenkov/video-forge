@@ -83,7 +83,7 @@ export const SceneBigStat: React.FC<SceneBigStatProps & SharedSceneProps> = ({
               color: accentColor,
               lineHeight: 1,
               letterSpacing: '-4px',
-              textShadow: `0 2px 20px rgba(0,0,0,0.9), 0 0 80px ${av.glow}`,
+              textShadow: `0 2px 20px rgba(0,0,0,0.9), 0 0 100px ${av.glow}, 0 0 60px ${accentColor}`,
             }}
           />
         </div>
@@ -92,7 +92,7 @@ export const SceneBigStat: React.FC<SceneBigStatProps & SharedSceneProps> = ({
         <div style={{ opacity: unitOp, transform: `translateY(${unitY}px)` }}>
           <div style={{
             fontSize: layout.headingSize - 4, fontWeight: '700',
-            color: '#f1f5f9', fontFamily: FONT,
+            color: '#ffffff', fontFamily: FONT,
             textAlign: 'center' as const, letterSpacing: '3px',
             textTransform: 'uppercase' as const,
             textShadow: '0 2px 16px rgba(0,0,0,0.9)',

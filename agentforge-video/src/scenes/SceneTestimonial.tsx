@@ -64,7 +64,7 @@ export const SceneTestimonial: React.FC<SceneTestimonialProps & SharedSceneProps
         <div style={{
           opacity: cardOp, transform: `scale(${cardSc})`,
           position: 'relative' as const,
-          background: 'rgba(255,255,255,0.04)',
+          background: 'rgba(255,255,255,0.10)',
           backdropFilter: 'blur(12px)',
           border: `1px solid ${av.border}`,
           borderTop: `2px solid ${accentColor}`,
@@ -107,9 +107,9 @@ export const SceneTestimonial: React.FC<SceneTestimonialProps & SharedSceneProps
               frame={frame} fps={fps} startFrame={CUE_QUOTE} staggerFrames={3}
               style={{ flexWrap: 'wrap', justifyContent: 'center' }}
               wordStyle={{
-                fontSize: layout.headingSize - 14,
+                fontSize: layout.headingSize - 8,
                 fontWeight: '500',
-                color: '#f1f5f9',
+                color: '#ffffff',
                 fontFamily: FONT,
                 lineHeight: 1.5,
                 letterSpacing: '-0.3px',

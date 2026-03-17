@@ -50,16 +50,16 @@ export const SceneFeatureList: React.FC<SceneFeatureListProps & SharedSceneProps
 
       <AbsoluteFill style={{
         display: 'flex',
-        flexDirection: layout.direction,
-        alignItems: layout.isPortrait ? 'flex-start' : 'center',
+        flexDirection: 'column' as const,
+        alignItems: 'flex-start',
         justifyContent: 'center',
-        padding: `${layout.isPortrait ? layout.outerPadding * 0.7 : 48}px ${layout.outerPadding}px`,
-        gap: layout.isPortrait ? layout.innerGap * 0.65 : 60,
+        padding: `${layout.isPortrait ? layout.outerPadding * 0.7 : layout.outerPadding * 0.5}px ${layout.outerPadding}px`,
+        gap: layout.innerGap * 0.65,
         overflow: 'hidden',
         opacity: exitOp,
       }}>
-        {/* Left / Top: headline stagger */}
-        <div style={{ width: layout.isPortrait ? '100%' : 480, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8, overflow: 'hidden' }}>
+        {/* Top: headline stagger */}
+        <div style={{ width: '100%', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8, overflow: 'hidden' }}>
           {headlineLines.map((text, idx) => {
             const isLast = idx === headlineLines.length - 1;
             return (
@@ -69,9 +69,9 @@ export const SceneFeatureList: React.FC<SceneFeatureListProps & SharedSceneProps
                 frame={frame} fps={fps} startFrame={lineCues[idx]} staggerFrames={4}
                 style={{ overflow: 'hidden' }}
                 wordStyle={{
-                  fontSize: layout.isPortrait ? layout.headingSize - 6 : layout.headingSize,
+                  fontSize: layout.headingSize,
                   fontWeight: '800' as const,
-                  color: isLast ? accentColor : '#f1f5f9',
+                  color: isLast ? accentColor : '#ffffff',
                   fontFamily: FONT, lineHeight: 1.15, letterSpacing: '-1.5px',
                   textShadow: isLast ? `0 0 30px ${accentColor}, 0 2px 16px rgba(0,0,0,0.8)` : '0 2px 20px rgba(0,0,0,0.7)',
                 }}
@@ -80,14 +80,14 @@ export const SceneFeatureList: React.FC<SceneFeatureListProps & SharedSceneProps
           })}
 
           <div style={{ opacity: subOp, marginTop: 12 }}>
-            <div style={{ fontSize: layout.bodySize, color: 'rgba(148,163,184,0.85)', fontFamily: FONT, lineHeight: 1.65, maxWidth: 440, textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>
+            <div style={{ fontSize: layout.bodySize, color: 'rgba(148,163,184,0.85)', fontFamily: FONT, lineHeight: 1.65, maxWidth: 700, textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>
               {sub}
             </div>
           </div>
         </div>
 
-        {/* Right / Bottom: feature cards */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: layout.cardGap }}>
+        {/* Bottom: feature cards */}
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: layout.cardGap }}>
           {/* Live indicator */}
           <div style={{ opacity: headOp, display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', transform: `scale(${dotPulse})`, boxShadow: '0 0 8px #22c55e' }} />
@@ -109,7 +109,7 @@ export const SceneFeatureList: React.FC<SceneFeatureListProps & SharedSceneProps
                 borderLeft: `3px solid ${accentColor}`,
                 padding: '18px 22px',
                 display: 'flex', alignItems: 'center', gap: 18,
-                boxShadow: `0 4px 24px ${av.glow}`,
+                boxShadow: `0 4px 30px rgba(0,0,0,0.3), 0 4px 24px ${av.glow}`,
               }}>
                 {/* Icon */}
                 <div style={{ width: 44, height: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, overflow: 'hidden', background: av.glow, borderRadius: 12 }}>

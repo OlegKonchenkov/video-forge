@@ -74,7 +74,7 @@ export const SceneHowItWorks: React.FC<SceneHowItWorksProps & SharedSceneProps> 
           <div style={{
             fontSize: layout.headingSize,
             fontWeight: '800',
-            color: '#f1f5f9',
+            color: '#ffffff',
             fontFamily: FONT,
             letterSpacing: '-1.5px',
             textShadow: '0 2px 24px rgba(0,0,0,0.7)',
@@ -156,7 +156,7 @@ export const SceneHowItWorks: React.FC<SceneHowItWorksProps & SharedSceneProps> 
                   <div style={{
                     fontSize: layout.bodySize - 2,
                     fontWeight: '700',
-                    color: '#f1f5f9',
+                    color: '#ffffff',
                     fontFamily: FONT,
                     textAlign: 'center' as const,
                     lineHeight: 1.3,

@@ -51,16 +51,16 @@ export const SceneMapLocation: React.FC<SceneMapLocationProps & SharedSceneProps
 
       <AbsoluteFill style={{
         display: 'flex',
-        flexDirection: layout.direction,
+        flexDirection: 'column' as const,
         alignItems: 'center',
         justifyContent: 'center',
-        padding: layout.isPortrait ? `${layout.outerPadding}px ${layout.outerPadding}px` : '0',
+        padding: `${layout.outerPadding * 0.5}px ${layout.outerPadding}px`,
         gap: layout.innerGap,
         opacity: exitOp,
       }}>
         {/* Pin + ripples */}
         <div style={{
-          width: layout.isPortrait ? '100%' : '48%',
+          width: '100%',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           position: 'relative' as const,
           minHeight: layout.isPortrait ? 180 : undefined,
@@ -104,20 +104,18 @@ export const SceneMapLocation: React.FC<SceneMapLocationProps & SharedSceneProps
 
         {/* Info card — glassmorphic */}
         <div style={{
-          flex: layout.isPortrait ? undefined : 1,
-          width: layout.isPortrait ? '100%' : undefined,
-          padding: layout.isPortrait ? 0 : `0 ${layout.outerPadding * 0.75}px 0 0`,
+          width: '100%',
           opacity: infoOp,
           transform: `translateY(${infoY}px)`,
         }}>
           <div style={{
-            background: 'rgba(255,255,255,0.04)',
+            background: 'rgba(255,255,255,0.08)',
             borderRadius: 20,
             border: `1px solid ${av.border}`,
             borderLeft: `3px solid ${accentColor}`,
             padding: `${layout.innerGap}px`,
             display: 'flex', flexDirection: 'column', gap: layout.cardGap,
-            boxShadow: `0 0 40px ${av.glow}, inset 0 1px 0 rgba(255,255,255,0.06)`,
+            boxShadow: `0 4px 30px rgba(0,0,0,0.3), 0 0 40px ${av.glow}, inset 0 1px 0 rgba(255,255,255,0.06)`,
           }}>
             {/* Location label */}
             <div style={{ fontSize: layout.labelSize - 2, color: accentColor, fontFamily: MONO_FONT, letterSpacing: '3px', textTransform: 'uppercase' as const, marginBottom: -4, textShadow: `0 0 12px ${av.glow}` }}>
@@ -125,7 +123,7 @@ export const SceneMapLocation: React.FC<SceneMapLocationProps & SharedSceneProps
             </div>
 
             {/* City name */}
-            <div style={{ fontSize: layout.headingSize - 10, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1px', lineHeight: 1, textShadow: '0 0 20px rgba(0,0,0,0.8)' }}>
+            <div style={{ fontSize: layout.headingSize - 6, fontWeight: '800', color: '#ffffff', fontFamily: FONT, letterSpacing: '-1px', lineHeight: 1, textShadow: '0 0 20px rgba(0,0,0,0.8)' }}>
               {city}
             </div>
 

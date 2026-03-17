@@ -14,7 +14,7 @@ import { TechGrid } from '../shared/SvgDecorations';
 import { SceneBackground } from '../shared/SceneBackground';
 import type { SceneStatsGridProps, SharedSceneProps } from '../types';
 
-const CHARS = '0123456789ABCDEFX';
+const CHARS = '0123456789ABCDEF';
 
 function scramble(target: string, frame: number, cue: number): string {
   const elapsed = frame - cue;
@@ -50,7 +50,7 @@ const StatCard: React.FC<{
       borderTop: `3px solid ${accentColor}`,
       padding: isPortrait ? '24px 20px' : '36px 32px',
       display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center',
-      boxShadow: `0 0 30px ${av.glow}`,
+      boxShadow: `0 4px 30px rgba(0,0,0,0.35), 0 0 30px ${av.glow}`,
     }}>
       <div style={{ fontSize: displaySize, color: accentColor, fontFamily: FONT, fontWeight: '900', lineHeight: 1, letterSpacing: '-2px', textShadow: `0 0 40px ${av.glow}, 0 2px 16px rgba(0,0,0,0.8)` }}>
         {display}
@@ -96,7 +96,7 @@ export const SceneStatsGrid: React.FC<SceneStatsGridProps & SharedSceneProps> = 
       }}>
         {/* Title */}
         <div style={{ opacity: titleOp, transform: `translateY(${titleY}px)`, textAlign: 'center' as const }}>
-          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9', fontFamily: FONT, letterSpacing: '-1.5px', textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}>
+          <div style={{ fontSize: layout.headingSize, fontWeight: '800', color: '#ffffff', fontFamily: FONT, letterSpacing: '-1.5px', textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}>
             {title}
           </div>
           <div style={{ fontSize: layout.bodySize - 4, color: 'rgba(148,163,184,0.75)', fontFamily: FONT, marginTop: 8, textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>

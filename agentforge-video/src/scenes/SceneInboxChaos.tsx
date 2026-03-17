@@ -52,7 +52,7 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
   const punchFontSize = fitText(
     punchWords.reduce((a, b) => a.length > b.length ? a : b, ''),
     basePunchSize,
-    (layout.isPortrait ? layout.width : layout.width * 0.4) - layout.outerPadding * 2,
+    layout.width - layout.outerPadding * 2,
     1,
   );
 
@@ -69,15 +69,15 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
 
       <AbsoluteFill style={{
         display: 'flex',
-        flexDirection: layout.direction,
-        alignItems: 'center',
+        flexDirection: 'column' as const,
+        alignItems: 'flex-start',
         justifyContent: 'center',
-        padding: `${layout.isPortrait ? layout.outerPadding * 0.8 : 0}px ${layout.outerPadding}px`,
-        gap: layout.isPortrait ? layout.innerGap : 0,
+        padding: `${layout.isPortrait ? layout.outerPadding * 0.8 : layout.outerPadding * 0.5}px ${layout.outerPadding}px`,
+        gap: layout.innerGap * 0.7,
         opacity: exitOp,
       }}>
-        {/* ── Left / Top: stacked punchwords ── */}
-        <div style={{ width: layout.isPortrait ? '100%' : '40%', display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {/* ── Top: stacked punchwords ── */}
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 6 }}>
           {/* Label */}
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -99,7 +99,7 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
               <div style={{
                 fontSize: punchFontSize,
                 fontWeight: '900' as const,
-                color: i === 1 ? accentColor : '#f1f5f9',
+                color: i === 1 ? accentColor : '#ffffff',
                 fontFamily: FONT,
                 lineHeight: 1.0,
                 letterSpacing: '-2px',
@@ -113,8 +113,8 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
           ))}
         </div>
 
-        {/* ── Right / Bottom: email card stack ── */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: layout.cardGap * 0.8, paddingLeft: layout.isPortrait ? 0 : 44 }}>
+        {/* ── Bottom: email card stack ── */}
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: layout.cardGap * 0.8 }}>
           {displayItems.map((item, i) => {
             const cue = CUE_CARDS + i * CARD_GAP;
             const p   = spring({ frame: frame - cue, fps, config: { damping: 200 } });
@@ -124,7 +124,7 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
             return (
               <div key={i} style={{
                 opacity: op, transform: `translateX(${x}px)`,
-                background: item.urgent ? 'rgba(239,68,68,0.06)' : 'rgba(255,255,255,0.04)',
+                background: item.urgent ? 'rgba(239,68,68,0.06)' : 'rgba(255,255,255,0.08)',
                 border: `1px solid ${item.urgent ? 'rgba(239,68,68,0.4)' : av.border}`,
                 borderLeft: `3px solid ${item.urgent ? '#ef4444' : av.strong}`,
                 borderRadius: 12, padding: '14px 20px',

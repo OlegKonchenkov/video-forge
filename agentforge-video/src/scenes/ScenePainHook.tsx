@@ -34,7 +34,7 @@ export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
   const exitOp = interpolate(frame, [dur * 0.88, dur * 0.88 + 12], [1, 0.3], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   const baseHeadSize = layout.isPortrait ? layout.headingSize - 4 : layout.displaySize - 8;
-  const headFontSize = fitText(headline, baseHeadSize, (layout.isPortrait ? layout.width : layout.width * 0.5) - layout.outerPadding * 2, 3);
+  const headFontSize = fitText(headline, baseHeadSize, layout.width - layout.outerPadding * 2, 3);
 
   const badgeOp  = interpolate(frame - CUE_BADGE, [0, 14], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const subOp    = interpolate(frame - CUE_SUB, [0, 18], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
@@ -54,16 +54,16 @@ export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
 
       <AbsoluteFill style={{
         display: 'flex',
-        flexDirection: layout.direction,
-        alignItems: layout.isPortrait ? 'flex-start' : 'center',
+        flexDirection: 'column' as const,
+        alignItems: 'flex-start',
         justifyContent: 'center',
-        padding: `${layout.isPortrait ? layout.outerPadding * 0.85 : 0}px ${layout.outerPadding}px`,
-        gap: layout.isPortrait ? layout.innerGap : 0,
+        padding: `${layout.isPortrait ? layout.outerPadding * 0.85 : layout.outerPadding * 0.5}px ${layout.outerPadding}px`,
+        gap: layout.innerGap * 0.7,
         overflow: 'hidden',
         opacity: exitOp,
       }}>
-        {/* ── Left / Top: headline block ── */}
-        <div style={{ width: layout.isPortrait ? '100%' : '50%', display: 'flex', flexDirection: 'column', gap: 22 }}>
+        {/* ── Top: headline block ── */}
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 22 }}>
           {/* Terminal badge */}
           <div style={{
             opacity: badgeOp,
@@ -88,7 +88,7 @@ export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
               style={{
                 fontSize: headFontSize,
                 fontWeight: '800' as const,
-                color: '#f1f5f9',
+                color: '#ffffff',
                 fontFamily: FONT,
                 lineHeight: 1.08,
                 letterSpacing: '-2px',
@@ -99,14 +99,14 @@ export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
 
           {/* Sub */}
           <div style={{ opacity: subOp, transform: `translateY(${subY}px)` }}>
-            <div style={{ fontSize: layout.bodySize, color: 'rgba(148,163,184,0.85)', fontFamily: MONO_FONT, lineHeight: 1.55, maxWidth: 520, textShadow: '0 1px 10px rgba(0,0,0,0.8)' }}>
+            <div style={{ fontSize: layout.bodySize, color: 'rgba(148,163,184,0.85)', fontFamily: MONO_FONT, lineHeight: 1.55, maxWidth: 700, textShadow: '0 1px 10px rgba(0,0,0,0.8)' }}>
               {sub}
             </div>
           </div>
         </div>
 
-        {/* ── Right / Bottom: terminal pain cards ── */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: layout.cardGap, paddingLeft: layout.isPortrait ? 0 : 56 }}>
+        {/* ── Bottom: terminal pain cards ── */}
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: layout.cardGap }}>
           {painPoints.slice(0, layout.maxListItems).map((point, i) => {
             const cue = cardCues[i];
             const p   = spring({ frame: frame - cue, fps, config: { damping: 180, stiffness: 120 } });
@@ -121,7 +121,7 @@ export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
                 borderRadius: 8,
                 padding: '20px 24px',
                 display: 'flex', alignItems: 'center', gap: 16,
-                boxShadow: `0 0 20px ${av.glow}`,
+                boxShadow: `0 4px 30px rgba(0,0,0,0.3), 0 0 20px ${av.glow}`,
               }}>
                 <span style={{ fontSize: layout.labelSize, color: accentColor, fontFamily: MONO_FONT, fontWeight: '700', flexShrink: 0, letterSpacing: '1px' }}>
                   {termPrefixes[i]}

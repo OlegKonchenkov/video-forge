@@ -65,7 +65,7 @@ export const SceneTeamIntro: React.FC<SceneTeamIntroProps & SharedSceneProps> = 
             ◈ OUR TEAM
           </div>
           <div style={{
-            fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9',
+            fontSize: layout.headingSize, fontWeight: '800', color: '#ffffff',
             fontFamily: FONT, letterSpacing: '-1.5px', textShadow: '0 2px 20px rgba(0,0,0,0.7)',
           }}>
             {title}
@@ -91,7 +91,7 @@ export const SceneTeamIntro: React.FC<SceneTeamIntroProps & SharedSceneProps> = 
               <div key={i} style={{
                 opacity: op, transform: `translateY(${y}px)`,
                 width: layout.isPortrait ? '100%' : cardWidth,
-                background: 'rgba(255,255,255,0.04)',
+                background: 'rgba(255,255,255,0.08)',
                 borderRadius: 20,
                 border: `1px solid ${av.border}`,
                 borderLeft: layout.isPortrait ? `3px solid ${av.strong}` : undefined,
@@ -101,7 +101,7 @@ export const SceneTeamIntro: React.FC<SceneTeamIntroProps & SharedSceneProps> = 
                 flexDirection: layout.isPortrait ? 'row' : 'column',
                 alignItems: 'center',
                 gap: layout.isPortrait ? 20 : layout.cardGap * 0.55,
-                boxShadow: `0 0 30px ${av.glow}`,
+                boxShadow: `0 4px 30px rgba(0,0,0,0.3), 0 0 30px ${av.glow}`,
               }}>
                 {/* Avatar with shimmer sweep */}
                 <div style={{

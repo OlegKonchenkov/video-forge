@@ -58,7 +58,7 @@ export const SceneFaq: React.FC<SceneFaqProps & SharedSceneProps> = ({
             ◈ FAQ
           </div>
           <div style={{
-            fontSize: layout.headingSize - 4, fontWeight: '800', color: '#f1f5f9',
+            fontSize: layout.headingSize, fontWeight: '800', color: '#ffffff',
             fontFamily: FONT, letterSpacing: '-1px', textShadow: '0 2px 16px rgba(0,0,0,0.7)',
           }}>
             {title}
@@ -81,12 +81,12 @@ export const SceneFaq: React.FC<SceneFaqProps & SharedSceneProps> = ({
             return (
               <div key={i} style={{
                 opacity: qOp, transform: `translateX(${qX}px)`,
-                background: 'rgba(255,255,255,0.04)',
+                background: 'rgba(255,255,255,0.08)',
                 borderRadius: 16,
                 border: `1px solid ${av.border}`,
                 borderLeft: `3px solid ${accentColor}`,
                 padding: `${layout.isPortrait ? 18 : 24}px ${layout.isPortrait ? 20 : 28}px`,
-                boxShadow: `0 0 24px ${av.glow}`,
+                boxShadow: `0 4px 30px rgba(0,0,0,0.3), 0 0 24px ${av.glow}`,
               }}>
                 {/* Question */}
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>

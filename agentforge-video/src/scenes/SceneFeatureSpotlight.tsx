@@ -98,7 +98,7 @@ export const SceneFeatureSpotlight: React.FC<SceneFeatureSpotlightProps & Shared
           textAlign: 'center' as const,
         }}>
           <div style={{
-            fontSize: layout.headingSize, fontWeight: '800', color: '#f1f5f9',
+            fontSize: layout.headingSize, fontWeight: '800', color: '#ffffff',
             fontFamily: FONT, letterSpacing: '-1px',
             textShadow: '0 2px 16px rgba(0,0,0,0.7)',
           }}>

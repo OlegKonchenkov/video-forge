@@ -56,7 +56,7 @@ export const SceneCTA: React.FC<SceneCTAProps & SharedSceneProps> = ({
     catch { return ctaUrl; }
   })();
 
-  const ghostOp = interpolate(frame, [CUE_HEAD, CUE_HEAD + 25], [0, 0.04], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const ghostOp = interpolate(frame, [CUE_HEAD, CUE_HEAD + 25], [0, 0.02], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   const baseAccentSize = layout.isPortrait ? layout.headingSize - 2 : layout.displaySize - 6;
   const accentFontSize = fitText(accentLine, baseAccentSize, layout.width - layout.outerPadding * 2, 1);
@@ -90,7 +90,7 @@ export const SceneCTA: React.FC<SceneCTAProps & SharedSceneProps> = ({
           wordStyle={{
             fontSize: layout.isPortrait ? layout.headingSize - 4 : layout.displaySize - 12,
             fontWeight: '800' as const,
-            color: '#f1f5f9',
+            color: '#ffffff',
             fontFamily: FONT,
             lineHeight: 1.08,
             letterSpacing: '-2px',
@@ -114,7 +114,7 @@ export const SceneCTA: React.FC<SceneCTAProps & SharedSceneProps> = ({
         <div style={{ opacity: subOp, transform: `translateY(${subY}px)` }}>
           <div style={{
             fontSize: layout.bodySize, color: 'rgba(148,163,184,0.88)', fontFamily: FONT,
-            fontWeight: '400', lineHeight: 1.55, maxWidth: 560,
+            fontWeight: '400', lineHeight: 1.55, maxWidth: 700,
             textShadow: '0 1px 12px rgba(0,0,0,0.85)',
           }}>
             {sub}

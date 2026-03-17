@@ -25,20 +25,20 @@ function relativeLuminance(hex: string): number {
 
 export interface AccentVariants {
   solid:  string;   // full opacity — accent text, icons
-  glow:   string;   // 0.25 — halos, radial glow
-  strong: string;   // 0.45 — card left border highlight
-  border: string;   // 0.22 — card borders
-  bg:     string;   // 0.07 — card backgrounds
+  glow:   string;   // 0.35 — halos, radial glow
+  strong: string;   // 0.55 — card left border highlight
+  border: string;   // 0.38 — card borders
+  bg:     string;   // 0.14 — card backgrounds
 }
 
 export function accentVariants(hex: string): AccentVariants {
   const safe = /^#[0-9a-fA-F]{3,6}$/.test(hex) ? hex : '#3b82f6';
   return {
     solid:  safe,
-    glow:   toRgba(safe, 0.25),
-    strong: toRgba(safe, 0.45),
-    border: toRgba(safe, 0.22),
-    bg:     toRgba(safe, 0.07),
+    glow:   toRgba(safe, 0.35),
+    strong: toRgba(safe, 0.55),
+    border: toRgba(safe, 0.38),
+    bg:     toRgba(safe, 0.14),
   };
 }
 
@@ -109,7 +109,7 @@ export function themeVariants(
     surface:     safeSurface,
     overlay:     isDark ? 'rgba(0,0,0,0.50)' : toRgba(safeBg, 0.60),
     textPrimary: isDark ? '#f1f5f9' : '#0f172a',
-    textMuted:   isDark ? 'rgba(241,245,249,0.55)' : 'rgba(15,23,42,0.55)',
+    textMuted:   isDark ? 'rgba(241,245,249,0.70)' : 'rgba(15,23,42,0.55)',
     accent:      safeAccent,
   };
 }

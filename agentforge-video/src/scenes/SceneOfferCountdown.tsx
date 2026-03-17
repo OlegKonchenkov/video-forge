@@ -97,7 +97,7 @@ export const SceneOfferCountdown: React.FC<SceneOfferCountdownProps & SharedScen
           <div style={{
             fontSize: offerFontSize,
             fontWeight: '900',
-            color: '#f1f5f9',
+            color: '#ffffff',
             fontFamily: FONT,
             lineHeight: 1.05,
             letterSpacing: '-2px',

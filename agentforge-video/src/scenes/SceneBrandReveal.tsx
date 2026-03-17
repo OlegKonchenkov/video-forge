@@ -44,7 +44,7 @@ export const SceneBrandReveal: React.FC<SceneBrandRevealProps & SharedSceneProps
   const tagY     = interpolate(spring({ frame: frame - CUE_TAGLINE, fps, config: { damping: 200 } }), [0, 1], [24, 0]);
   const urlOp    = interpolate(frame - CUE_URL, [0, 16], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
-  const baseBrandSize = layout.isPortrait ? layout.headingSize + 8 : layout.displaySize + 14;
+  const baseBrandSize = layout.isPortrait ? layout.headingSize + 8 : layout.displaySize + 24;
   const brandFontSize = fitSingleLine(brandName, baseBrandSize, layout.width - layout.outerPadding * 2 - 40);
 
   return (
@@ -90,7 +90,7 @@ export const SceneBrandReveal: React.FC<SceneBrandRevealProps & SharedSceneProps
               fontFamily: FONT,
               letterSpacing: '-3px',
               lineHeight: 1.0,
-              textShadow: `0 4px 40px rgba(0,0,0,0.9), 0 0 80px ${av.glow}`,
+              textShadow: `0 4px 40px rgba(0,0,0,0.9), 0 0 100px ${av.glow}, 0 0 60px ${accentColor}`,
             }}
           />
           <ShimmerOverlay color="#ffffff" periodFrames={80} opacity={0.55} />
@@ -109,7 +109,7 @@ export const SceneBrandReveal: React.FC<SceneBrandRevealProps & SharedSceneProps
           <div style={{
             fontSize: layout.isPortrait ? layout.bodySize + 2 : layout.headingSize - 10,
             color: 'rgba(226,232,240,0.90)',
-            fontFamily: FONT, fontWeight: '400', lineHeight: 1.45, maxWidth: 620,
+            fontFamily: FONT, fontWeight: '400', lineHeight: 1.45, maxWidth: 800,
             textShadow: '0 2px 16px rgba(0,0,0,0.8)',
           }}>
             {tagline}

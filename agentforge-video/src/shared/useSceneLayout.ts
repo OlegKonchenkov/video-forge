@@ -29,15 +29,16 @@ export function useSceneLayout(): SceneLayout {
     width,
     height,
     // Portrait (9:16): Instagram Reel style — fill vertical space generously
-    displaySize:     isPortrait ? 100 : 96,
-    headingSize:     isPortrait ? 54  : 56,
-    bodySize:        isPortrait ? 26  : 28,
-    labelSize:       isPortrait ? 15  : 16,
-    outerPadding:    isPortrait ? 56  : 80,
+    // Landscape (16:9): Video text needs ~35-40% larger than UI text
+    displaySize:     isPortrait ? 120 : 140,
+    headingSize:     isPortrait ? 64  : 76,
+    bodySize:        isPortrait ? 32  : 36,
+    labelSize:       isPortrait ? 17  : 19,
+    outerPadding:    isPortrait ? 52  : 72,
     innerGap:        isPortrait ? 48  : 40,
-    cardGap:         isPortrait ? 22  : 28,
+    cardGap:         isPortrait ? 24  : 24,
     direction:       isPortrait ? 'column' : 'row',
-    maxContentWidth: isPortrait ? width - 112 : 1200,
+    maxContentWidth: isPortrait ? width - 104 : 1500,
     maxListItems:    isPortrait ? 3 : 3,
   };
 }
