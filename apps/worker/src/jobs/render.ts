@@ -1,5 +1,5 @@
 // apps/worker/src/jobs/render.ts
-import { execSync } from 'child_process';
+import { execFile } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import axios from 'axios';
@@ -7,6 +7,7 @@ import type { VideoScript } from '../types/script';
 import { cleanupCodex, type CodexResult } from './codexgen';
 
 const REMOTION_ROOT = path.resolve(__dirname, '../../../../agentforge-video');
+const RENDER_TIMEOUT = Number(process.env.RENDER_TIMEOUT_MS) || 600_000; // 10 min default
 
 // ─── Music resolution ─────────────────────────────────────────────────────────
 
@@ -91,13 +92,40 @@ export async function renderVideo({ videoId, script, audioPaths, imagePaths, wor
 
   // CODEX mode: use generated entry point; PREFAB mode: default entry
   const compositionId = codexResult ? 'CodexAd' : 'AgentForgeAd';
-  const entryArg      = codexResult ? `${codexResult.entryFile} ` : '';
+
+  // Build args array for execFile (avoids shell parsing issues)
+  const remotionBin = path.join(REMOTION_ROOT, 'node_modules', '.bin', 'remotion');
+  const args = ['render'];
+  if (codexResult) args.push(codexResult.entryFile);
+  args.push(compositionId, outPath, '--codec', 'h264', '--props', propsPath);
+
+  console.log(`[render] starting remotion render (timeout: ${RENDER_TIMEOUT}ms)`);
+  console.log(`[render] cmd: remotion ${args.join(' ')}`);
 
   try {
-    execSync(
-      `npx remotion render ${entryArg}${compositionId} "${outPath}" --codec h264 --props "${propsPath}"`,
-      { cwd: REMOTION_ROOT, stdio: 'pipe', timeout: 300_000 }
-    );
+    await new Promise<void>((resolve, reject) => {
+      const proc = execFile(remotionBin, args, {
+        cwd: REMOTION_ROOT,
+        timeout: RENDER_TIMEOUT,
+        maxBuffer: 50 * 1024 * 1024, // 50 MB stdout buffer
+      }, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`[render] FAILED: ${error.message}`);
+          if (stderr) console.error(`[render] stderr: ${stderr.slice(-2000)}`);
+          if (stdout) console.log(`[render] stdout (last 1000): ${stdout.slice(-1000)}`);
+          reject(error);
+        } else {
+          console.log(`[render] completed successfully`);
+          resolve();
+        }
+      });
+
+      // Stream progress to logs in real-time
+      proc.stderr?.on('data', (chunk: Buffer) => {
+        const line = chunk.toString().trim();
+        if (line) process.stderr.write(`[remotion] ${line}\n`);
+      });
+    });
   } finally {
     // Cleanup codex files after render (success or failure)
     if (codexResult) {
