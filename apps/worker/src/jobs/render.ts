@@ -8,6 +8,8 @@ import { cleanupCodex, type CodexResult } from './codexgen';
 
 const REMOTION_ROOT = path.resolve(__dirname, '../../../../agentforge-video');
 const RENDER_TIMEOUT = Number(process.env.RENDER_TIMEOUT_MS) || 600_000; // 10 min default
+const RENDER_CONCURRENCY = Number(process.env.RENDER_CONCURRENCY) || 1;
+const RENDER_GL = process.env.RENDER_GL || 'angle';
 
 // ─── Music resolution ─────────────────────────────────────────────────────────
 
@@ -98,8 +100,10 @@ export async function renderVideo({ videoId, script, audioPaths, imagePaths, wor
   const args = ['render'];
   if (codexResult) args.push(codexResult.entryFile);
   args.push(compositionId, outPath, '--codec', 'h264', '--props', propsPath);
+  args.push(`--concurrency=${RENDER_CONCURRENCY}`, `--gl=${RENDER_GL}`);
 
   console.log(`[render] starting remotion render (timeout: ${RENDER_TIMEOUT}ms)`);
+  console.log(`[render] config: concurrency=${RENDER_CONCURRENCY}, gl=${RENDER_GL}`);
   console.log(`[render] cmd: remotion ${args.join(' ')}`);
 
   try {
