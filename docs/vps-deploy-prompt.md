@@ -77,35 +77,20 @@ CODEX_MODEL=gpt-5                    # default: gpt-5
 CODEX_REASONING_EFFORT=medium        # low | medium | high
 CODEX_SCENE_TIMEOUT_MS=120000        # per-scene generation timeout
 
-# ⭐ Remotion skill directory (new — optional)
-# If remotion-best-practices skill is installed at a non-default path:
-# REMOTION_SKILL_DIR=/path/to/.agents/skills/remotion-best-practices/rules
-# Default: ~/.agents/skills/remotion-best-practices/rules
+# ⭐ Remotion skill directory (new — usually NOT needed)
+# Skill rules are now bundled in the repo at agentforge-video/skill-rules/
+# The worker auto-detects them. Only set this to override:
+# REMOTION_SKILL_DIR=/custom/path/to/rules
 ```
 
-## Remotion Skill for Codex Mode (Optional)
+## Remotion Skill for Codex Mode
 
-If you want CODEX mode (AI-generated scenes) to work, the worker needs the `remotion-best-practices` skill files on disk. The codex generator reads `.md` rule files from the skill directory.
+The 14 Remotion skill rule files + the project-specific codex reference doc (`docs/remotion-codex-skill.md`) are now **bundled in the repo**:
 
-**Option A** — If the skill is already installed via Claude Code:
-```bash
-# Verify it exists
-ls ~/.agents/skills/remotion-best-practices/rules/
-# Should contain: animations.md, timing.md, fonts.md, etc.
-```
+- `agentforge-video/skill-rules/` — 14 `.md` rule files (animations, timing, fonts, etc.)
+- `docs/remotion-codex-skill.md` — project-specific scene generation reference (17 sections)
 
-**Option B** — Copy the project's codex skill doc as a standalone fallback:
-```bash
-# The codexgen.ts has an embedded fallback summary if the skill dir is missing,
-# so this is optional. But for best quality, install the skill or set REMOTION_SKILL_DIR.
-```
-
-**Option C** — Point to the project's own doc:
-```bash
-# The project now includes docs/remotion-codex-skill.md (17-section reference).
-# You could set REMOTION_SKILL_DIR to a directory containing these rules,
-# or the embedded fallback in codexgen.ts will be used automatically.
-```
+The worker auto-detects `agentforge-video/skill-rules/` first, then falls back to `~/.agents/skills/...`, then to an embedded summary. **No manual setup needed after `git pull`.**
 
 ## Restart Services
 

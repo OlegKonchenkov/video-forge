@@ -15,7 +15,10 @@ const CODEX_REASONING_EFFORT = (process.env.CODEX_REASONING_EFFORT || 'medium') 
 // Reads the remotion-best-practices skill files from disk (all relevant .md rules)
 // and caches the result. Falls back to embedded summary if skill directory not found.
 
+// Priority: env override → in-repo skill-rules (always available) → home dir fallback
+const IN_REPO_SKILL_DIR = path.join(REMOTION_ROOT, 'skill-rules');
 const SKILL_DIR = process.env.REMOTION_SKILL_DIR
+  || (fs.existsSync(IN_REPO_SKILL_DIR) ? IN_REPO_SKILL_DIR : null)
   || path.join(process.env.HOME || process.env.USERPROFILE || '', '.agents', 'skills', 'remotion-best-practices', 'rules');
 
 // Only load rules relevant to scene component generation (skip 3d, ffmpeg, captions, maps, lottie, gifs, etc.)
@@ -45,9 +48,14 @@ function loadRemotionSkill(): string {
           parts.push(`\n---\n# Rule: ${rule}\n${fs.readFileSync(rulePath, 'utf-8')}`);
         }
       }
+      // Append project-specific codex skill doc (covers our shared utils, timing patterns, hard rules)
+      const projectSkillPath = path.join(REMOTION_ROOT, '..', 'docs', 'remotion-codex-skill.md');
+      if (fs.existsSync(projectSkillPath)) {
+        parts.push(`\n---\n# PROJECT-SPECIFIC SCENE GENERATION RULES\n${fs.readFileSync(projectSkillPath, 'utf-8')}`);
+      }
       if (parts.length > 0) {
         _cachedSkillContent = parts.join('\n');
-        console.log(`[codex] loaded remotion skill: ${parts.length} rule files from ${SKILL_DIR}`);
+        console.log(`[codex] loaded remotion skill: ${parts.length} sections from ${SKILL_DIR}`);
         return _cachedSkillContent;
       }
     }
