@@ -8,7 +8,6 @@ import { slide }     from '@remotion/transitions/slide';
 import { wipe }      from '@remotion/transitions/wipe';
 import { clockWipe } from '@remotion/transitions/clock-wipe';
 import { flip }      from '@remotion/transitions/flip';
-import { LightLeak } from '@remotion/light-leaks';
 import { TRANSITION_FRAMES } from './constants';
 import { SCENE_REGISTRY } from './sceneRegistry';
 import type { AgentForgeAdProps, SharedSceneProps } from './types';
@@ -93,10 +92,7 @@ export const AgentForgeAd: React.FC<AgentForgeAdProps> = ({
         })}
       </TransitionSeries>
 
-      {/* Cinematic light leak overlay — subtle film-quality warmth */}
-      <AbsoluteFill style={{ mixBlendMode: 'screen' as const, opacity: 0.09, pointerEvents: 'none' as const }}>
-        <LightLeak seed={7} />
-      </AbsoluteFill>
+      {/* NOTE: LightLeak removed — requires WebGL which is unavailable on headless VPS */}
     </AbsoluteFill>
   );
 };
