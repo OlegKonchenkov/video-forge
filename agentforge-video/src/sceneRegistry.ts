@@ -19,6 +19,13 @@ import { SceneBigStat }        from './scenes/SceneBigStat';
 import { SceneMissionStatement }from './scenes/SceneMissionStatement';
 import { SceneSocialProof }     from './scenes/SceneSocialProof';
 import { SceneTimeline }        from './scenes/SceneTimeline';
+import { ScenePricingTable }   from './scenes/ScenePricingTable';
+import { SceneCaseStudy }      from './scenes/SceneCaseStudy';
+import { SceneFaq }            from './scenes/SceneFaq';
+import { SceneFeatureSpotlight }from './scenes/SceneFeatureSpotlight';
+import { SceneGuarantee }      from './scenes/SceneGuarantee';
+import { SceneClosingRecap }   from './scenes/SceneClosingRecap';
+import { SceneAnimatedChart }  from './scenes/SceneAnimatedChart';
 import type { SharedSceneProps } from './types';
 
 export const SCENE_REGISTRY: Record<string, React.FC<any & SharedSceneProps>> = {
@@ -41,4 +48,11 @@ export const SCENE_REGISTRY: Record<string, React.FC<any & SharedSceneProps>> = 
   mission_statement:SceneMissionStatement,
   social_proof:     SceneSocialProof,
   timeline:         SceneTimeline,
+  pricing_table:    ScenePricingTable,
+  case_study:       SceneCaseStudy,
+  faq:              SceneFaq,
+  feature_spotlight:SceneFeatureSpotlight,
+  guarantee:        SceneGuarantee,
+  closing_recap:    SceneClosingRecap,
+  animated_chart:   SceneAnimatedChart,
 };

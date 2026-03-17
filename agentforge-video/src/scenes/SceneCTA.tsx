@@ -11,6 +11,9 @@ import { useSceneLayout } from '../shared/useSceneLayout';
 import { useVisualVariant } from '../shared/useVisualVariant';
 import { VariantBackground } from '../shared/VariantBackground';
 import { ShimmerOverlay } from '../shared/ShimmerOverlay';
+import { CornerBrackets } from '../shared/SvgDecorations';
+import { fitText } from '../shared/fitText';
+import { SceneBackground } from '../shared/SceneBackground';
 import type { SceneCTAProps, SharedSceneProps } from '../types';
 
 export const SceneCTA: React.FC<SceneCTAProps & SharedSceneProps> = ({
@@ -55,17 +58,16 @@ export const SceneCTA: React.FC<SceneCTAProps & SharedSceneProps> = ({
 
   const ghostOp = interpolate(frame, [CUE_HEAD, CUE_HEAD + 25], [0, 0.04], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
+  const baseAccentSize = layout.isPortrait ? layout.headingSize - 2 : layout.displaySize - 6;
+  const accentFontSize = fitText(accentLine, baseAccentSize, layout.width - layout.outerPadding * 2, 1);
+
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
-      {showImage && (
-        <>
-          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.80)' }} />
-        </>
-      )}
+      <SceneBackground showImage={showImage} sceneIndex={sceneIndex} />
 
       {/* Variant background */}
       <VariantBackground variant={variant} accentColor={accentColor} />
+      <CornerBrackets color={accentColor} size={layout.isPortrait ? 20 : 30} offset={layout.isPortrait ? 32 : 44} startFrame={Math.round(CUE_HEAD)} />
       <NoiseOverlay />
 
       {/* Ghost brand watermark */}
@@ -84,7 +86,7 @@ export const SceneCTA: React.FC<SceneCTAProps & SharedSceneProps> = ({
         <WordByWord
           text={headline}
           frame={frame} fps={fps} startFrame={CUE_HEAD} staggerFrames={3}
-          style={{ flexWrap: 'wrap', gap: '0.18em', justifyContent: 'center', overflow: 'hidden' }}
+          style={{ flexWrap: 'wrap', justifyContent: 'center', overflow: 'hidden' }}
           wordStyle={{
             fontSize: layout.isPortrait ? layout.headingSize - 4 : layout.displaySize - 12,
             fontWeight: '800' as const,
@@ -99,7 +101,7 @@ export const SceneCTA: React.FC<SceneCTAProps & SharedSceneProps> = ({
         {/* Accent emphasis line */}
         <div style={{ opacity: accOp, transform: `translateY(${accY}px)` }}>
           <div style={{
-            fontSize: layout.isPortrait ? layout.headingSize - 2 : layout.displaySize - 6,
+            fontSize: accentFontSize,
             fontWeight: '900' as const, color: accentColor, fontFamily: FONT,
             lineHeight: 1.0, letterSpacing: '-2px',
             textShadow: `0 0 50px ${accentColor}, 0 2px 20px rgba(0,0,0,0.8)`,

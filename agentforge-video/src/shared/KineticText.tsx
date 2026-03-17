@@ -24,7 +24,7 @@ export const KineticText: React.FC<KineticTextProps> = ({
   const chars = text.split('');
 
   return (
-    <span style={{ display: 'inline-flex', flexWrap: 'wrap' as const, ...style }}>
+    <span style={{ display: 'inline-flex', flexWrap: 'wrap' as const, overflowWrap: 'break-word' as const, ...style }}>
       {chars.map((ch, i) => {
         const f = frame - startFrame - i * staggerFrames;
         let opacity = 1, blur = 0, y = 0, scale = 1;
@@ -50,7 +50,8 @@ export const KineticText: React.FC<KineticTextProps> = ({
               opacity,
               transform: `translateY(${y}px) scale(${scale})`,
               filter: blur > 0.1 ? `blur(${blur.toFixed(1)}px)` : undefined,
-              whiteSpace: ch === ' ' ? 'pre' as const : 'normal' as const,
+              whiteSpace: 'pre' as const,
+              minWidth: ch === ' ' ? '0.3em' : undefined,
             }}
           >
             {ch}

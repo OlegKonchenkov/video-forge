@@ -11,6 +11,8 @@ import { useSceneLayout } from '../shared/useSceneLayout';
 import { ShimmerOverlay } from '../shared/ShimmerOverlay';
 import { useVisualVariant } from '../shared/useVisualVariant';
 import { VariantBackground } from '../shared/VariantBackground';
+import { FloatingOrbs } from '../shared/SvgDecorations';
+import { SceneBackground } from '../shared/SceneBackground';
 import type { SceneTestimonialProps, SharedSceneProps } from '../types';
 
 export const SceneTestimonial: React.FC<SceneTestimonialProps & SharedSceneProps> = ({
@@ -43,15 +45,11 @@ export const SceneTestimonial: React.FC<SceneTestimonialProps & SharedSceneProps
 
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
-      {showImage && (
-        <>
-          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.78)' }} />
-        </>
-      )}
+      <SceneBackground showImage={showImage} sceneIndex={sceneIndex} overlayOpacity={0.78} />
 
       {/* Variant background */}
       <VariantBackground variant={variant} accentColor={accentColor} />
+      <FloatingOrbs color={av.glow} count={3} opacity={0.08} speed={0.010} />
       {/* Left accent glow */}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 25% 50%, ${av.glow} 0%, transparent 55%)` }} />
       <NoiseOverlay />
@@ -107,7 +105,7 @@ export const SceneTestimonial: React.FC<SceneTestimonialProps & SharedSceneProps
             <WordByWord
               text={quote}
               frame={frame} fps={fps} startFrame={CUE_QUOTE} staggerFrames={3}
-              style={{ flexWrap: 'wrap', gap: '0.22em', justifyContent: 'center' }}
+              style={{ flexWrap: 'wrap', justifyContent: 'center' }}
               wordStyle={{
                 fontSize: layout.headingSize - 14,
                 fontWeight: '500',

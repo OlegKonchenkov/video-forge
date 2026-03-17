@@ -9,6 +9,9 @@ import { SceneCounter } from '../shared/SceneCounter';
 import { useSceneLayout } from '../shared/useSceneLayout';
 import { useVisualVariant } from '../shared/useVisualVariant';
 import { VariantBackground } from '../shared/VariantBackground';
+import { resolveEmoji } from '../shared/emojiMap';
+import { CornerBrackets } from '../shared/SvgDecorations';
+import { SceneBackground } from '../shared/SceneBackground';
 import type { SceneHowItWorksProps, SharedSceneProps } from '../types';
 
 export const SceneHowItWorks: React.FC<SceneHowItWorksProps & SharedSceneProps> = ({
@@ -41,15 +44,11 @@ export const SceneHowItWorks: React.FC<SceneHowItWorksProps & SharedSceneProps> 
 
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
-      {showImage && (
-        <>
-          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.80)' }} />
-        </>
-      )}
+      <SceneBackground showImage={showImage} sceneIndex={sceneIndex} />
 
       {/* Variant background */}
       <VariantBackground variant={variant} accentColor={accentColor} />
+      <CornerBrackets color={accentColor} size={layout.isPortrait ? 16 : 24} offset={layout.isPortrait ? 28 : 40} startFrame={0} opacity={0.2} />
 
       <NoiseOverlay />
 
@@ -151,7 +150,7 @@ export const SceneHowItWorks: React.FC<SceneHowItWorksProps & SharedSceneProps> 
                   </div>
 
                   {/* Icon */}
-                  <div style={{ fontSize: layout.isPortrait ? 32 : 40, lineHeight: 1 }}>{step.icon}</div>
+                  <div style={{ fontSize: layout.isPortrait ? 32 : 40, lineHeight: 1 }}>{resolveEmoji(step.icon)}</div>
 
                   {/* Title */}
                   <div style={{

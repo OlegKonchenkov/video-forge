@@ -10,6 +10,8 @@ import { ShimmerOverlay } from '../shared/ShimmerOverlay';
 import { useSceneLayout } from '../shared/useSceneLayout';
 import { useVisualVariant } from '../shared/useVisualVariant';
 import { VariantBackground } from '../shared/VariantBackground';
+import { CornerBrackets } from '../shared/SvgDecorations';
+import { fitSingleLine } from '../shared/fitText';
 import type { SceneProductShowcaseProps, SharedSceneProps } from '../types';
 
 export const SceneProductShowcase: React.FC<SceneProductShowcaseProps & SharedSceneProps> = ({
@@ -47,6 +49,8 @@ export const SceneProductShowcase: React.FC<SceneProductShowcaseProps & SharedSc
 
   const exitOp = interpolate(frame, [dur * 0.88, dur * 0.88 + 10], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
+  const productFontSize = fitSingleLine(productName, layout.displaySize, layout.width - layout.outerPadding * 2 - 20);
+
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
       {/* Ken Burns image */}
@@ -70,6 +74,7 @@ export const SceneProductShowcase: React.FC<SceneProductShowcaseProps & SharedSc
 
       {/* Variant background */}
       <VariantBackground variant={variant} accentColor={accentColor} />
+      <CornerBrackets color={accentColor} size={layout.isPortrait ? 20 : 28} offset={layout.isPortrait ? 28 : 44} startFrame={0} />
 
       <NoiseOverlay />
 
@@ -104,7 +109,7 @@ export const SceneProductShowcase: React.FC<SceneProductShowcaseProps & SharedSc
           overflow: 'hidden',
         }}>
           <div style={{
-            fontSize: layout.displaySize,
+            fontSize: productFontSize,
             fontWeight: '900',
             color: '#ffffff',
             fontFamily: FONT,

@@ -9,6 +9,8 @@ import { SceneCounter } from '../shared/SceneCounter';
 import { useSceneLayout } from '../shared/useSceneLayout';
 import { useVisualVariant } from '../shared/useVisualVariant';
 import { VariantBackground } from '../shared/VariantBackground';
+import { Crosshair } from '../shared/SvgDecorations';
+import { SceneBackground } from '../shared/SceneBackground';
 import type { SceneMapLocationProps, SharedSceneProps } from '../types';
 
 export const SceneMapLocation: React.FC<SceneMapLocationProps & SharedSceneProps> = ({
@@ -39,15 +41,11 @@ export const SceneMapLocation: React.FC<SceneMapLocationProps & SharedSceneProps
 
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
-      {showImage && (
-        <>
-          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.78)' }} />
-        </>
-      )}
+      <SceneBackground showImage={showImage} sceneIndex={sceneIndex} overlayOpacity={0.78} />
 
       {/* Variant background */}
       <VariantBackground variant={variant} accentColor={accentColor} />
+      <Crosshair color={accentColor} size={layout.isPortrait ? 36 : 48} opacity={0.15} x={layout.isPortrait ? '50%' : '24%'} y={layout.isPortrait ? '30%' : '50%'} startFrame={Math.round(CUE_PIN)} />
 
       <NoiseOverlay />
 

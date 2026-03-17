@@ -28,16 +28,16 @@ export function useSceneLayout(): SceneLayout {
     isPortrait,
     width,
     height,
-    // Portrait (9:16): Instagram Reel style — fewer items, BIGGER text to fill vertical space
+    // Portrait (9:16): Instagram Reel style — fill vertical space generously
     displaySize:     isPortrait ? 100 : 96,
     headingSize:     isPortrait ? 54  : 56,
     bodySize:        isPortrait ? 26  : 28,
     labelSize:       isPortrait ? 15  : 16,
-    outerPadding:    isPortrait ? 72  : 80,
-    innerGap:        isPortrait ? 56  : 40,
-    cardGap:         isPortrait ? 24  : 28,
+    outerPadding:    isPortrait ? 56  : 80,
+    innerGap:        isPortrait ? 48  : 40,
+    cardGap:         isPortrait ? 22  : 28,
     direction:       isPortrait ? 'column' : 'row',
-    maxContentWidth: isPortrait ? width - 144 : 1200,
-    maxListItems:    isPortrait ? 2 : 3,
+    maxContentWidth: isPortrait ? width - 112 : 1200,
+    maxListItems:    isPortrait ? 3 : 3,
   };
 }

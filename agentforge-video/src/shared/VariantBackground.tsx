@@ -2,6 +2,7 @@
 // Renders the appropriate background primitive based on variant.bgPrimitive
 import React from 'react';
 import type { VisualVariant } from './useVisualVariant';
+import { hueRotate } from './colorUtils';
 import { ParticleField } from './ParticleField';
 import { GradientMesh } from './GradientMesh';
 import { GeometricShapes } from './GeometricShapes';
@@ -30,7 +31,7 @@ export const VariantBackground: React.FC<VariantBackgroundProps> = ({ variant, a
     case 'gradient_mesh':
       return (
         <GradientMesh
-          colors={[accentColor, accentColor, accentColor]}
+          colors={[accentColor, hueRotate(accentColor, 45), hueRotate(accentColor, -55)]}
           speed={(cfg.speed as number) ?? 1}
           opacity={(cfg.opacity as number) ?? 0.55}
         />

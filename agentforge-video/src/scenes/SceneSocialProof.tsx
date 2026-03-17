@@ -9,6 +9,8 @@ import { SceneCounter } from '../shared/SceneCounter';
 import { useSceneLayout } from '../shared/useSceneLayout';
 import { useVisualVariant } from '../shared/useVisualVariant';
 import { VariantBackground } from '../shared/VariantBackground';
+import { TechGrid } from '../shared/SvgDecorations';
+import { SceneBackground } from '../shared/SceneBackground';
 import type { SceneSocialProofProps, SharedSceneProps } from '../types';
 
 const CHARS = '0123456789';
@@ -49,15 +51,11 @@ export const SceneSocialProof: React.FC<SceneSocialProofProps & SharedSceneProps
 
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
-      {showImage && (
-        <>
-          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.78)' }} />
-        </>
-      )}
+      <SceneBackground showImage={showImage} sceneIndex={sceneIndex} overlayOpacity={0.78} />
 
       {/* Variant background */}
       <VariantBackground variant={variant} accentColor={accentColor} />
+      <TechGrid color={accentColor} cellSize={layout.isPortrait ? 44 : 52} opacity={0.035} />
 
       <NoiseOverlay />
 

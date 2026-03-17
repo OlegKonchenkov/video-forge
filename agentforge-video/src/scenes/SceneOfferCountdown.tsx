@@ -9,6 +9,8 @@ import { SceneCounter } from '../shared/SceneCounter';
 import { useSceneLayout } from '../shared/useSceneLayout';
 import { useVisualVariant } from '../shared/useVisualVariant';
 import { VariantBackground } from '../shared/VariantBackground';
+import { fitText } from '../shared/fitText';
+import { SceneBackground } from '../shared/SceneBackground';
 import type { SceneOfferCountdownProps, SharedSceneProps } from '../types';
 
 export const SceneOfferCountdown: React.FC<SceneOfferCountdownProps & SharedSceneProps> = ({
@@ -48,14 +50,12 @@ export const SceneOfferCountdown: React.FC<SceneOfferCountdownProps & SharedScen
 
   const exitOp = interpolate(frame, [dur * 0.88, dur * 0.88 + 10], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
+  const baseOfferSize = layout.headingSize + (layout.isPortrait ? 8 : 14);
+  const offerFontSize = fitText(offer, baseOfferSize, layout.width - layout.outerPadding * 2, 2);
+
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
-      {showImage && (
-        <>
-          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.80)' }} />
-        </>
-      )}
+      <SceneBackground showImage={showImage} sceneIndex={sceneIndex} />
 
       {/* Variant background */}
       <VariantBackground variant={variant} accentColor={accentColor} />
@@ -95,7 +95,7 @@ export const SceneOfferCountdown: React.FC<SceneOfferCountdownProps & SharedScen
         {/* Main offer text */}
         <div style={{ opacity: offerOp, transform: `translateY(${offerY}px)`, textAlign: 'center' as const }}>
           <div style={{
-            fontSize: layout.headingSize + (layout.isPortrait ? 8 : 14),
+            fontSize: offerFontSize,
             fontWeight: '900',
             color: '#f1f5f9',
             fontFamily: FONT,

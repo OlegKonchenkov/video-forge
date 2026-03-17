@@ -9,6 +9,9 @@ import { SceneCounter } from '../shared/SceneCounter';
 import { useSceneLayout } from '../shared/useSceneLayout';
 import { useVisualVariant } from '../shared/useVisualVariant';
 import { VariantBackground } from '../shared/VariantBackground';
+import { ScanBeam } from '../shared/SvgDecorations';
+import { fitText } from '../shared/fitText';
+import { SceneBackground } from '../shared/SceneBackground';
 import type { SceneInboxChaosProps, SharedSceneProps } from '../types';
 
 export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> = ({
@@ -45,17 +48,21 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
 
   const displayItems = items.slice(0, layout.isPortrait ? 3 : 4);
 
+  const basePunchSize = layout.isPortrait ? layout.headingSize : layout.displaySize - 6;
+  const punchFontSize = fitText(
+    punchWords.reduce((a, b) => a.length > b.length ? a : b, ''),
+    basePunchSize,
+    (layout.isPortrait ? layout.width : layout.width * 0.4) - layout.outerPadding * 2,
+    1,
+  );
+
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
-      {showImage && (
-        <>
-          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.82)' }} />
-        </>
-      )}
+      <SceneBackground showImage={showImage} sceneIndex={sceneIndex} overlayOpacity={0.82} />
 
       {/* Variant background */}
       <VariantBackground variant={variant} accentColor={accentColor} />
+      <ScanBeam color={accentColor} opacity={0.06} speed={0.006} />
       {/* Left accent glow */}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 15% 50%, ${av.glow} 0%, transparent 55%)` }} />
       <NoiseOverlay />
@@ -90,7 +97,7 @@ export const SceneInboxChaos: React.FC<SceneInboxChaosProps & SharedSceneProps> 
               transformOrigin: 'left center',
             }}>
               <div style={{
-                fontSize: layout.isPortrait ? layout.headingSize : layout.displaySize - 6,
+                fontSize: punchFontSize,
                 fontWeight: '900' as const,
                 color: i === 1 ? accentColor : '#f1f5f9',
                 fontFamily: FONT,

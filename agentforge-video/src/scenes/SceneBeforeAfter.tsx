@@ -10,6 +10,8 @@ import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
 import { useVisualVariant } from '../shared/useVisualVariant';
 import { VariantBackground } from '../shared/VariantBackground';
+import { CornerBrackets } from '../shared/SvgDecorations';
+import { SceneBackground } from '../shared/SceneBackground';
 import type { SceneBeforeAfterProps, SharedSceneProps } from '../types';
 
 const PointList: React.FC<{
@@ -91,12 +93,7 @@ export const SceneBeforeAfter: React.FC<SceneBeforeAfterProps & SharedSceneProps
 
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
-      {showImage && (
-        <>
-          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.82)' }} />
-        </>
-      )}
+      <SceneBackground showImage={showImage} sceneIndex={sceneIndex} overlayOpacity={0.82} />
 
       {/* Distinct color wash per column */}
       <AbsoluteFill style={{
@@ -105,6 +102,7 @@ export const SceneBeforeAfter: React.FC<SceneBeforeAfterProps & SharedSceneProps
 
       {/* Variant background */}
       <VariantBackground variant={variant} accentColor={accentColor} />
+      <CornerBrackets color={accentColor} size={layout.isPortrait ? 16 : 24} offset={layout.isPortrait ? 28 : 40} startFrame={Math.round(dur * 0.04)} opacity={0.18} />
 
       <NoiseOverlay />
 

@@ -1,10 +1,6 @@
 // agentforge-video/src/font.ts
-import { loadFont as loadBebasNeue }    from '@remotion/google-fonts/BebasNeue';
 import { loadFont as loadDMSans }       from '@remotion/google-fonts/DMSans';
 import { loadFont as loadJetBrainsMono } from '@remotion/google-fonts/JetBrainsMono';
-
-// Display font — condensed, cinematic headlines + big numbers
-export const { fontFamily: DISPLAY_FONT } = loadBebasNeue();
 
 // Body font — modern, legible, all descriptive copy
 export const { fontFamily: FONT } = loadDMSans('normal', {

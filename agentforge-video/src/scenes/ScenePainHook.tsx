@@ -10,6 +10,8 @@ import { useSceneLayout } from '../shared/useSceneLayout';
 import { KineticText } from '../shared/KineticText';
 import { useVisualVariant } from '../shared/useVisualVariant';
 import { VariantBackground } from '../shared/VariantBackground';
+import { fitText } from '../shared/fitText';
+import { SceneBackground } from '../shared/SceneBackground';
 import type { ScenePainHookProps, SharedSceneProps } from '../types';
 
 export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
@@ -31,6 +33,9 @@ export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
 
   const exitOp = interpolate(frame, [dur * 0.88, dur * 0.88 + 12], [1, 0.3], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
+  const baseHeadSize = layout.isPortrait ? layout.headingSize - 4 : layout.displaySize - 8;
+  const headFontSize = fitText(headline, baseHeadSize, (layout.isPortrait ? layout.width : layout.width * 0.5) - layout.outerPadding * 2, 3);
+
   const badgeOp  = interpolate(frame - CUE_BADGE, [0, 14], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const subOp    = interpolate(frame - CUE_SUB, [0, 18], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const subY     = interpolate(spring({ frame: frame - CUE_SUB, fps, config: { damping: 200 } }), [0, 1], [22, 0]);
@@ -40,12 +45,7 @@ export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
 
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
-      {showImage && (
-        <>
-          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.80)' }} />
-        </>
-      )}
+      <SceneBackground showImage={showImage} sceneIndex={sceneIndex} />
       {/* Diagonal tint */}
       <AbsoluteFill style={{ background: `linear-gradient(135deg, ${av.bg} 0%, transparent 58%)` }} />
       {/* Variant background */}
@@ -86,7 +86,7 @@ export const ScenePainHook: React.FC<ScenePainHookProps & SharedSceneProps> = ({
               type="blur-in"
               staggerFrames={2}
               style={{
-                fontSize: layout.isPortrait ? layout.headingSize - 4 : layout.displaySize - 8,
+                fontSize: headFontSize,
                 fontWeight: '800' as const,
                 color: '#f1f5f9',
                 fontFamily: FONT,

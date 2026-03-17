@@ -10,6 +10,9 @@ import { WordByWord } from '../shared/WordByWord';
 import { useSceneLayout } from '../shared/useSceneLayout';
 import { useVisualVariant } from '../shared/useVisualVariant';
 import { VariantBackground } from '../shared/VariantBackground';
+import { resolveEmoji } from '../shared/emojiMap';
+import { ScanBeam } from '../shared/SvgDecorations';
+import { SceneBackground } from '../shared/SceneBackground';
 import type { SceneFeatureListProps, SharedSceneProps } from '../types';
 
 export const SceneFeatureList: React.FC<SceneFeatureListProps & SharedSceneProps> = ({
@@ -38,15 +41,11 @@ export const SceneFeatureList: React.FC<SceneFeatureListProps & SharedSceneProps
 
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
-      {showImage && (
-        <>
-          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.78)' }} />
-        </>
-      )}
+      <SceneBackground showImage={showImage} sceneIndex={sceneIndex} overlayOpacity={0.78} />
 
       {/* Variant background */}
       <VariantBackground variant={variant} accentColor={accentColor} />
+      <ScanBeam color={accentColor} opacity={0.05} speed={0.005} thickness={1} />
       <NoiseOverlay />
 
       <AbsoluteFill style={{
@@ -114,7 +113,7 @@ export const SceneFeatureList: React.FC<SceneFeatureListProps & SharedSceneProps
               }}>
                 {/* Icon */}
                 <div style={{ width: 44, height: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, overflow: 'hidden', background: av.glow, borderRadius: 12 }}>
-                  {f.icon}
+                  {resolveEmoji(f.icon)}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: layout.bodySize, fontWeight: '700', color: '#f1f5f9', fontFamily: FONT, textShadow: '0 1px 10px rgba(0,0,0,0.7)' }}>{f.title}</div>

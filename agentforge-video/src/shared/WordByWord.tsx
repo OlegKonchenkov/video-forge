@@ -24,7 +24,7 @@ export const WordByWord: React.FC<WordByWordProps> = ({
 }) => {
   const words = text.split(' ');
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.22em', alignItems: 'baseline', ...style }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 0, alignItems: 'baseline', ...style }}>
       {words.map((word, i) => {
         const localFrame = frame - startFrame - i * staggerFrames;
         const progress = spring({ frame: localFrame, fps, config: { damping: 200 } });
@@ -37,6 +37,7 @@ export const WordByWord: React.FC<WordByWordProps> = ({
             opacity: op,
             transform: `translateY(${y}px)`,
             display: 'inline-block',
+            marginRight: i < words.length - 1 ? 8 : 0,
             color: isAccent ? accentColor : undefined,
             ...wordStyle,
           }}>

@@ -146,6 +146,55 @@ export interface SceneTimelineProps {
   events:    Array<{ year: string; label: string }>;   // 3-4 items
 }
 
+export interface ScenePricingTableProps {
+  voiceover: string;
+  title:     string;
+  tiers:     Array<{ name: string; price: string; features: string[]; popular?: boolean }>;
+}
+
+export interface SceneCaseStudyProps {
+  voiceover:    string;
+  clientName:   string;
+  clientRole:   string;
+  quote:        string;
+  metricLabel:  string;
+  metricBefore: string;
+  metricAfter:  string;
+}
+
+export interface SceneFaqProps {
+  voiceover: string;
+  title:     string;
+  items:     Array<{ question: string; answer: string }>;
+}
+
+export interface SceneFeatureSpotlightProps {
+  voiceover:   string;
+  icon:        string;
+  featureName: string;
+  description: string;
+  benefits:    [string, string, string];
+}
+
+export interface SceneGuaranteeProps {
+  voiceover:  string;
+  title:      string;
+  guarantees: [string, string, string];
+}
+
+export interface SceneClosingRecapProps {
+  voiceover: string;
+  title:     string;
+  points:    string[];    // 3-5 points
+  readyText: string;
+}
+
+export interface SceneAnimatedChartProps {
+  voiceover: string;
+  title:     string;
+  bars:      Array<{ label: string; value: number; displayValue: string; highlight?: boolean }>;
+}
+
 // ─── Discriminated union ─────────────────────────────────────────────────────
 export type SceneConfig =
   | { type: 'pain_hook';         showImage: boolean; variantId?: number; props: ScenePainHookProps }
@@ -166,7 +215,14 @@ export type SceneConfig =
   | { type: 'big_stat';          showImage: boolean; variantId?: number; props: SceneBigStatProps }
   | { type: 'mission_statement'; showImage: boolean; variantId?: number; props: SceneMissionStatementProps }
   | { type: 'social_proof';      showImage: boolean; variantId?: number; props: SceneSocialProofProps }
-  | { type: 'timeline';          showImage: boolean; variantId?: number; props: SceneTimelineProps };
+  | { type: 'timeline';          showImage: boolean; variantId?: number; props: SceneTimelineProps }
+  | { type: 'pricing_table';     showImage: boolean; variantId?: number; props: ScenePricingTableProps }
+  | { type: 'case_study';        showImage: boolean; variantId?: number; props: SceneCaseStudyProps }
+  | { type: 'faq';               showImage: boolean; variantId?: number; props: SceneFaqProps }
+  | { type: 'feature_spotlight'; showImage: boolean; variantId?: number; props: SceneFeatureSpotlightProps }
+  | { type: 'guarantee';         showImage: boolean; variantId?: number; props: SceneGuaranteeProps }
+  | { type: 'closing_recap';     showImage: boolean; variantId?: number; props: SceneClosingRecapProps }
+  | { type: 'animated_chart';    showImage: boolean; variantId?: number; props: SceneAnimatedChartProps };
   // Adding a new scene type: add entry here + sceneRegistry.ts + scriptgen.ts prompt
 
 // ─── Root composition props ───────────────────────────────────────────────────

@@ -10,6 +10,8 @@ import { accentVariants } from '../shared/colorUtils';
 import { useSceneLayout } from '../shared/useSceneLayout';
 import { useVisualVariant } from '../shared/useVisualVariant';
 import { VariantBackground } from '../shared/VariantBackground';
+import { TechGrid } from '../shared/SvgDecorations';
+import { SceneBackground } from '../shared/SceneBackground';
 import type { SceneStatsGridProps, SharedSceneProps } from '../types';
 
 const CHARS = '0123456789ABCDEFX';
@@ -77,15 +79,11 @@ export const SceneStatsGrid: React.FC<SceneStatsGridProps & SharedSceneProps> = 
 
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
-      {showImage && (
-        <>
-          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.80)' }} />
-        </>
-      )}
+      <SceneBackground showImage={showImage} sceneIndex={sceneIndex} />
 
       {/* Variant background */}
       <VariantBackground variant={variant} accentColor={accentColor} />
+      <TechGrid color={accentColor} cellSize={layout.isPortrait ? 48 : 60} opacity={0.04} />
       {/* Center glow */}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 30%, ${accentVariants(accentColor).glow} 0%, transparent 60%)` }} />
       <NoiseOverlay />

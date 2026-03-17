@@ -10,6 +10,8 @@ import { useSceneLayout } from '../shared/useSceneLayout';
 import { KineticText } from '../shared/KineticText';
 import { useVisualVariant } from '../shared/useVisualVariant';
 import { VariantBackground } from '../shared/VariantBackground';
+import { FloatingOrbs } from '../shared/SvgDecorations';
+import { SceneBackground } from '../shared/SceneBackground';
 import type { SceneBigStatProps, SharedSceneProps } from '../types';
 
 export const SceneBigStat: React.FC<SceneBigStatProps & SharedSceneProps> = ({
@@ -39,15 +41,11 @@ export const SceneBigStat: React.FC<SceneBigStatProps & SharedSceneProps> = ({
 
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
-      {showImage && (
-        <>
-          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.78)' }} />
-        </>
-      )}
+      <SceneBackground showImage={showImage} sceneIndex={sceneIndex} overlayOpacity={0.78} />
 
       {/* Variant background */}
       <VariantBackground variant={variant} accentColor={accentColor} />
+      <FloatingOrbs color={av.glow} count={4} opacity={0.10} speed={0.012} />
       {/* Central radial glow that blooms with stat */}
       <AbsoluteFill style={{
         background: `radial-gradient(ellipse at 50% 50%, ${av.glow} 0%, transparent 55%)`,

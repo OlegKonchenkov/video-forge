@@ -11,6 +11,9 @@ import { useVisualVariant } from '../shared/useVisualVariant';
 import { VariantBackground } from '../shared/VariantBackground';
 import { KineticText } from '../shared/KineticText';
 import { ShimmerOverlay } from '../shared/ShimmerOverlay';
+import { CornerBrackets } from '../shared/SvgDecorations';
+import { fitSingleLine } from '../shared/fitText';
+import { SceneBackground } from '../shared/SceneBackground';
 import type { SceneBrandRevealProps, SharedSceneProps } from '../types';
 
 export const SceneBrandReveal: React.FC<SceneBrandRevealProps & SharedSceneProps> = ({
@@ -41,17 +44,16 @@ export const SceneBrandReveal: React.FC<SceneBrandRevealProps & SharedSceneProps
   const tagY     = interpolate(spring({ frame: frame - CUE_TAGLINE, fps, config: { damping: 200 } }), [0, 1], [24, 0]);
   const urlOp    = interpolate(frame - CUE_URL, [0, 16], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
+  const baseBrandSize = layout.isPortrait ? layout.headingSize + 8 : layout.displaySize + 14;
+  const brandFontSize = fitSingleLine(brandName, baseBrandSize, layout.width - layout.outerPadding * 2 - 40);
+
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
-      {showImage && (
-        <>
-          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.78)' }} />
-        </>
-      )}
+      <SceneBackground showImage={showImage} sceneIndex={sceneIndex} overlayOpacity={0.78} />
 
       {/* Variant background */}
       <VariantBackground variant={variant} accentColor={accentColor} />
+      <CornerBrackets color={accentColor} size={layout.isPortrait ? 22 : 32} offset={layout.isPortrait ? 36 : 48} startFrame={Math.round(CUE_BRAND)} />
       <NoiseOverlay />
 
       <AbsoluteFill style={{
@@ -82,7 +84,7 @@ export const SceneBrandReveal: React.FC<SceneBrandRevealProps & SharedSceneProps
             type="slide-up"
             staggerFrames={4}
             style={{
-              fontSize: layout.isPortrait ? layout.headingSize + 8 : layout.displaySize + 14,
+              fontSize: brandFontSize,
               fontWeight: '900' as const,
               color: '#ffffff',
               fontFamily: FONT,

@@ -9,6 +9,8 @@ import { SceneCounter } from '../shared/SceneCounter';
 import { useSceneLayout } from '../shared/useSceneLayout';
 import { useVisualVariant } from '../shared/useVisualVariant';
 import { VariantBackground } from '../shared/VariantBackground';
+import { CornerBrackets } from '../shared/SvgDecorations';
+import { SceneBackground } from '../shared/SceneBackground';
 import type { SceneTimelineProps, SharedSceneProps } from '../types';
 
 export const SceneTimeline: React.FC<SceneTimelineProps & SharedSceneProps> = ({
@@ -45,15 +47,11 @@ export const SceneTimeline: React.FC<SceneTimelineProps & SharedSceneProps> = ({
 
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
-      {showImage && (
-        <>
-          <AbsoluteFill style={{ backgroundImage: `url(${staticFile(`images/scene_${sceneIndex}.png`)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <AbsoluteFill style={{ backgroundColor: 'rgba(0,0,0,0.78)' }} />
-        </>
-      )}
+      <SceneBackground showImage={showImage} sceneIndex={sceneIndex} overlayOpacity={0.78} />
 
       {/* Variant background */}
       <VariantBackground variant={variant} accentColor={accentColor} />
+      <CornerBrackets color={accentColor} size={layout.isPortrait ? 18 : 26} offset={layout.isPortrait ? 30 : 40} startFrame={Math.round(CUE_LINE)} opacity={0.2} />
 
       <NoiseOverlay />
 
@@ -178,7 +176,7 @@ export const SceneTimeline: React.FC<SceneTimelineProps & SharedSceneProps> = ({
                     fontFamily: FONT,
                     fontWeight: '600',
                     lineHeight: 1.3,
-                    maxWidth: layout.isPortrait ? undefined : 120,
+                    maxWidth: layout.isPortrait ? undefined : 180,
                     textShadow: '0 1px 8px rgba(0,0,0,0.8)',
                   }}>
                     {event.label}
